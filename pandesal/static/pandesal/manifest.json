@@ -1,0 +1,27 @@
+{
+  "name": "PandesalHub",
+  "short_name": "PandesalHub",
+  "description": "Freshly baked Filipino Pandesal and native delicacies",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f0fdf4",
+  "theme_color": "#16a34a",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/static/pandesal/img/pandesalhub_icon.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/static/pandesal/img/pandesalhub_icon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["food", "shopping", "business"],
+  "lang": "en",
+  "dir": "ltr"
+}

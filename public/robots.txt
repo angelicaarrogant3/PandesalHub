@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://pandesalhub.onrender.com/sitemap.xml
