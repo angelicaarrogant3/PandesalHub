@@ -33,7 +33,14 @@ CSRF_TRUSTED_ORIGINS = [
     if origin.strip()
 ]
 
-# Koyeb: set DJANGO_ALLOWED_HOSTS and DJANGO_CSRF_TRUSTED_ORIGINS as env vars in the Koyeb dashboard
+# Render auto-injects RENDER_EXTERNAL_HOSTNAME — add it automatically
+render_external_host = os.environ.get("RENDER_EXTERNAL_HOSTNAME")
+if render_external_host:
+    if render_external_host not in ALLOWED_HOSTS:
+        ALLOWED_HOSTS.append(render_external_host)
+    https_origin = f"https://{render_external_host}"
+    if https_origin not in CSRF_TRUSTED_ORIGINS:
+        CSRF_TRUSTED_ORIGINS.append(https_origin)
 
 # ----------------------------------------------------
 # APPLICATIONS
@@ -93,7 +100,7 @@ TEMPLATES = [
 WSGI_APPLICATION = 'pandesalhub.wsgi.application'
 
 # ----------------------------------------------------
-# DATABASE (Koyeb PostgreSQL or fallback SQLite)
+# DATABASE (Render/Supabase PostgreSQL or fallback SQLite)
 # ----------------------------------------------------
 DATABASES = {
     "default": dj_database_url.parse(
@@ -180,7 +187,7 @@ else:
 LOGIN_URL = '/login/'
 
 # ----------------------------------------------------
-# SSL (proxy SSL from Koyeb load balancer)
+# SSL (Render proxy)
 # ----------------------------------------------------
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 SECURE_SSL_REDIRECT = os.environ.get("DJANGO_SECURE_SSL_REDIRECT", "True").lower() in {"true", "1", "yes"}
