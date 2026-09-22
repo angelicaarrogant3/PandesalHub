@@ -5,6 +5,9 @@ echo "==> Installing dependencies..."
 pip install --upgrade pip
 pip install -r requirements.txt
 
+echo "==> Running pre-migration fix..."
+python pre_migrate.py
+
 echo "==> Running database migrations..."
 python manage.py migrate --noinput
 
