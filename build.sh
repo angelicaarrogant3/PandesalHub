@@ -1,11 +1,14 @@
 #!/usr/bin/env bash
 set -o errexit  # exit if any command fails
 
-# Install dependencies
+echo "==> Installing dependencies..."
+pip install --upgrade pip
 pip install -r requirements.txt
 
-# Run Django migrations
+echo "==> Running database migrations..."
 python manage.py migrate --noinput
 
-# Collect static files
+echo "==> Collecting static files..."
 python manage.py collectstatic --noinput
+
+echo "==> Build complete!"
