@@ -8,7 +8,7 @@ pip install -r requirements.txt
 
 
 echo "==> Running database migrations..."
-python manage.py migrate --fake-initial --noinput
+python manage.py migrate --noinput
 
 echo "==> Creating superuser (if not exists)..."
 python manage.py createsuperuser --noinput || true
