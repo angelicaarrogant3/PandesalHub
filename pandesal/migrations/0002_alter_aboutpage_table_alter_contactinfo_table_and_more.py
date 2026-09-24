@@ -10,6 +10,26 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
+        migrations.RunSQL(
+            sql=[
+                'DROP TABLE IF EXISTS "pandesal_aboutpage" CASCADE;',
+                'DROP TABLE IF EXISTS "pandesal_contactinfo" CASCADE;',
+                'DROP TABLE IF EXISTS "pandesal_feedback" CASCADE;',
+                'DROP TABLE IF EXISTS "pandesal_kakanin" CASCADE;',
+                'DROP TABLE IF EXISTS "pandesal_message" CASCADE;',
+                'DROP TABLE IF EXISTS "pandesal_notification" CASCADE;',
+                'DROP TABLE IF EXISTS "pandesal_order" CASCADE;',
+                'DROP TABLE IF EXISTS "pandesal_orderitem" CASCADE;',
+                'DROP TABLE IF EXISTS "pandesal_payment" CASCADE;',
+                'DROP TABLE IF EXISTS "pandesal_product" CASCADE;',
+                'DROP TABLE IF EXISTS "pandesal_rating" CASCADE;',
+                'DROP TABLE IF EXISTS "pandesal_reservation" CASCADE;',
+                'DROP TABLE IF EXISTS "pandesal_reservationcart" CASCADE;',
+                'DROP TABLE IF EXISTS "pandesal_reservationcartitem" CASCADE;',
+                'DROP TABLE IF EXISTS "pandesal_userprofile" CASCADE;',
+            ],
+            reverse_sql=migrations.RunSQL.noop
+        ),
         migrations.AlterModelTable(
             name='aboutpage',
             table='pandesal_aboutpage',

@@ -297,6 +297,7 @@ class Migration(migrations.Migration):
             ],
             options={
                 'db_table': 'kakanin_reservationcartitem',
+
                 'unique_together': {('cart', 'product', 'reservation_date', 'reservation_time')},
             },
         ),
