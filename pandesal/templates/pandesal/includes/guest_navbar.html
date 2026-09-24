@@ -1,0 +1,62 @@
+{% load static %}
+  <header class="site-header">
+    <div class="nav-container">
+      
+      <!-- Upper-Left: Logo + Name -->
+      <a href="{% url 'home' %}" class="brand-logo">
+        <img src="{% static 'pandesal/img/pandesalhub_icon.png' %}" alt="PandesalHub Logo" style="height: 40px; width: 40px; border-radius: 50%;">
+        <span class="brand-name">PandesalHub</span>
+      </a>
+
+      <!-- Desktop Center: Navigation Links -->
+      <nav class="nav-links">
+        <a href="{% url 'home' %}" class="nav-link {% if request.resolver_match.url_name == 'home' %}active{% endif %}">Home</a>
+        <a href="{% url 'shop' %}" class="nav-link {% if request.resolver_match.url_name == 'shop' %}active{% endif %}">Shop</a>
+        <a href="{% url 'about' %}" class="nav-link {% if request.resolver_match.url_name == 'about' %}active{% endif %}">About</a>
+        <a href="{% url 'contact' %}" class="nav-link {% if request.resolver_match.url_name == 'contact' %}active{% endif %}">Contact</a>
+      </nav>
+
+      <!-- Desktop Right: Auth Buttons -->
+      <div class="auth-buttons">
+        <a href="{% url 'login' %}" class="btn-login">Login</a>
+        <a href="{% url 'signup' %}" class="btn-signup">Sign Up</a>
+      </div>
+
+      <!-- Mobile Hamburger Button -->
+      <button class="mobile-menu-btn" onclick="toggleMobileMenu()">
+        <i class="fa-solid fa-bars"></i>
+      </button>
+
+    </div>
+  </header>
+
+  <!-- Mobile Sidebar Overlay -->
+  <div class="mobile-sidebar-overlay" id="mobileSidebar" onclick="toggleMobileMenu(event)">
+    <div class="mobile-sidebar-content" onclick="event.stopPropagation()">
+      <div class="mobile-sidebar-header">
+        <span class="brand-name" style="font-size: 20px;">Menu</span>
+        <button class="close-sidebar-btn" onclick="toggleMobileMenu()">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+      <nav class="mobile-nav-links">
+        <a href="{% url 'home' %}" class="mobile-nav-link {% if request.resolver_match.url_name == 'home' %}active{% endif %}">Home</a>
+        <a href="{% url 'shop' %}" class="mobile-nav-link {% if request.resolver_match.url_name == 'shop' %}active{% endif %}">Shop</a>
+        <a href="{% url 'about' %}" class="mobile-nav-link {% if request.resolver_match.url_name == 'about' %}active{% endif %}">About</a>
+        <a href="{% url 'contact' %}" class="mobile-nav-link {% if request.resolver_match.url_name == 'contact' %}active{% endif %}">Contact</a>
+      </nav>
+      <div class="mobile-auth-buttons">
+        <a href="{% url 'login' %}" class="btn-login" style="width: 100%; text-align: center; margin-bottom: 12px;">Login</a>
+        <a href="{% url 'signup' %}" class="btn-signup" style="width: 100%; text-align: center;">Sign Up</a>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function toggleMobileMenu(e) {
+      const sidebar = document.getElementById('mobileSidebar');
+      if (sidebar) {
+        sidebar.classList.toggle('active');
+      }
+    }
+  </script>

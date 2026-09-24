@@ -11,6 +11,10 @@
   <!-- Icon Libraries with CDN fallback -->
   <link rel="stylesheet" href="{% static 'pandesal/css/fontawesome/all.min.css' %}" />
   <link rel="icon" href="{% static 'pandesal/img/pandesalhub_icon.png' %}" type="image/png">
+
+  <style>
+    {% include "pandesal/includes/guest_navbar_style.html" %}
+  </style>
 </head>
 <body class="{% if user.is_authenticated and not user.is_superuser %}bg-gray-50 flex h-screen{% endif %}" style="background-image: url('{% static "pandesal/img/homebg.png" %}'); background-size: cover; background-position: center; background-repeat: no-repeat; background-attachment: fixed; background-color: #faf7f2;">
 
@@ -18,24 +22,7 @@
   {# User contact UI removed. Authenticated users are redirected to the Messages inbox by the view. #}
 {% else %}
   <!-- GUEST/ADMIN LAYOUT (public navbar) -->
-  <header class="bg-white shadow-md">
-    <div class="max-w-7xl mx-auto flex items-center px-8 py-4">
-      <div class="flex items-center space-x-3">
-        <img src="{% static 'pandesal/img/pandesalhub_icon.png' %}" alt="Logo" class="h-10 w-10 rounded-full">
-        <span class="text-xl font-bold text-green-800">PandesalHub</span>
-      </div>
-      <nav class="hidden md:flex items-center space-x-6 text-green-700 font-medium flex-1 justify-center">
-        <a href="{% url 'home' %}" class="hover:text-green-500">Home</a>
-        <a href="{% url 'shop' %}" class="hover:text-green-500">Shop</a>
-        <a href="{% url 'about' %}" class="hover:text-green-500">About</a>
-        <a href="{% url 'contact' %}" class="hover:text-green-500">Contact</a>
-      </nav>
-      <div class="flex items-center space-x-4">
-        <a href="{% url 'login' %}" class="px-4 py-2 border border-green-600 text-green-700 rounded-lg hover:bg-green-100">Login</a>
-        <a href="{% url 'signup' %}" class="px-4 py-2 bg-green-600 text-white rounded-lg shadow hover:bg-green-700">Sign Up</a>
-      </div>
-    </div>
-  </header>
+  {% include "pandesal/includes/guest_navbar.html" %}
 
   <main class="max-w-5xl mx-auto p-6 md:p-8">
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
