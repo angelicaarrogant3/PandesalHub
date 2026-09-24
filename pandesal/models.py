@@ -5,7 +5,7 @@ from django.utils import timezone
 
 class Product(models.Model):
     class Meta:
-        db_table = 'kakanin_product'
+        db_table = 'pandesal_product'
     name = models.CharField(max_length=255)
     price = models.DecimalField(max_digits=10, decimal_places=2)
     preparation_days = models.IntegerField(default=0)
@@ -19,7 +19,7 @@ class Product(models.Model):
 
 class UserProfile(models.Model):
     class Meta:
-        db_table = 'kakanin_userprofile'
+        db_table = 'pandesal_userprofile'
     # Naval, Biliran Barangays
     BARANGAY_CHOICES = [
         ('agpangi', 'Agpangi'),
@@ -86,7 +86,7 @@ class UserProfile(models.Model):
 
 class Kakanin(models.Model):
     class Meta:
-        db_table = 'kakanin_kakanin'
+        db_table = 'pandesal_kakanin'
     DAYS_OF_WEEK = [
         ('monday', 'Monday'),
         ('tuesday', 'Tuesday'),
@@ -200,7 +200,7 @@ class Kakanin(models.Model):
 
 class AboutPage(models.Model):
     class Meta:
-        db_table = 'kakanin_aboutpage'
+        db_table = 'pandesal_aboutpage'
     title = models.CharField(max_length=150, default="About PandesalHub")
     body = models.TextField()
     photo = models.ImageField(upload_to="about/", blank=True, null=True)
@@ -223,7 +223,7 @@ class ContactInfo(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        db_table = 'kakanin_contactinfo'
+        db_table = 'pandesal_contactinfo'
         verbose_name_plural = "Contact info"
 
     def __str__(self):
@@ -258,7 +258,7 @@ class Notification(models.Model):
     read = models.BooleanField(default=False)
 
     class Meta:
-        db_table = 'kakanin_notification'
+        db_table = 'pandesal_notification'
         ordering = ['-created_at']
 
     def __str__(self):
@@ -289,7 +289,7 @@ class Message(models.Model):
     reply_to = models.ForeignKey('self', on_delete=models.SET_NULL, null=True, blank=True, related_name='replies')
 
     class Meta:
-        db_table = 'kakanin_message'
+        db_table = 'pandesal_message'
         ordering = ['-created_at']
 
     def __str__(self):
@@ -346,7 +346,7 @@ class Order(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        db_table = 'kakanin_order'
+        db_table = 'pandesal_order'
         ordering = ['-created_at']
 
     def __str__(self):
@@ -363,7 +363,7 @@ class Order(models.Model):
 
 class OrderItem(models.Model):
     class Meta:
-        db_table = 'kakanin_orderitem'
+        db_table = 'pandesal_orderitem'
     """Individual items in an order"""
     order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='items')
     product = models.ForeignKey(Kakanin, on_delete=models.CASCADE)
@@ -382,7 +382,7 @@ class OrderItem(models.Model):
 
 class Payment(models.Model):
     class Meta:
-        db_table = 'kakanin_payment'
+        db_table = 'pandesal_payment'
     """Payment verification tracking"""
     order = models.OneToOneField(Order, on_delete=models.CASCADE, related_name='payment')
     amount = models.DecimalField(max_digits=10, decimal_places=2)
@@ -421,7 +421,7 @@ class Feedback(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        db_table = 'kakanin_feedback'
+        db_table = 'pandesal_feedback'
         ordering = ['-created_at']
 
     def is_guest(self):
@@ -464,7 +464,7 @@ class Reservation(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
     
     class Meta:
-        db_table = 'kakanin_reservation'
+        db_table = 'pandesal_reservation'
         ordering = ['-created_at']
     
     def __str__(self):
@@ -477,7 +477,7 @@ class Reservation(models.Model):
 
 class ReservationCart(models.Model):
     class Meta:
-        db_table = 'kakanin_reservationcart'
+        db_table = 'pandesal_reservationcart'
     """Shopping cart for reservations"""
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='reservation_cart')
     created_at = models.DateTimeField(auto_now_add=True)
@@ -516,7 +516,7 @@ class ReservationCartItem(models.Model):
     added_at = models.DateTimeField(auto_now_add=True)
     
     class Meta:
-        db_table = 'kakanin_reservationcartitem'
+        db_table = 'pandesal_reservationcartitem'
         unique_together = ['cart', 'product', 'reservation_date', 'reservation_time']
     
     def __str__(self):
@@ -570,7 +570,7 @@ class Rating(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
     
     class Meta:
-        db_table = 'kakanin_rating'
+        db_table = 'pandesal_rating'
         ordering = ['-created_at']
     
     def __str__(self):
