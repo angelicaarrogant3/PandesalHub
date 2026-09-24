@@ -1,10 +1,10 @@
 from django.contrib.sitemaps import Sitemap
 from django.urls import reverse
 
-from .models import AboutPage, ContactInfo, Feedback, Kakanin
+from .models import AboutPage, ContactInfo, Feedback, Pandesal
 
 
-class KakaninSitemap(Sitemap):
+class PandesalSitemap(Sitemap):
     changefreq = "weekly"
     priority = 0.8
 

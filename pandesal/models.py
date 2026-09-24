@@ -10,7 +10,7 @@ class Product(models.Model):
     price = models.DecimalField(max_digits=10, decimal_places=2)
     preparation_days = models.IntegerField(default=0)
     stock = models.IntegerField(default=0)
-    image = models.ImageField(upload_to='kakanin_images/', blank=True, null=True)
+    image = models.ImageField(upload_to='pandesal_images/', blank=True, null=True)
     description = models.TextField(blank=True, null=True)
 
     def __str__(self):
@@ -84,9 +84,9 @@ class UserProfile(models.Model):
         return address
 
 
-class Kakanin(models.Model):
+class Pandesal(models.Model):
     class Meta:
-        db_table = 'pandesal_kakanin'
+        db_table = 'pandesal_pandesal'
     DAYS_OF_WEEK = [
         ('monday', 'Monday'),
         ('tuesday', 'Tuesday'),
@@ -106,8 +106,8 @@ class Kakanin(models.Model):
     name = models.CharField(max_length=100)
     price = models.DecimalField(max_digits=6, decimal_places=2)
     description = models.TextField(blank=True, null=True)
-    image = models.ImageField(upload_to='kakanin_images/', blank=True, null=True)
-    categories = models.JSONField(default=list, blank=True, help_text="Categories of kakanin (can select multiple)")
+    image = models.ImageField(upload_to='pandesal_images/', blank=True, null=True)
+    categories = models.JSONField(default=list, blank=True, help_text="Categories of pandesal (can select multiple)")
     
     # Availability fields
     is_available = models.BooleanField(default=True, help_text="Is this product currently available?")
@@ -366,7 +366,7 @@ class OrderItem(models.Model):
         db_table = 'pandesal_orderitem'
     """Individual items in an order"""
     order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='items')
-    product = models.ForeignKey(Kakanin, on_delete=models.CASCADE)
+    product = models.ForeignKey(Pandesal, on_delete=models.CASCADE)
     quantity = models.PositiveIntegerField(default=1)
     price = models.DecimalField(max_digits=10, decimal_places=2, help_text="Price at time of order")
     subtotal = models.DecimalField(max_digits=10, decimal_places=2, help_text="quantity * price")
@@ -433,7 +433,7 @@ class Feedback(models.Model):
 
 
 class Reservation(models.Model):
-    """Reservation model for advance kakanin orders"""
+    """Reservation model for advance pandesal orders"""
     STATUS_CHOICES = [
         ('pending', 'Pending'),
         ('pending_payment', 'Pending Payment'),
@@ -447,7 +447,7 @@ class Reservation(models.Model):
     ]
     
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='reservations')
-    product = models.ForeignKey(Kakanin, on_delete=models.CASCADE, related_name='reservations')
+    product = models.ForeignKey(Pandesal, on_delete=models.CASCADE, related_name='reservations')
     quantity = models.PositiveIntegerField()
     total_amount = models.DecimalField(max_digits=10, decimal_places=2)
     downpayment_amount = models.DecimalField(max_digits=10, decimal_places=2)
@@ -508,7 +508,7 @@ class ReservationCart(models.Model):
 class ReservationCartItem(models.Model):
     """Individual items in reservation cart"""
     cart = models.ForeignKey(ReservationCart, on_delete=models.CASCADE, related_name='items')
-    product = models.ForeignKey(Kakanin, on_delete=models.CASCADE)
+    product = models.ForeignKey(Pandesal, on_delete=models.CASCADE)
     quantity = models.PositiveIntegerField(default=1)
     reservation_date = models.DateField()
     reservation_time = models.TimeField()

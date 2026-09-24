@@ -13,14 +13,14 @@ from pandesal.sitemaps import (
     AboutPageSitemap,
     ContactInfoSitemap,
     FeedbackSitemap,
-    KakaninSitemap,
+    PandesalSitemap,
     StaticPageSitemap,
     UserProfileSitemap,
 )
 
 
 sitemaps = {
-    'kakanin': KakaninSitemap,
+    'pandesal': PandesalSitemap,
     'user_profile': UserProfileSitemap,
     'about': AboutPageSitemap,
     'contact': ContactInfoSitemap,

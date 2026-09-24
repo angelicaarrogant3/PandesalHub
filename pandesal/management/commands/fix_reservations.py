@@ -1,12 +1,12 @@
 from django.core.management.base import BaseCommand
-from pandesal.models import Kakanin
+from pandesal.models import Pandesal
 
 
 class Command(BaseCommand):
     help = 'Fix all products to be available for reservation'
 
     def handle(self, *args, **options):
-        products = Kakanin.objects.all()
+        products = Pandesal.objects.all()
         
         self.stdout.write(f"\n{'='*60}")
         self.stdout.write(f"Found {products.count()} products in database")
@@ -56,7 +56,7 @@ class Command(BaseCommand):
         
         # Show updated state
         self.stdout.write("\nUpdated products:")
-        for product in Kakanin.objects.all():
+        for product in Pandesal.objects.all():
             status = "✓ RESERVABLE" if product.is_reservable() else "✗ NOT RESERVABLE"
             self.stdout.write(f"  {product.name}:")
             self.stdout.write(f"    Categories: {product.categories}")

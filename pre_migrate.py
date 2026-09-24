@@ -20,24 +20,24 @@ def table_exists(cursor, table_name):
 
 with connection.cursor() as cursor:
     # Check if the correct table already exists — if so, nothing to fix
-    if table_exists(cursor, 'kakanin_kakanin'):
+    if table_exists(cursor, 'pandesal_pandesal'):
         print("==> Tables already correct, skipping pre-migrate fix.")
     else:
-        print("==> kakanin_kakanin missing — clearing stale migration records...")
+        print("==> pandesal_pandesal missing — clearing stale migration records...")
 
         # Delete stale pandesal migration records so Django re-applies them
         cursor.execute("DELETE FROM django_migrations WHERE app = 'pandesal'")
         print("==> Cleared pandesal entries from django_migrations.")
 
         # Drop the incorrectly named table if it exists (created by old migration)
-        if table_exists(cursor, 'pandesal_kakanin'):
-            cursor.execute('DROP TABLE IF EXISTS "pandesal_kakanin" CASCADE')
-            print("==> Dropped old pandesal_kakanin table.")
+        if table_exists(cursor, 'pandesal_pandesal'):
+            cursor.execute('DROP TABLE IF EXISTS "pandesal_pandesal" CASCADE')
+            print("==> Dropped old pandesal_pandesal table.")
 
         # Also drop any other tables that might be stale from old migrations
         stale_tables = [
-            'kakanin_aboutpage',
-            'kakanin_contactinfo',
+            'pandesal_aboutpage',
+            'pandesal_contactinfo',
         ]
         for tbl in stale_tables:
             if table_exists(cursor, tbl):

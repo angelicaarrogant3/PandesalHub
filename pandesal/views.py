@@ -8,7 +8,7 @@ from django.urls import reverse
 from django.views.decorators.clickjacking import xframe_options_sameorigin
 from .forms import SignUpForm, PersonalInfoForm, CredentialsForm
 from .models import (
-    Kakanin, AboutPage, ContactInfo,
+    Pandesal, AboutPage, ContactInfo,
     UserProfile, Message, Feedback, Notification, Order, Reservation, Rating
 )
 from django.http import HttpResponse, JsonResponse
@@ -231,9 +231,9 @@ def shop_view(request):
         return redirect('admin_products')
     else:
         # Guest users - show guest shop
-        kakanins = Kakanin.objects.all()
+        pandesals = Pandesal.objects.all()
         return render(request, "pandesal/shop.html", {
-            "kakanins": kakanins,
+            "pandesals": pandesals,
             "is_admin": False,
             "is_authenticated": False,
         })
@@ -265,11 +265,11 @@ def index_user(request):
     except FileNotFoundError:
         files = []
     # Paths relative to the static root
-    kakanin_images = [f'pandesal/img/{name}' for name in files]
+    pandesal_images = [f'pandesal/img/{name}' for name in files]
 
     context = {
         'user': request.user,
-        'kakanin_images': kakanin_images,
+        'pandesal_images': pandesal_images,
     }
     return render(request, "pandesal/index_user.html", context)
 
@@ -280,22 +280,22 @@ def shop_user(request):
     if request.user.is_superuser:
         return redirect("/admin/")
     
-    # Get kakanin products that are available
+    # Get pandesal products that are available
     from django.db.models import Q
-    kakanins = Kakanin.objects.filter(Q(is_available=True) | Q(available_today=True))
+    pandesals = Pandesal.objects.filter(Q(is_available=True) | Q(available_today=True))
     
     # Search functionality from navbar
     search_query = request.GET.get('search', '').strip()
     if search_query:
-        kakanins = kakanins.filter(
+        pandesals = pandesals.filter(
             Q(name__icontains=search_query) |
             Q(description__icontains=search_query)
         )
     
     # Add order status to each product
-    for kakanin in kakanins:
-        kakanin.order_status = get_order_status(kakanin)
-        kakanin.can_order = can_order_now(kakanin)
+    for pandesal in pandesals:
+        pandesal.order_status = get_order_status(pandesal)
+        pandesal.can_order = can_order_now(pandesal)
     
     # Calculate total cart count (order cart + reservation cart)
     from .models import ReservationCart, Notification, Message
@@ -317,7 +317,7 @@ def shop_user(request):
 
     context = {
         'user': request.user,
-        'kakanins': kakanins,
+        'pandesals': pandesals,
         'total_cart_count': total_cart_count,
         'order_cart_count': order_cart_count,
         'reservation_cart_count': reservation_cart_count,
@@ -515,7 +515,7 @@ def admin_mark_notification_read(request, notification_id):
 @staff_member_required
 def admin_dashboard(request):
     # Dashboard statistics
-    total_products = Kakanin.objects.count()
+    total_products = Pandesal.objects.count()
     total_users = User.objects.filter(is_superuser=False).count()
     
     # Notifications - only show admin notifications (user=null)
@@ -566,7 +566,7 @@ def admin_dashboard(request):
     
     # Top selling products
     from django.db.models import Sum
-    top_products = Kakanin.objects.annotate(
+    top_products = Pandesal.objects.annotate(
         total_sold=Sum('orderitem__quantity', filter=Q(orderitem__order__status='completed')),
         total_revenue=Sum(F('orderitem__quantity') * F('orderitem__price'), filter=Q(orderitem__order__status='completed'))
     ).filter(total_sold__isnull=False).order_by('-total_sold')[:10]
@@ -588,7 +588,7 @@ def admin_dashboard(request):
 
 @staff_member_required
 def admin_products(request):
-    products = Kakanin.objects.all().order_by('name')
+    products = Pandesal.objects.all().order_by('name')
     
     # Search functionality
     search_query = request.GET.get('search')
@@ -663,7 +663,7 @@ def admin_product_create(request):
         except Exception:
             reservation_downpayment_percent = 20.0
         
-        product = Kakanin.objects.create(
+        product = Pandesal.objects.create(
             name=name,
             price=price,
             description=description,
@@ -725,8 +725,8 @@ def admin_product_create(request):
     
     context = {
         'action': 'Create',
-        'day_choices': Kakanin.DAYS_OF_WEEK,
-        'category_choices': Kakanin.CATEGORY_CHOICES,
+        'day_choices': Pandesal.DAYS_OF_WEEK,
+        'category_choices': Pandesal.CATEGORY_CHOICES,
         'preset_type': preset_type,
         'preset_category': preset['category'],
         'preset_is_available': preset['is_available'],
@@ -738,7 +738,7 @@ def admin_product_create(request):
 
 @staff_member_required
 def admin_product_edit(request, product_id):
-    product = get_object_or_404(Kakanin, id=product_id)
+    product = get_object_or_404(Pandesal, id=product_id)
     
     if request.method == 'POST':
         product.name = request.POST.get('name')
@@ -806,15 +806,15 @@ def admin_product_edit(request, product_id):
     context = {
         'product': product,
         'action': 'Edit',
-        'day_choices': Kakanin.DAYS_OF_WEEK,
-        'category_choices': Kakanin.CATEGORY_CHOICES,
+        'day_choices': Pandesal.DAYS_OF_WEEK,
+        'category_choices': Pandesal.CATEGORY_CHOICES,
     }
     return render(request, "pandesal/admin_product_form.html", context)
 
 
 @staff_member_required
 def admin_product_delete(request, product_id):
-    product = get_object_or_404(Kakanin, id=product_id)
+    product = get_object_or_404(Pandesal, id=product_id)
     
     if request.method == 'POST':
         product_name = product.name
@@ -1607,7 +1607,7 @@ def submit_feedback(request):
 @login_required
 def add_to_cart(request, product_id):
     """Add a product to the session-based cart"""
-    product = get_object_or_404(Kakanin, id=product_id)
+    product = get_object_or_404(Pandesal, id=product_id)
     
     # Check if product is available
     if not product.is_available:
@@ -1729,7 +1729,7 @@ def update_cart(request, product_id):
                 return redirect('view_cart')
             
             # Check stock availability and if product is closed
-            product = get_object_or_404(Kakanin, id=product_id)
+            product = get_object_or_404(Pandesal, id=product_id)
             
             # Check if product is closed (order time window has passed)
             if 'order_now' in product.categories and not can_order_now(product):
@@ -1866,7 +1866,7 @@ def checkout_cart(request):
         # Create order items (don't deduct stock yet - wait for admin confirmation)
         for product_id, item in cart.items():
             try:
-                product = Kakanin.objects.get(id=product_id)
+                product = Pandesal.objects.get(id=product_id)
                 
                 # Check if product is closed (order time window has passed)
                 if 'order_now' in product.categories and not can_order_now(product):
@@ -1889,7 +1889,7 @@ def checkout_cart(request):
                     subtotal=product.price * item['quantity']
                 )
                 
-            except Kakanin.DoesNotExist:
+            except Pandesal.DoesNotExist:
                 messages.error(request, f'Product {item["name"]} no longer exists.')
                 order.delete()
                 return redirect('view_cart')
@@ -2323,7 +2323,7 @@ def unified_cart(request):
     
     for product_id, item_data in cart.items():
         try:
-            product = Kakanin.objects.get(id=product_id)
+            product = Pandesal.objects.get(id=product_id)
             
             # Check if product is closed (order time window has passed)
             if 'order_now' in product.categories and not can_order_now(product):
@@ -2338,7 +2338,7 @@ def unified_cart(request):
                 'subtotal': subtotal
             })
             order_total += subtotal
-        except Kakanin.DoesNotExist:
+        except Pandesal.DoesNotExist:
             continue
     
     # Remove closed products from cart
@@ -2346,10 +2346,10 @@ def unified_cart(request):
         cart_copy = cart.copy()
         for product_id, item_data in cart_copy.items():
             try:
-                product = Kakanin.objects.get(id=product_id)
+                product = Pandesal.objects.get(id=product_id)
                 if 'order_now' in product.categories and not can_order_now(product):
                     del cart[product_id]
-            except Kakanin.DoesNotExist:
+            except Pandesal.DoesNotExist:
                 pass
         
         if closed_products:

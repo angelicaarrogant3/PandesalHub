@@ -10,8 +10,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "dev:css": "tailwindcss -i ./kakanin/static/pandesal/src/input.css -o ./kakanin/static/pandesal/dist/output.css --watch",
-    "build:css": "tailwindcss -i ./kakanin/static/pandesal/src/input.css -o ./kakanin/static/pandesal/dist/output.css --minify",
+    "dev:css": "tailwindcss -i ./pandesal/static/pandesal/src/input.css -o ./pandesal/static/pandesal/dist/output.css --watch",
+    "build:css": "tailwindcss -i ./pandesal/static/pandesal/src/input.css -o ./pandesal/static/pandesal/dist/output.css --minify",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],

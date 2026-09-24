@@ -152,7 +152,7 @@
            <div class="mb-6 flex items-center justify-between">
                <div>   
                         <h1 class="text-3xl font-bold text-gray-800">{{ action }} Product</h1>
-                        <p class="text-gray-600">{% if action == 'Create' %}Add a new kakanin product{% else %}Update product information{% endif %}</p>
+                        <p class="text-gray-600">{% if action == 'Create' %}Add a new pandesal product{% else %}Update product information{% endif %}</p>
                     </div>
                     <a href="{% url 'admin_products' %}" class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-md">
                         <i class="fas fa-arrow-left mr-2"></i>Back to Products
@@ -296,7 +296,7 @@
 
                                 <!-- CORRECTION: Fixed template syntax error - removed parentheses from conditional statements -->
                                 {% if preset_type == 'order_now' or product and 'order_now' in product.categories %}
-                                <!-- ⚙️ ORDER SETTINGS (For Today's Available Kakanin) -->
+                                <!-- ⚙️ ORDER SETTINGS (For Today's Available Pandesal) -->
                                 <div>
                                     <h3 class="text-lg font-semibold text-gray-800 border-b pb-2 mb-4">Order Settings</h3>
                                     <p class="text-sm text-gray-600 mb-4">For customers buying available products today with time-based ordering.</p>

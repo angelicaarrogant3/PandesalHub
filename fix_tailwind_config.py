@@ -5,7 +5,7 @@ import re
 from pathlib import Path
 
 BASE_DIR = Path(__file__).parent
-TEMPLATES_DIR = BASE_DIR / 'kakanin' / 'templates' / 'kakanin'
+TEMPLATES_DIR = BASE_DIR / 'pandesal' / 'templates' / 'pandesal'
 
 PATTERN = r'<script>\s*tailwind\.config\s*=\s*\{[\s\S]*?\}\s*\}\s*</script>'
 REPLACEMENT = '''<style>

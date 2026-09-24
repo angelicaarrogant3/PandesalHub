@@ -5,7 +5,7 @@ import django
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'pandesalhub.settings')
 django.setup()
 
-from pandesal.models import Kakanin
+from pandesal.models import Pandesal
 
 print("\n" + "="*60)
 print("CONFIGURE PRODUCT CATEGORIES")
@@ -29,7 +29,7 @@ PRODUCT_CONFIG = {
 # DON'T EDIT BELOW THIS LINE
 # ============================================================
 
-products = Kakanin.objects.all()
+products = Pandesal.objects.all()
 print(f"Found {products.count()} products\n")
 
 print("CURRENT STATE:")
@@ -82,7 +82,7 @@ print("-" * 60)
 order_products = []
 reservation_products = []
 
-for product in Kakanin.objects.all():
+for product in Pandesal.objects.all():
     if 'order_now' in product.categories:
         order_products.append(product.name)
     if 'reservation' in product.categories:

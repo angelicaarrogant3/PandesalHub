@@ -11,7 +11,7 @@ print("QUICK FIX: SEPARATE ORDER AND RESERVATION PRODUCTS")
 print("="*60 + "\n")
 
 # Get all products
-cursor.execute("SELECT id, name, categories, stock FROM kakanin_kakanin")
+cursor.execute("SELECT id, name, categories, stock FROM pandesal_pandesal")
 products = cursor.fetchall()
 
 print("CURRENT PRODUCTS:")
@@ -26,7 +26,7 @@ print("="*60 + "\n")
 
 # Update Bibingka - ORDER ONLY
 cursor.execute("""
-    UPDATE kakanin_kakanin 
+    UPDATE pandesal_pandesal 
     SET categories = ?,
         allow_order_now = 1,
         allow_reservation = 0,
@@ -38,7 +38,7 @@ print("✓ Bibingka → ORDER CART only")
 
 # Update Suman - RESERVATION ONLY
 cursor.execute("""
-    UPDATE kakanin_kakanin 
+    UPDATE pandesal_pandesal 
     SET categories = ?,
         allow_order_now = 0,
         allow_reservation = 1,
@@ -56,7 +56,7 @@ print("\n" + "="*60)
 print("UPDATED PRODUCTS:")
 print("="*60 + "\n")
 
-cursor.execute("SELECT name, categories, allow_order_now, allow_reservation, stock FROM kakanin_kakanin")
+cursor.execute("SELECT name, categories, allow_order_now, allow_reservation, stock FROM pandesal_pandesal")
 products = cursor.fetchall()
 
 order_products = []

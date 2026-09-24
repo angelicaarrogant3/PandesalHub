@@ -8,7 +8,7 @@ import re
 from pathlib import Path
 
 BASE_DIR = Path(__file__).parent
-TEMPLATES_DIR = BASE_DIR / 'kakanin' / 'templates' / 'kakanin'
+TEMPLATES_DIR = BASE_DIR / 'pandesal' / 'templates' / 'pandesal'
 
 # Revert to CDN Tailwind
 OLD_LOCAL_CSS = r'<!-- Local Tailwind CSS -->\s*<link rel="stylesheet" href="{% static \'pandesal/dist/output\.css\' %}" />'

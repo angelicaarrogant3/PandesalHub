@@ -1,5 +1,5 @@
 """
-Reservation views for Kakanin products
+Reservation views for Pandesal products
 """
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
@@ -11,7 +11,7 @@ from django.core.paginator import Paginator
 from django.views.decorators.http import require_POST
 from decimal import Decimal
 from datetime import date, time, datetime, timedelta
-from .models import Kakanin, Reservation, Notification, ContactInfo, ReservationCart, ReservationCartItem
+from .models import Pandesal, Reservation, Notification, ContactInfo, ReservationCart, ReservationCartItem
 
 
 # ---------------------------
@@ -29,7 +29,7 @@ def reservation_shop(request):
 @login_required
 def add_to_reservation_cart(request, product_id):
     """Add product to reservation cart"""
-    product = get_object_or_404(Kakanin, id=product_id)
+    product = get_object_or_404(Pandesal, id=product_id)
     
     if not product.is_reservable():
         messages.error(request, 'This product is not available for reservation.')
@@ -319,7 +319,7 @@ def reservation_checkout(request):
 @login_required
 def reservation_create(request, product_id):
     """Create a new reservation"""
-    product = get_object_or_404(Kakanin, id=product_id)
+    product = get_object_or_404(Pandesal, id=product_id)
     
     # Check if product is reservable
     if not product.is_reservable():

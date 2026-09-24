@@ -20,8 +20,8 @@ def rename_tables():
         print("Existing tables:", tables)
         
         for table in tables:
-            if table.startswith('kakanin_'):
-                new_name = 'pandesal_' + table[len('kakanin_'):]
+            if table.startswith('pandesal_'):
+                new_name = 'pandesal_' + table[len('pandesal_'):]
                 
                 if new_name in tables:
                     print(f"Dropping existing {new_name} to replace with {table}")
@@ -34,10 +34,10 @@ def rename_tables():
                 cursor.execute(f"ALTER TABLE {table} RENAME TO {new_name}")
                 
     
-        cursor.execute("UPDATE django_content_type SET app_label = 'pandesal' WHERE app_label = 'kakanin'")
+        cursor.execute("UPDATE django_content_type SET app_label = 'pandesal' WHERE app_label = 'pandesal'")
         
    
-        cursor.execute("UPDATE django_migrations SET app = 'pandesal' WHERE app = 'kakanin'")
+        cursor.execute("UPDATE django_migrations SET app = 'pandesal' WHERE app = 'pandesal'")
         
         print("Done renaming tables and updating django metadata.")
 

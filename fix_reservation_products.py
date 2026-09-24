@@ -2,10 +2,10 @@
 Quick script to fix reservation products
 Run this with: python manage.py shell < fix_reservation_products.py
 """
-from pandesal.models import Kakanin
+from pandesal.models import Pandesal
 
 # Get all products
-products = Kakanin.objects.all()
+products = Pandesal.objects.all()
 
 print(f"\n{'='*60}")
 print(f"Found {products.count()} products in database")
@@ -52,7 +52,7 @@ if response.lower() == 'yes':
     
     # Show updated state
     print("\nUpdated products:")
-    for product in Kakanin.objects.all():
+    for product in Pandesal.objects.all():
         print(f"  - {product.name}: categories={product.categories}, stock={product.stock}, reservable={product.is_reservable()}")
 else:
     print("No changes made.")

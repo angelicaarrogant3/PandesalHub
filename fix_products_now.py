@@ -5,14 +5,14 @@ import django
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'pandesalhub.settings')
 django.setup()
 
-from pandesal.models import Kakanin
+from pandesal.models import Pandesal
 
 print("\n" + "="*60)
 print("FIXING RESERVATION PRODUCTS")
 print("="*60 + "\n")
 
 # Get all products
-products = Kakanin.objects.all()
+products = Pandesal.objects.all()
 print(f"Found {products.count()} products in database\n")
 
 if products.count() == 0:
@@ -81,7 +81,7 @@ print("="*60 + "\n")
 # Show updated state
 print("UPDATED STATE:")
 print("-" * 60)
-for product in Kakanin.objects.all():
+for product in Pandesal.objects.all():
     status = "✓ RESERVABLE" if product.is_reservable() else "✗ NOT RESERVABLE"
     print(f"\n{product.name}: {status}")
     print(f"  Categories: {product.categories}")

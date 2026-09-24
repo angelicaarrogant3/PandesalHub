@@ -10,7 +10,7 @@ from pathlib import Path
 
 # Define the base directory
 BASE_DIR = Path(__file__).parent
-TEMPLATES_DIR = BASE_DIR / 'kakanin' / 'templates' / 'kakanin'
+TEMPLATES_DIR = BASE_DIR / 'pandesal' / 'templates' / 'pandesal'
 
 # Old CDN patterns to replace
 OLD_PATTERNS = [
