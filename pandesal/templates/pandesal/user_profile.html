@@ -226,6 +226,18 @@
   <aside id="sidebar" class="fixed top-20 left-0 bottom-0 w-[280px] bg-white shadow-lg z-40 flex flex-col transition-all">
     <!-- Navigation -->
     <nav class="mt-8 px-4 space-y-2 text-base flex-1 overflow-y-auto">
+
+      {% if user.userprofile.user_type == 'seller' %}
+      <a href="{% url 'seller_dashboard' %}" class="flex items-center gap-4 px-4 py-3 rounded-xl text-gray-600 hover:text-green-700 hover:bg-green-50 transition"><i class="fa-solid fa-house text-lg min-w-[20px]"></i><span class="sidebar-text">Dashboard</span></a>
+      <a href="{% url 'seller_shop_settings' %}" class="flex items-center gap-4 px-4 py-3 rounded-xl text-gray-600 hover:text-green-700 hover:bg-green-50 transition"><i class="fa-solid fa-store text-lg min-w-[20px]"></i><span class="sidebar-text">My Shop</span></a>
+      <a href="{% url 'seller_products' %}" class="flex items-center gap-4 px-4 py-3 rounded-xl text-gray-600 hover:text-green-700 hover:bg-green-50 transition"><i class="fa-solid fa-box text-lg min-w-[20px]"></i><span class="sidebar-text">Products</span></a>
+      <a href="{% url 'seller_orders' %}" class="flex items-center gap-4 px-4 py-3 rounded-xl text-gray-600 hover:text-green-700 hover:bg-green-50 transition"><i class="fa-solid fa-shopping-cart text-lg min-w-[20px]"></i><span class="sidebar-text">Orders</span></a>
+      <a href="{% url 'seller_reservations' %}" class="flex items-center gap-4 px-4 py-3 rounded-xl text-gray-600 hover:text-green-700 hover:bg-green-50 transition"><i class="fa-solid fa-calendar-check text-lg min-w-[20px]"></i><span class="sidebar-text">Reservations</span></a>
+      <a href="{% url 'messages_inbox' %}" class="flex items-center gap-4 px-4 py-3 rounded-xl {% if request.resolver_match.url_name == 'messages_inbox' %}text-green-700 bg-green-50 hover:bg-green-100{% else %}text-gray-600 hover:text-green-700 hover:bg-green-50{% endif %} transition relative"><i class="fa-solid fa-message text-lg min-w-[20px]"></i><span class="sidebar-text">Messages</span>{% if unread_messages_count > 0 %}<span class="absolute right-3 top-1/2 -translate-y-1/2 bg-red-500 text-white text-xs font-bold rounded-full min-w-[20px] h-5 flex items-center justify-center px-1.5">{{ unread_messages_count }}</span>{% endif %}</a>
+      <a href="{% url 'user_notifications' %}" class="flex items-center gap-4 px-4 py-3 rounded-xl {% if request.resolver_match.url_name == 'user_notifications' %}text-green-700 bg-green-50 hover:bg-green-100{% else %}text-gray-600 hover:text-green-700 hover:bg-green-50{% endif %} transition"><i class="fa-solid fa-bell text-lg min-w-[20px]"></i><span class="sidebar-text">Notifications</span></a>
+      <a href="{% url 'user_profile' %}" class="flex items-center gap-4 px-4 py-3 rounded-xl {% if request.resolver_match.url_name == 'user_profile' %}text-green-700 bg-green-50 hover:bg-green-100{% else %}text-gray-600 hover:text-green-700 hover:bg-green-50{% endif %} transition"><i class="fa-solid fa-user-circle text-lg min-w-[20px]"></i><span class="sidebar-text">Profile / Settings</span></a>
+      {% else %}
+
       <a href="{% url 'index_user' %}" 
          class="flex items-center gap-4 px-4 py-3 rounded-xl text-gray-600 hover:text-green-700 hover:bg-green-50 transition">
         <i class="fa-solid fa-house text-lg min-w-[20px]"></i>
@@ -264,7 +276,9 @@
         <i class="fa-solid fa-user text-lg min-w-[20px]"></i>
         <span class="sidebar-text">Profile</span>
       </a>
-    </nav>
+    
+      {% endif %}
+      </nav>
   </aside>
 
   <!-- Overlay for mobile -->
