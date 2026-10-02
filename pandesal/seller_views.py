@@ -5,6 +5,7 @@ from django.http import JsonResponse
 from .models import Shop, UserProfile, Pandesal, Order, Reservation, Notification
 from django.contrib.auth.models import User
 from .forms import ShopForm, SellerProductForm
+from django.views.decorators.clickjacking import xframe_options_sameorigin
 
 
 
@@ -249,6 +250,7 @@ def admin_seller_create(request):
     return redirect('admin_sellers')
 
 @user_passes_test(is_admin)
+@xframe_options_sameorigin
 def admin_seller_edit(request, user_id):
     seller_user = get_object_or_404(User, id=user_id)
     profile, _ = UserProfile.objects.get_or_create(user=seller_user)
