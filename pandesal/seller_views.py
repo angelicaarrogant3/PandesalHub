@@ -184,12 +184,68 @@ def is_admin(user):
 
 @user_passes_test(is_admin)
 def admin_sellers(request):
-    pending_sellers = UserProfile.objects.filter(user_type='seller', is_approved_seller=False)
-    approved_sellers = UserProfile.objects.filter(user_type='seller', is_approved_seller=True)
-    return render(request, 'pandesal/admin/sellers.html', {
+    pending_sellers = UserProfile.objects.filter(user_type='seller', is_approved_seller=False).select_related('user', 'user__shop')
+    approved_sellers = UserProfile.objects.filter(user_type='seller', is_approved_seller=True).select_related('user', 'user__shop')
+    return render(request, 'pandesal/admin_sellers.html', {
         'pending_sellers': pending_sellers,
         'approved_sellers': approved_sellers
     })
+
+@user_passes_test(is_admin)
+def admin_seller_create(request):
+    if request.method == 'POST':
+        username = request.POST.get('username')
+        email = request.POST.get('email')
+        password1 = request.POST.get('password1')
+        password2 = request.POST.get('password2')
+        first_name = request.POST.get('first_name', '')
+        last_name = request.POST.get('last_name', '')
+        shop_name = request.POST.get('shop_name', '').strip()
+        phone = request.POST.get('phone', '')
+        barangay = request.POST.get('barangay', '')
+        zone = request.POST.get('zone', '')
+
+        if not username or not email or not password1 or not shop_name:
+            messages.error(request, 'Username, email, password, and shop name are required.')
+            return redirect('admin_sellers')
+
+        if password1 != password2:
+            messages.error(request, 'Passwords do not match.')
+            return redirect('admin_sellers')
+
+        if User.objects.filter(username=username).exists():
+            messages.error(request, 'Username already exists.')
+            return redirect('admin_sellers')
+
+        if User.objects.filter(email=email).exists():
+            messages.error(request, 'Email already exists.')
+            return redirect('admin_sellers')
+
+        user = User.objects.create_user(
+            username=username,
+            email=email,
+            password=password1,
+            first_name=first_name,
+            last_name=last_name
+        )
+
+        profile, _ = UserProfile.objects.get_or_create(user=user)
+        profile.user_type = 'seller'
+        profile.is_approved_seller = True
+        profile.phone = phone
+        profile.barangay = barangay
+        profile.zone = zone
+        profile.save()
+
+        Shop.objects.get_or_create(
+            seller=user,
+            defaults={'shop_name': shop_name, 'is_active': True}
+        )
+
+        messages.success(request, f'Seller account for "{shop_name}" created successfully!')
+        return redirect('admin_sellers')
+
+    return redirect('admin_sellers')
 
 @user_passes_test(is_admin)
 def admin_seller_approve(request, user_id):
