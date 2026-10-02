@@ -41,7 +41,7 @@
         <div class="mb-6 flex justify-between items-center">
             <div>
                 <h1 class="text-3xl font-bold text-gray-800">Sellers & Vendors Management</h1>
-                <p class="text-gray-600">View, manage, and register official marketplace bakery vendors</p>
+                <p class="text-gray-600">View, manage, edit, and register official marketplace bakery vendors</p>
             </div>
             <button type="button" onclick="openCreateSellerModal()" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md flex items-center shadow font-medium">
                 <i class="fas fa-plus mr-2"></i>Add New Seller
@@ -125,6 +125,7 @@
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Products</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Joined</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                         </tr>
                     </thead>
                     <tbody class="bg-white divide-y divide-gray-200">
@@ -138,7 +139,7 @@
                                         </div>
                                         <div>
                                             <div class="font-bold text-gray-900">{{ profile.user.shop.shop_name|default:"Bakery Shop" }}</div>
-                                            <div class="text-xs text-gray-500">Owner: {{ profile.user.get_full_name|default:profile.user.username }}</div>
+                                            <div class="text-xs text-gray-500">Owner: {{ profile.user.get_full_name|default:profile.user.username }} (@{{ profile.user.username }})</div>
                                         </div>
                                     </div>
                                 </td>
@@ -150,18 +151,46 @@
                                     {{ profile.user.products.count }} items
                                 </td>
                                 <td class="px-6 py-4">
-                                    <span class="px-2.5 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
-                                        Approved Vendor
-                                    </span>
+                                    {% if profile.user.is_active %}
+                                        <span class="px-2.5 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                                            Active Vendor
+                                        </span>
+                                    {% else %}
+                                        <span class="px-2.5 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-800">
+                                            Deactivated
+                                        </span>
+                                    {% endif %}
                                 </td>
                                 <td class="px-6 py-4 text-sm text-gray-500">
                                     {{ profile.user.date_joined|date:"M d, Y" }}
+                                </td>
+                                <td class="px-6 py-4">
+                                    <div class="flex items-center gap-3">
+                                        <!-- Edit Seller -->
+                                        <button type="button" onclick="openEditSellerModal('{% url 'admin_seller_edit' profile.user.id %}')" class="text-blue-600 hover:text-blue-900 focus:outline-none" title="Edit Seller">
+                                            <i class="fas fa-edit text-lg"></i>
+                                        </button>
+                                        <!-- Toggle Active Status -->
+                                        <form method="POST" action="{% url 'admin_seller_toggle' profile.user.id %}" class="inline">
+                                            {% csrf_token %}
+                                            <button type="submit" class="{% if profile.user.is_active %}text-yellow-600 hover:text-yellow-800{% else %}text-green-600 hover:text-green-800{% endif %}" title="{% if profile.user.is_active %}Deactivate Seller{% else %}Activate Seller{% endif %}">
+                                                <i class="fas {% if profile.user.is_active %}fa-pause-circle{% else %}fa-play-circle{% endif %} text-lg"></i>
+                                            </button>
+                                        </form>
+                                        <!-- Delete Seller -->
+                                        <form method="POST" action="{% url 'admin_seller_delete' profile.user.id %}" class="inline" onsubmit="return confirm('Are you sure you want to delete this seller account?')">
+                                            {% csrf_token %}
+                                            <button type="submit" class="text-red-600 hover:text-red-800" title="Delete Seller">
+                                                <i class="fas fa-trash text-lg"></i>
+                                            </button>
+                                        </form>
+                                    </div>
                                 </td>
                             </tr>
                             {% endfor %}
                         {% else %}
                             <tr>
-                                <td colspan="5" class="px-6 py-12 text-center text-gray-500">
+                                <td colspan="6" class="px-6 py-12 text-center text-gray-500">
                                     <i class="fas fa-store-slash text-4xl mb-3 text-gray-400 block"></i>
                                     No seller accounts registered yet. Click "Add New Seller" to create one.
                                 </td>
@@ -243,6 +272,21 @@
   </div>
 </div>
 
+<!-- Edit Seller Modal -->
+<div id="editSellerModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+  <div class="relative top-10 mx-auto p-5 border w-11/12 max-w-4xl shadow-lg rounded-md bg-white mb-10" style="height: 85vh;">
+    <div class="flex justify-between items-center mb-4 border-b pb-2">
+      <h3 class="text-2xl font-bold text-gray-900 flex items-center gap-2">
+        <i class="fas fa-store text-green-600"></i> Edit Seller Account
+      </h3>
+      <button onclick="closeEditSellerModal()" class="text-gray-400 hover:text-gray-600">
+        <i class="fas fa-times text-2xl"></i>
+      </button>
+    </div>
+    <iframe id="editSellerIframe" class="w-full h-full border-0 rounded" style="height: calc(85vh - 80px);"></iframe>
+  </div>
+</div>
+
 <script>
     function openCreateSellerModal() {
         document.getElementById('createSellerModal').classList.remove('hidden');
@@ -250,6 +294,20 @@
     function closeCreateSellerModal() {
         document.getElementById('createSellerModal').classList.add('hidden');
     }
+    function openEditSellerModal(url) {
+        document.getElementById('editSellerIframe').src = url;
+        document.getElementById('editSellerModal').classList.remove('hidden');
+    }
+    function closeEditSellerModal() {
+        document.getElementById('editSellerModal').classList.add('hidden');
+        document.getElementById('editSellerIframe').src = '';
+    }
+    window.addEventListener('message', function(e) {
+        if (e.data && e.data.type === 'sellerUpdated') {
+            closeEditSellerModal();
+            window.location.reload();
+        }
+    });
 </script>
 
 </body>

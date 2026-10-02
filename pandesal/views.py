@@ -543,7 +543,9 @@ def admin_mark_notification_read(request, notification_id):
 def admin_dashboard(request):
     # Dashboard statistics
     total_products = Pandesal.objects.count()
-    total_users = User.objects.filter(is_superuser=False).count()
+    total_customers = User.objects.filter(is_superuser=False).filter(Q(userprofile__user_type='customer') | Q(userprofile__isnull=True)).count()
+    total_sellers = User.objects.filter(is_superuser=False, userprofile__user_type='seller').count()
+    total_users = total_customers
     
     # Notifications - only show admin notifications (user=null)
     notifications = Notification.objects.filter(user__isnull=True, read=False).order_by('-created_at')[:10]
@@ -601,6 +603,8 @@ def admin_dashboard(request):
     context = {
         'total_products': total_products,
         'total_users': total_users,
+        'total_customers': total_customers,
+        'total_sellers': total_sellers,
         'notifications': notifications,
         'order_status': order_status,
         'total_orders': total_orders,
@@ -1053,7 +1057,9 @@ def admin_contact_delete(request):
 
 @staff_member_required
 def admin_users(request):
-    users = User.objects.filter(is_superuser=False).order_by('-date_joined')
+    users = User.objects.filter(is_superuser=False).filter(
+        Q(userprofile__user_type='customer') | Q(userprofile__isnull=True)
+    ).order_by('-date_joined')
     
     # Search functionality
     search_query = request.GET.get('search')

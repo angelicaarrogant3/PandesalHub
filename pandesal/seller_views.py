@@ -1,6 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib import messages
+from django.http import JsonResponse
 from .models import Shop, UserProfile, Pandesal, Order, Reservation, Notification
 from django.contrib.auth.models import User
 from .forms import ShopForm, SellerProductForm
@@ -245,6 +246,100 @@ def admin_seller_create(request):
         messages.success(request, f'Seller account for "{shop_name}" created successfully!')
         return redirect('admin_sellers')
 
+    return redirect('admin_sellers')
+
+@user_passes_test(is_admin)
+def admin_seller_edit(request, user_id):
+    seller_user = get_object_or_404(User, id=user_id)
+    profile, _ = UserProfile.objects.get_or_create(user=seller_user)
+    shop, _ = Shop.objects.get_or_create(seller=seller_user, defaults={'shop_name': f"{seller_user.username}'s Bakery"})
+
+    if request.method == 'POST':
+        is_ajax = request.headers.get('X-Requested-With') == 'XMLHttpRequest'
+        username = request.POST.get('username')
+        email = request.POST.get('email')
+        shop_name = request.POST.get('shop_name', '').strip()
+        first_name = request.POST.get('first_name', '')
+        last_name = request.POST.get('last_name', '')
+        phone = request.POST.get('phone', '')
+        barangay = request.POST.get('barangay', '')
+        zone = request.POST.get('zone', '')
+        password = request.POST.get('password1', '')
+
+        if not username or not email or not shop_name:
+            err = 'Username, email, and shop name are required.'
+            if is_ajax:
+                return JsonResponse({'success': False, 'error': err})
+            messages.error(request, err)
+            return redirect('admin_sellers')
+
+        if User.objects.filter(username=username).exclude(id=seller_user.id).exists():
+            err = 'Username already taken by another account.'
+            if is_ajax:
+                return JsonResponse({'success': False, 'error': err})
+            messages.error(request, err)
+            return redirect('admin_sellers')
+
+        if User.objects.filter(email=email).exclude(id=seller_user.id).exists():
+            err = 'Email already taken by another account.'
+            if is_ajax:
+                return JsonResponse({'success': False, 'error': err})
+            messages.error(request, err)
+            return redirect('admin_sellers')
+
+        seller_user.username = username
+        seller_user.email = email
+        seller_user.first_name = first_name
+        seller_user.last_name = last_name
+        if password:
+            seller_user.set_password(password)
+        seller_user.save()
+
+        profile.phone = phone
+        profile.barangay = barangay
+        profile.zone = zone
+        profile.save()
+
+        shop.shop_name = shop_name
+        shop.save()
+
+        msg = f'Seller "{shop_name}" updated successfully!'
+        if is_ajax:
+            return JsonResponse({'success': True, 'message': msg})
+
+        messages.success(request, msg)
+        return redirect('admin_sellers')
+
+    return render(request, 'pandesal/admin_seller_edit.html', {
+        'seller_user': seller_user,
+        'profile': profile,
+        'shop': shop
+    })
+
+@user_passes_test(is_admin)
+def admin_seller_toggle(request, user_id):
+    if request.method == 'POST':
+        seller_user = get_object_or_404(User, id=user_id)
+        seller_user.is_active = not seller_user.is_active
+        seller_user.save()
+        status_text = "activated" if seller_user.is_active else "deactivated"
+        is_ajax = request.headers.get('X-Requested-With') == 'XMLHttpRequest' or request.content_type == 'application/json'
+        if is_ajax:
+            return JsonResponse({'success': True, 'message': f'Seller account {status_text} successfully'})
+        messages.success(request, f'Seller "{seller_user.username}" has been {status_text}.')
+    return redirect('admin_sellers')
+
+@user_passes_test(is_admin)
+def admin_seller_delete(request, user_id):
+    if request.method == 'POST':
+        seller_user = get_object_or_404(User, id=user_id)
+        shop_name = getattr(seller_user, 'shop', None)
+        name = shop_name.shop_name if shop_name else seller_user.username
+        seller_user.delete()
+        is_ajax = request.headers.get('X-Requested-With') == 'XMLHttpRequest' or request.content_type == 'application/json'
+        if is_ajax:
+            return JsonResponse({'success': True, 'message': f'Seller account "{name}" deleted successfully'})
+        messages.success(request, f'Seller account "{name}" deleted successfully.')
     return redirect('admin_sellers')
 
 @user_passes_test(is_admin)

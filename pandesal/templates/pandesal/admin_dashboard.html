@@ -134,7 +134,8 @@
       <a href="{% url 'admin_content' %}" class="flex items-center gap-4 px-4 py-3 rounded-xl {% if request.resolver_match.url_name == 'admin_content' %}text-green-700 bg-green-50{% else %}text-gray-600 hover:text-green-700 hover:bg-green-50{% endif %} transition"><i class="fa-solid fa-edit text-lg min-w-[20px]"></i><span class="sidebar-text">Content</span></a>
       <a href="{% url 'admin_orders' %}" class="flex items-center gap-4 px-4 py-3 rounded-xl {% if request.resolver_match.url_name == 'admin_orders' or request.resolver_match.url_name == 'admin_order_detail' %}text-green-700 bg-green-50{% else %}text-gray-600 hover:text-green-700 hover:bg-green-50{% endif %} transition"><i class="fa-solid fa-shopping-cart text-lg min-w-[20px]"></i><span class="sidebar-text">Orders</span></a>
       <a href="{% url 'admin_reservations' %}" class="flex items-center gap-4 px-4 py-3 rounded-xl {% if request.resolver_match.url_name == 'admin_reservations' %}text-green-700 bg-green-50{% else %}text-gray-600 hover:text-green-700 hover:bg-green-50{% endif %} transition"><i class="fa-solid fa-calendar-check text-lg min-w-[20px]"></i><span class="sidebar-text">Reservations</span></a>
-      <a href="{% url 'admin_users' %}" class="flex items-center gap-4 px-4 py-3 rounded-xl {% if request.resolver_match.url_name == 'admin_users' %}text-green-700 bg-green-50{% else %}text-gray-600 hover:text-green-700 hover:bg-green-50{% endif %} transition"><i class="fa-solid fa-users text-lg min-w-[20px]"></i><span class="sidebar-text">Users</span></a>
+      <a href="{% url 'admin_users' %}" class="flex items-center gap-4 px-4 py-3 rounded-xl {% if 'user' in request.resolver_match.url_name or 'customer' in request.resolver_match.url_name %}text-green-700 bg-green-50{% else %}text-gray-600 hover:text-green-700 hover:bg-green-50{% endif %} transition"><i class="fa-solid fa-users text-lg min-w-[20px]"></i><span class="sidebar-text">Customers</span></a>
+      <a href="{% url 'admin_sellers' %}" class="flex items-center gap-4 px-4 py-3 rounded-xl {% if 'seller' in request.resolver_match.url_name %}text-green-700 bg-green-50{% else %}text-gray-600 hover:text-green-700 hover:bg-green-50{% endif %} transition"><i class="fa-solid fa-store text-lg min-w-[20px]"></i><span class="sidebar-text">Sellers</span></a>
       <a href="{% url 'messages_inbox' %}" class="flex items-center gap-4 px-4 py-3 rounded-xl text-gray-600 hover:text-green-700 hover:bg-green-50 transition relative"><i class="fa-solid fa-message text-lg min-w-[20px]"></i><span class="sidebar-text">Messages</span>{% if unread_messages_count > 0 %}<span class="absolute right-3 top-1/2 -translate-y-1/2 bg-red-500 text-white text-xs font-bold rounded-full min-w-[20px] h-5 flex items-center justify-center px-1.5">{{ unread_messages_count }}</span>{% endif %}</a>
       <a href="/admin/" class="flex items-center gap-4 px-4 py-3 rounded-xl text-gray-600 hover:text-green-700 hover:bg-green-50 transition"><i class="fa-solid fa-cog text-lg min-w-[20px]"></i><span class="sidebar-text">Django Admin</span></a>
     </nav>
@@ -178,11 +179,11 @@
                 <!-- Left side columns -->
                 <div class="lg:col-span-8">
                     <!-- Stats Cards -->
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 mb-6">
                         <!-- Sales Card -->
                         <div class="bg-white rounded-lg shadow">
-                            <div class="p-6">
-                                <div class="flex justify-between items-start mb-4">
+                            <div class="p-5">
+                                <div class="flex justify-between items-start mb-3">
                                     <h5 class="text-sm font-semibold text-gray-600">Sales <span class="text-gray-400 font-normal">| Today</span></h5>
                                     <div class="relative">
                                         <button class="text-gray-400 hover:text-gray-600">
@@ -191,13 +192,13 @@
                                     </div>
                                 </div>
                                 <div class="flex items-center">
-                                    <div class="w-16 h-16 rounded-full bg-blue-100 flex items-center justify-center">
-                                        <i class="bi bi-cart text-2xl text-blue-600"></i>
+                                    <div class="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center shrink-0">
+                                        <i class="bi bi-cart text-xl text-blue-600"></i>
                                     </div>
-                                    <div class="ml-4">
-                                        <h6 class="text-3xl font-bold text-gray-900">{{ order_status.completed|default:0 }}</h6>
-                                        <span class="text-green-600 text-sm font-semibold">12%</span>
-                                        <span class="text-gray-500 text-sm ml-1">increase</span>
+                                    <div class="ml-3">
+                                        <h6 class="text-2xl font-bold text-gray-900">{{ order_status.completed|default:0 }}</h6>
+                                        <span class="text-green-600 text-xs font-semibold">12%</span>
+                                        <span class="text-gray-500 text-xs ml-1">increase</span>
                                     </div>
                                 </div>
                             </div>
@@ -205,8 +206,8 @@
 
                         <!-- Revenue Card -->
                         <div class="bg-white rounded-lg shadow">
-                            <div class="p-6">
-                                <div class="flex justify-between items-start mb-4">
+                            <div class="p-5">
+                                <div class="flex justify-between items-start mb-3">
                                     <h5 class="text-sm font-semibold text-gray-600">Revenue <span class="text-gray-400 font-normal">| This Month</span></h5>
                                     <div class="relative">
                                         <button class="text-gray-400 hover:text-gray-600">
@@ -215,13 +216,13 @@
                                     </div>
                                 </div>
                                 <div class="flex items-center">
-                                    <div class="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center">
-                                        <span class="text-3xl font-bold text-green-600">₱</span>
+                                    <div class="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center shrink-0">
+                                        <span class="text-xl font-bold text-green-600">₱</span>
                                     </div>
-                                    <div class="ml-4">
-                                        <h6 class="text-3xl font-bold text-gray-900">₱{{ total_revenue|default:"0" }}</h6>
-                                        <span class="text-green-600 text-sm font-semibold">8%</span>
-                                        <span class="text-gray-500 text-sm ml-1">increase</span>
+                                    <div class="ml-3">
+                                        <h6 class="text-2xl font-bold text-gray-900">₱{{ total_revenue|default:"0" }}</h6>
+                                        <span class="text-green-600 text-xs font-semibold">8%</span>
+                                        <span class="text-gray-500 text-xs ml-1">increase</span>
                                     </div>
                                 </div>
                             </div>
@@ -229,9 +230,9 @@
 
                         <!-- Customers Card -->
                         <div class="bg-white rounded-lg shadow">
-                            <div class="p-6">
-                                <div class="flex justify-between items-start mb-4">
-                                    <h5 class="text-sm font-semibold text-gray-600">Customers <span class="text-gray-400 font-normal">| This Year</span></h5>
+                            <div class="p-5">
+                                <div class="flex justify-between items-start mb-3">
+                                    <h5 class="text-sm font-semibold text-gray-600">Customers <span class="text-gray-400 font-normal">| Total</span></h5>
                                     <div class="relative">
                                         <button class="text-gray-400 hover:text-gray-600">
                                             <i class="bi bi-three-dots"></i>
@@ -239,13 +240,35 @@
                                     </div>
                                 </div>
                                 <div class="flex items-center">
-                                    <div class="w-16 h-16 rounded-full bg-orange-100 flex items-center justify-center">
-                                        <i class="bi bi-people text-2xl text-orange-600"></i>
+                                    <div class="w-12 h-12 rounded-full bg-orange-100 flex items-center justify-center shrink-0">
+                                        <i class="bi bi-people text-xl text-orange-600"></i>
                                     </div>
-                                    <div class="ml-4">
-                                        <h6 class="text-3xl font-bold text-gray-900">{{ total_users }}</h6>
-                                        <span class="text-red-600 text-sm font-semibold">12%</span>
-                                        <span class="text-gray-500 text-sm ml-1">decrease</span>
+                                    <div class="ml-3">
+                                        <h6 class="text-2xl font-bold text-gray-900">{{ total_customers|default:total_users }}</h6>
+                                        <span class="text-green-600 text-xs font-semibold">Active</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Sellers Card -->
+                        <div class="bg-white rounded-lg shadow">
+                            <div class="p-5">
+                                <div class="flex justify-between items-start mb-3">
+                                    <h5 class="text-sm font-semibold text-gray-600">Sellers <span class="text-gray-400 font-normal">| Total</span></h5>
+                                    <div class="relative">
+                                        <button class="text-gray-400 hover:text-gray-600">
+                                            <i class="bi bi-three-dots"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="flex items-center">
+                                    <div class="w-12 h-12 rounded-full bg-purple-100 flex items-center justify-center shrink-0">
+                                        <i class="bi bi-shop text-xl text-purple-600"></i>
+                                    </div>
+                                    <div class="ml-3">
+                                        <h6 class="text-2xl font-bold text-gray-900">{{ total_sellers|default:0 }}</h6>
+                                        <span class="text-purple-600 text-xs font-semibold">Registered</span>
                                     </div>
                                 </div>
                             </div>

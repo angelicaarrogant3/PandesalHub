@@ -85,6 +85,9 @@ urlpatterns = [
    # Admin Sellers
    path("admin-sellers/", seller_views.admin_sellers, name="admin_sellers"),
    path("admin-sellers/create/", seller_views.admin_seller_create, name="admin_seller_create"),
+   path("admin-sellers/<int:user_id>/edit/", seller_views.admin_seller_edit, name="admin_seller_edit"),
+   path("admin-sellers/<int:user_id>/toggle/", seller_views.admin_seller_toggle, name="admin_seller_toggle"),
+   path("admin-sellers/<int:user_id>/delete/", seller_views.admin_seller_delete, name="admin_seller_delete"),
    path("admin-sellers/<int:user_id>/approve/", seller_views.admin_seller_approve, name="admin_seller_approve"),
    path("admin-sellers/<int:user_id>/reject/", seller_views.admin_seller_reject, name="admin_seller_reject"),
  
