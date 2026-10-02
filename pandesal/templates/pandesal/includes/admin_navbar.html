@@ -129,6 +129,10 @@
       <i class="fa-solid fa-users text-lg min-w-[20px]"></i>
       <span class="sidebar-text">Users</span>
     </a>
+    <a href="{% url 'admin_sellers' %}" class="flex items-center gap-4 px-4 py-3 rounded-xl {% if 'seller' in request.resolver_match.url_name %}text-green-700 bg-green-50{% else %}text-gray-600 hover:text-green-700 hover:bg-green-50{% endif %} transition">
+      <i class="fa-solid fa-store text-lg min-w-[20px]"></i>
+      <span class="sidebar-text">Sellers</span>
+    </a>
     <a href="{% url 'messages_inbox' %}" class="flex items-center gap-4 px-4 py-3 rounded-xl text-gray-600 hover:text-green-700 hover:bg-green-50 transition relative">
       <i class="fa-solid fa-message text-lg min-w-[20px]"></i>
       <span class="sidebar-text">Messages</span>

@@ -550,11 +550,12 @@
                             {% endwith %}
                             • ₱{{ order.total_amount }}
                           </p>
-                          <div class="flex flex-wrap gap-2 mt-1">
-                            <span class="text-xs text-gray-500">Order #{{ order.id }}</span>
-                            <span class="text-xs text-gray-500">{{ order.created_at|date:"M d, Y" }}</span>
-                            <span class="text-xs text-gray-500 capitalize">{% if order.delivery %}Delivery{% else %}Pickup{% endif %}</span>
-                          </div>
+                            <div class="flex flex-wrap gap-2 mt-1">
+                              <span class="text-xs text-gray-500">Order #{{ order.id }}</span>
+                              <span class="text-xs text-gray-500">{{ order.created_at|date:"M d, Y" }}</span>
+                              <span class="text-xs text-gray-500 capitalize">{% if order.delivery %}Delivery{% else %}Pickup{% endif %}</span>
+                              <span class="text-xs text-green-600 font-medium bg-green-50 px-1.5 py-0.5 rounded"><i class="fas fa-store"></i> {{ order.seller.shop.shop_name }}</span>
+                            </div>
                         </div>
                       </div>
                     </div>
@@ -682,6 +683,7 @@
                             <i class="fas fa-{% if reservation.delivery %}truck{% else %}store{% endif %}"></i>
                             {% if reservation.delivery %}Delivery{% else %}Pickup{% endif %}
                           </span>
+                          <span class="text-xs text-green-600 font-medium bg-green-50 px-1.5 py-0.5 rounded"><i class="fas fa-store"></i> {{ reservation.seller.shop.shop_name }}</span>
                         </div>
                       </div>
                     </div>

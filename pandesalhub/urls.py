@@ -4,7 +4,7 @@ from django.views.generic import TemplateView
 from django.templatetags.static import static
 from django.views.generic.base import RedirectView
 from django.contrib.sitemaps.views import sitemap
-from pandesal import views
+from pandesal import views, seller_views
 from pandesal import reservation_views
 from pandesal.views import storage_debug
 from django.conf import settings
@@ -43,6 +43,19 @@ urlpatterns = [
     path("user/", views.index_user, name="index_user"),
     path("user/shop/", views.shop_user, name="shop_user"),
 
+    # Seller Portal
+    path("seller/dashboard/", seller_views.seller_dashboard, name="seller_dashboard"),
+    path("seller/settings/", seller_views.seller_shop_settings, name="seller_shop_settings"),
+    path("seller/products/", seller_views.seller_products, name="seller_products"),
+    path("seller/products/create/", seller_views.seller_product_create, name="seller_product_create"),
+    path("seller/products/<int:product_id>/edit/", seller_views.seller_product_edit, name="seller_product_edit"),
+    path("seller/orders/", seller_views.seller_orders, name="seller_orders"),
+    path("seller/orders/<int:order_id>/", seller_views.seller_order_detail, name="seller_order_detail"),
+    path("seller/orders/<int:order_id>/status/", seller_views.seller_order_status_update, name="seller_order_status_update"),
+    path("seller/reservations/", seller_views.seller_reservations, name="seller_reservations"),
+    path("seller/reservations/<int:reservation_id>/", seller_views.seller_reservation_detail, name="seller_reservation_detail"),
+    path("seller/reservations/<int:reservation_id>/status/", seller_views.seller_reservation_status_update, name="seller_reservation_status_update"),
+
     # New cartless preorder flow
 
     path("profile/", views.user_profile, name="user_profile"),
@@ -69,6 +82,10 @@ urlpatterns = [
    path("admin-user-toggle/<int:user_id>/", views.admin_user_toggle, name="admin_user_toggle"),
    path("admin-user-delete/<int:user_id>/", views.admin_user_delete, name="admin_user_delete"),
  
+   # Admin Sellers
+   path("admin/sellers/", seller_views.admin_sellers, name="admin_sellers"),
+   path("admin/sellers/<int:user_id>/approve/", seller_views.admin_seller_approve, name="admin_seller_approve"),
+   path("admin/sellers/<int:user_id>/reject/", seller_views.admin_seller_reject, name="admin_seller_reject"),
  
    # Admin Reservations
  

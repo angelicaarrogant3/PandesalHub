@@ -152,7 +152,12 @@
                                                     <div class="text-sm font-medium text-gray-900">
                                                         {{ user.get_full_name|default:user.username }}
                                                     </div>
-                                                    <div class="text-sm text-gray-500">@{{ user.username }}</div>
+                                                    <div class="text-sm text-gray-500">
+                                                        @{{ user.username }}
+                                                        {% if user.userprofile.user_type == 'seller' %}
+                                                            <span class="ml-1 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-purple-100 text-purple-800"><i class="fas fa-store mr-1"></i>Seller</span>
+                                                        {% endif %}
+                                                    </div>
                                                 </div>
                                             </div>
                                         </td>

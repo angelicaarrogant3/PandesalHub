@@ -1,0 +1,35 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Become a Seller</title>
+  <script src="{% static 'pandesal/js/tailwind.js' %}"></script>
+  <link rel="stylesheet" href="{% static 'pandesal/css/fontawesome/all.min.css' %}" />
+</head>
+<body class="bg-gray-50">
+  <header class="h-16 bg-white shadow flex items-center px-6">
+    <a href="{% url 'home' %}" class="text-green-600 font-bold text-xl">PandesalHub</a>
+  </header>
+  
+  <div class="max-w-xl mx-auto mt-10 p-6 bg-white rounded shadow-md">
+    <h2 class="text-2xl font-bold mb-6 text-gray-800">Start Your Shop on PandesalHub</h2>
+    <p class="mb-6 text-gray-600">Fill out the details below to apply as a seller. Our admin will review your application shortly.</p>
+    <form method="POST" enctype="multipart/form-data">
+      {% csrf_token %}
+      <div class="space-y-4">
+        {% for field in form %}
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">{{ field.label }}</label>
+            {{ field }}
+            {% if field.errors %}
+              <p class="text-red-500 text-xs mt-1">{{ field.errors.0 }}</p>
+            {% endif %}
+          </div>
+        {% endfor %}
+      </div>
+      <button type="submit" class="mt-6 w-full px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded font-semibold transition">Submit Application</button>
+    </form>
+  </div>
+</body>
+</html>

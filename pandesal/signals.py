@@ -47,7 +47,7 @@ def create_order_notifications(sender, instance, created, **kwargs):
     if not created and previous_status == current_status:
         return
     
-    # NEW ORDER - Notify admin only
+    # NEW ORDER - Notify admin and seller
     if created:
         customer_name = instance.user.get_full_name() or instance.user.username
         
@@ -67,6 +67,16 @@ def create_order_notifications(sender, instance, created, **kwargs):
                 user=None,  # Admin notification
                 order=instance
             )
+            
+        # Notify Seller
+        if instance.seller:
+            Notification.objects.create(
+                type='order_submitted',
+                message=f'New Order #{instance.id} from {customer_name}.',
+                user=instance.seller,
+                order=instance
+            )
+            
         return
     
     # STATUS CHANGES - Notify user (but not if user cancelled their own order)
@@ -111,6 +121,15 @@ def create_order_notifications(sender, instance, created, **kwargs):
                 user=instance.user,  # User notification
                 order=instance
             )
+            
+            # Notify seller about admin actions (like confirmation)
+            if current_status in ['confirmed'] and instance.seller:
+                Notification.objects.create(
+                    type='order_status',
+                    message=f'Order #{instance.id} is now confirmed. Please process the order.',
+                    user=instance.seller,
+                    order=instance
+                )
 
 
 @receiver(post_save, sender=Reservation)
@@ -128,7 +147,7 @@ def create_reservation_notifications(sender, instance, created, **kwargs):
     if not created and previous_status == current_status:
         return
     
-    # NEW RESERVATION - Notify admin only
+    # NEW RESERVATION - Notify admin and seller
     if created:
         customer_name = instance.user.get_full_name() or instance.user.username
         product_name = instance.product.name if instance.product else "Unknown Product"
@@ -139,6 +158,15 @@ def create_reservation_notifications(sender, instance, created, **kwargs):
             user=None,  # Admin notification
             reservation=instance
         )
+        
+        if instance.seller:
+            Notification.objects.create(
+                type='reservation_submitted',
+                message=f'New Reservation #{instance.id} from {customer_name} for {product_name}.',
+                user=instance.seller,
+                reservation=instance
+            )
+            
         return
     
     # STATUS CHANGES - Notify user (but not if user cancelled their own reservation)
@@ -181,3 +209,12 @@ def create_reservation_notifications(sender, instance, created, **kwargs):
                 user=instance.user,  # User notification
                 reservation=instance
             )
+            
+            # Notify seller about admin actions
+            if current_status in ['pending_payment', 'confirmed'] and instance.seller:
+                Notification.objects.create(
+                    type='reservation_status',
+                    message=f'Reservation #{instance.id} is now {current_status}.',
+                    user=instance.seller,
+                    reservation=instance
+                )

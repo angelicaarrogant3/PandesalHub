@@ -9,7 +9,7 @@ from django.views.decorators.clickjacking import xframe_options_sameorigin
 from .forms import SignUpForm, PersonalInfoForm, CredentialsForm
 from .models import (
     Pandesal, AboutPage, ContactInfo,
-    UserProfile, Message, Feedback, Notification, Order, Reservation, Rating
+    UserProfile, Message, Feedback, Notification, Order, Reservation, Rating, Shop
 )
 from django.http import HttpResponse, JsonResponse
 from django.contrib import messages
@@ -232,8 +232,26 @@ def shop_view(request):
     else:
         # Guest users - show guest shop
         pandesals = Pandesal.objects.all()
+        
+        # Search functionality
+        search_query = request.GET.get('search', '').strip()
+        if search_query:
+            pandesals = pandesals.filter(
+                Q(name__icontains=search_query) |
+                Q(description__icontains=search_query)
+            )
+            
+        # Filter by shop
+        shop_id = request.GET.get('shop')
+        if shop_id:
+            pandesals = pandesals.filter(seller__shop__id=shop_id)
+            
+        shops = Shop.objects.filter(is_active=True)
+            
         return render(request, "pandesal/shop.html", {
             "pandesals": pandesals,
+            "shops": shops,
+            "selected_shop": int(shop_id) if shop_id and shop_id.isdigit() else None,
             "is_admin": False,
             "is_authenticated": False,
         })
@@ -292,6 +310,13 @@ def shop_user(request):
             Q(description__icontains=search_query)
         )
     
+    # Filter by shop
+    shop_id = request.GET.get('shop')
+    if shop_id:
+        pandesals = pandesals.filter(seller__shop__id=shop_id)
+        
+    shops = Shop.objects.filter(is_active=True)
+    
     # Add order status to each product
     for pandesal in pandesals:
         pandesal.order_status = get_order_status(pandesal)
@@ -324,6 +349,8 @@ def shop_user(request):
         'unread_notifications_count': unread_notifications_count,
         'unread_messages_count': unread_messages_count,
         'search_query': search_query,
+        'shops': shops,
+        'selected_shop': int(shop_id) if shop_id and shop_id.isdigit() else None,
     }
     return render(request, "pandesal/shop_user.html", context)
 
@@ -1067,6 +1094,7 @@ def admin_user_create(request):
         barangay = request.POST.get('barangay', '')
         zone = request.POST.get('zone', '')
         additional_notes = request.POST.get('additional_notes', '')
+        user_type = request.POST.get('user_type', 'customer')
         
         # Validation
         if not username or not email or not password1:
@@ -1107,7 +1135,17 @@ def admin_user_create(request):
         profile.barangay = barangay
         profile.zone = zone
         profile.additional_notes = additional_notes
+        profile.user_type = user_type
+        if user_type == 'seller':
+            profile.is_approved_seller = True
         profile.save()
+        
+        if user_type == 'seller':
+            from .models import Shop
+            Shop.objects.get_or_create(
+                seller=user,
+                defaults={'shop_name': f"{first_name or username}'s Shop"}
+            )
         
         messages.success(request, f'User "{username}" created successfully!')
         return redirect('admin_users')
@@ -1137,6 +1175,7 @@ def admin_user_edit(request, user_id):
         barangay = request.POST.get('barangay', '')
         zone = request.POST.get('zone', '')
         additional_notes = request.POST.get('additional_notes', '')
+        user_type = request.POST.get('user_type', 'customer')
         
         # Validation
         if not username or not email:
@@ -1207,7 +1246,17 @@ def admin_user_edit(request, user_id):
         profile.barangay = barangay
         profile.zone = zone
         profile.additional_notes = additional_notes
+        profile.user_type = user_type
+        if user_type == 'seller':
+            profile.is_approved_seller = True
         profile.save()
+        
+        if user_type == 'seller':
+            from .models import Shop
+            Shop.objects.get_or_create(
+                seller=user_obj,
+                defaults={'shop_name': f"{first_name or username}'s Shop"}
+            )
         
         success_msg = f'User "{username}" updated successfully!'
         if is_ajax:
@@ -1648,6 +1697,19 @@ def add_to_cart(request, product_id):
         request.session['cart'] = {}
     
     cart = request.session['cart']
+    
+    # Check if cart contains items from a different seller
+    if cart:
+        # Get the first item in cart to check its seller
+        first_item_id = next(iter(cart.keys()))
+        try:
+            first_cart_product = Pandesal.objects.get(id=first_item_id)
+            if first_cart_product.seller != product.seller:
+                messages.error(request, 'You can only checkout from one shop at a time. Please empty your cart to order from this shop.')
+                return redirect('shop_user')
+        except Pandesal.DoesNotExist:
+            pass # Invalid cart item, will be cleaned up eventually
+            
     product_id_str = str(product_id)
     
     # Add or update product in cart
@@ -1840,47 +1902,73 @@ def checkout_cart(request):
                 messages.error(request, 'Payment proof file size must be less than 5MB.')
                 return redirect('checkout_cart')
         
-        # Create the order
-        # Both pickup and delivery orders start as pending_confirmation
-        # Admin must confirm before order is ready
+        # Group cart items by seller
+        seller_items = {}
+        for product_id, item in cart.items():
+            try:
+                product = Pandesal.objects.get(id=product_id)
+                # Check if product is closed
+                if 'order_now' in product.categories and not can_order_now(product):
+                    messages.error(request, f'{product.name} is currently closed and cannot be ordered.')
+                    return redirect('view_cart')
+                
+                # Verify stock
+                if product.stock < item['quantity']:
+                    messages.error(request, f'Not enough stock for {product.name}. Only {product.stock} available.')
+                    return redirect('view_cart')
+                    
+                seller = product.seller
+                if seller not in seller_items:
+                    seller_items[seller] = []
+                seller_items[seller].append((product, item))
+            except Pandesal.DoesNotExist:
+                messages.error(request, f'Product {item["name"]} no longer exists.')
+                return redirect('view_cart')
+                
+        # Read payment proof to memory if we need to attach it to multiple orders
+        payment_proof_content = None
+        payment_proof_name = None
+        if payment_proof:
+            payment_proof_content = payment_proof.read()
+            payment_proof_name = payment_proof.name
+
+        # Create the orders
         order_status = 'pending_confirmation'
-        
         if is_delivery:
             success_message = 'Your downpayment has been submitted. Please wait for admin confirmation.'
         else:
             success_message = 'Your pickup order has been submitted. Please wait for admin confirmation before pickup.'
+            
+        created_orders = []
+        from django.core.files.base import ContentFile
         
-        order = Order.objects.create(
-            user=request.user,
-            status=order_status,
-            total_amount=total_amount,
-            downpayment_amount=downpayment_amount,
-            shipping_fee=shipping_fee,
-            payment_method=payment_method,
-            gcash_reference=gcash_reference,
-            payment_proof=payment_proof,
-            delivery=is_delivery,
-            notes=notes
-        )
-        
-        # Create order items (don't deduct stock yet - wait for admin confirmation)
-        for product_id, item in cart.items():
-            try:
-                product = Pandesal.objects.get(id=product_id)
+        for seller, items in seller_items.items():
+            seller_quantity = sum(item['quantity'] for product, item in items)
+            seller_subtotal = sum(product.price * item['quantity'] for product, item in items)
+            
+            seller_shipping = Decimal('50.00') if (is_delivery and seller_quantity < 20) else Decimal('0.00')
+            seller_downpayment = (seller_subtotal + seller_shipping) * Decimal('0.50') if is_delivery else Decimal('0.00')
+            
+            order = Order(
+                user=request.user,
+                seller=seller,
+                status=order_status,
+                total_amount=seller_subtotal,
+                downpayment_amount=seller_downpayment,
+                shipping_fee=seller_shipping,
+                payment_method=payment_method,
+                gcash_reference=gcash_reference,
+                delivery=is_delivery,
+                notes=notes
+            )
+            
+            if payment_proof_content:
+                order.payment_proof.save(payment_proof_name, ContentFile(payment_proof_content), save=False)
                 
-                # Check if product is closed (order time window has passed)
-                if 'order_now' in product.categories and not can_order_now(product):
-                    messages.error(request, f'{product.name} is currently closed and cannot be ordered.')
-                    order.delete()
-                    return redirect('view_cart')
-                
-                # Verify stock availability
-                if product.stock < item['quantity']:
-                    messages.error(request, f'Not enough stock for {product.name}. Only {product.stock} available.')
-                    order.delete()
-                    return redirect('view_cart')
-                
-                # Create order item
+            order.save()
+            created_orders.append(order)
+            
+            for product, item in items:
                 OrderItem.objects.create(
                     order=order,
                     product=product,
@@ -1888,21 +1976,17 @@ def checkout_cart(request):
                     price=product.price,
                     subtotal=product.price * item['quantity']
                 )
-                
-            except Pandesal.DoesNotExist:
-                messages.error(request, f'Product {item["name"]} no longer exists.')
-                order.delete()
-                return redirect('view_cart')
-        
-        # Notification is automatically created by signal when order is created
         
         # Clear cart after successful checkout
         del request.session['cart']
         request.session.modified = True
         
-        messages.success(request, f'Order #{order.id} placed successfully! {success_message}')
-        
-        return redirect('order_detail', order_id=order.id)
+        if len(created_orders) == 1:
+            messages.success(request, f'Order #{created_orders[0].id} placed successfully! {success_message}')
+            return redirect('order_detail', order_id=created_orders[0].id)
+        else:
+            messages.success(request, f'Your orders have been placed successfully! {success_message}')
+            return redirect('user_profile')
     
     # GET request - show checkout page
     cart_items = []
@@ -1974,8 +2058,14 @@ def order_detail(request, order_id):
                 order.status = 'completed'
                 order.save()
                 
-                # Notify admins
-                # Create admin notification (user=None for admin notifications)
+                # Notify seller and admin
+                if order.seller:
+                    Notification.objects.create(
+                        type='order_completed',
+                        message=f'Order #{order.id}: {request.user.username} confirmed receipt of their order.',
+                        user=order.seller,
+                        order=order
+                    )
                 Notification.objects.create(
                     type='order_completed',
                     message=f'Order #{order.id}: {request.user.username} confirmed receipt of their order.',
@@ -2018,8 +2108,14 @@ def cancel_reservation(request, reservation_id):
     reservation._skip_user_notification = True
     reservation.save()
     
-    # Notify all admins about the cancellation
-    # Create admin notification (user=None for admin notifications)
+    # Notify seller and admins about the cancellation
+    if reservation.seller:
+        Notification.objects.create(
+            type='reservation_cancelled',
+            message=f'Reservation #{reservation.id}: {request.user.get_full_name() or request.user.username} cancelled their reservation for {reservation.product.name}.',
+            user=reservation.seller,
+            reservation=reservation
+        )
     Notification.objects.create(
         type='reservation_cancelled',
         message=f'Reservation #{reservation.id}: {request.user.get_full_name() or request.user.username} cancelled their reservation for {reservation.product.name}.',
@@ -2054,8 +2150,14 @@ def cancel_order(request, order_id):
         order._skip_user_notification = True
         order.save()
         
-        # Notify all admins about the cancellation
-        # Create admin notification (user=None for admin notifications)
+        # Notify seller and admins about the cancellation
+        if order.seller:
+            Notification.objects.create(
+                type='order_cancelled',
+                message=f'Order #{order.id}: {request.user.get_full_name() or request.user.username} cancelled their order.',
+                user=order.seller,
+                order=order
+            )
         Notification.objects.create(
             type='order_cancelled',
             message=f'Order #{order.id}: {request.user.get_full_name() or request.user.username} cancelled their order.',
@@ -2437,7 +2539,14 @@ def rate_order(request, order_id):
             
             rating.save()
             
-            # Create notification for admin
+            # Create notification for seller and admin
+            if order.seller:
+                Notification.objects.create(
+                    type='feedback',
+                    message=f'{request.user.get_full_name() or request.user.username} rated Order #{order.id} with {rating.get_average_rating():.1f}/5 stars',
+                    user=order.seller,
+                    order=order
+                )
             admin_users = User.objects.filter(is_staff=True)
             for admin in admin_users:
                 Notification.objects.create(

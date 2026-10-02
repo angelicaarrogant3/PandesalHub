@@ -1,7 +1,7 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
-from .models import UserProfile
+from .models import UserProfile, Shop, Pandesal
 
 # Naval, Biliran Barangays constant
 BARANGAY_CHOICES = [
@@ -228,3 +228,34 @@ class UserProfileForm(forms.ModelForm):
             user.save()
             profile.save()
         return profile
+
+
+class ShopForm(forms.ModelForm):
+    class Meta:
+        model = Shop
+        fields = ['shop_name', 'description', 'logo']
+        widgets = {
+            'description': forms.Textarea(attrs={'rows': 4, 'placeholder': 'Tell customers about your shop...'}),
+            'shop_name': forms.TextInput(attrs={'placeholder': 'Your Shop Name'})
+        }
+
+class SellerProductForm(forms.ModelForm):
+    categories = forms.MultipleChoiceField(
+        choices=Pandesal.CATEGORY_CHOICES,
+        widget=forms.CheckboxSelectMultiple,
+        required=False
+    )
+
+    class Meta:
+        model = Pandesal
+        fields = [
+            'name', 'price', 'description', 'image', 'is_available', 
+            'stock', 'preparation_time_hours', 'preparation_days',
+            'categories'
+        ]
+        widgets = {
+            'description': forms.Textarea(attrs={'rows': 3}),
+        }
+
+    def clean_categories(self):
+        return list(self.cleaned_data.get('categories', []))

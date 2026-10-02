@@ -62,6 +62,15 @@ class UserProfile(models.Model):
     # Legacy address field (kept for backward compatibility)
     address = models.TextField(blank=True)
     
+    # Multi-vendor fields
+    USER_TYPE_CHOICES = [
+        ('customer', 'Customer'),
+        ('seller', 'Seller'),
+        ('admin', 'Admin'),
+    ]
+    user_type = models.CharField(max_length=20, choices=USER_TYPE_CHOICES, default='customer')
+    is_approved_seller = models.BooleanField(default=False)
+    
     birth_date = models.DateField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -84,6 +93,22 @@ class UserProfile(models.Model):
         return address
 
 
+class Shop(models.Model):
+    seller = models.OneToOneField(User, on_delete=models.CASCADE, related_name='shop')
+    shop_name = models.CharField(max_length=150)
+    description = models.TextField(blank=True, null=True)
+    logo = models.ImageField(upload_to='shop_logos/', blank=True, null=True)
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'pandesal_shop'
+
+    def __str__(self):
+        return self.shop_name
+
+
 class Pandesal(models.Model):
     class Meta:
         db_table = 'pandesal_pandesal'
@@ -104,6 +129,7 @@ class Pandesal(models.Model):
     ]
     
     name = models.CharField(max_length=100)
+    seller = models.ForeignKey(User, on_delete=models.CASCADE, related_name='products', null=True, blank=True)
     price = models.DecimalField(max_digits=6, decimal_places=2)
     description = models.TextField(blank=True, null=True)
     image = models.ImageField(upload_to='pandesal_images/', blank=True, null=True)
@@ -323,6 +349,7 @@ class Order(models.Model):
     ]
 
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='orders')
+    seller = models.ForeignKey(User, on_delete=models.CASCADE, related_name='received_orders', null=True, blank=True)
     status = models.CharField(max_length=30, choices=STATUS_CHOICES, default='pending')
     
     # Financial details
@@ -447,6 +474,7 @@ class Reservation(models.Model):
     ]
     
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='reservations')
+    seller = models.ForeignKey(User, on_delete=models.CASCADE, related_name='received_reservations', null=True, blank=True)
     product = models.ForeignKey(Pandesal, on_delete=models.CASCADE, related_name='reservations')
     quantity = models.PositiveIntegerField()
     total_amount = models.DecimalField(max_digits=10, decimal_places=2)
@@ -531,6 +559,7 @@ class Rating(models.Model):
     """Rating and review for completed orders"""
     order = models.OneToOneField(Order, on_delete=models.CASCADE, related_name='rating')
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='ratings')
+    seller = models.ForeignKey(User, on_delete=models.CASCADE, related_name='received_ratings', null=True, blank=True)
     
     # Product Quality Rating (1-5 stars)
     product_rating = models.PositiveIntegerField(

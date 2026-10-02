@@ -1,0 +1,78 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Manage Sellers</title>
+  <script src="{% static 'pandesal/js/tailwind.js' %}"></script>
+</head>
+<body class="bg-gray-50">
+  <header class="h-16 bg-white shadow flex justify-between items-center px-6">
+    <div class="text-green-600 font-bold text-xl">PandesalHub Admin</div>
+    <a href="{% url 'admin_dashboard' %}" class="text-gray-600 hover:text-green-600">Back to Dashboard</a>
+  </header>
+  
+  <main class="max-w-4xl mx-auto mt-10 p-6">
+    {% if messages %}
+      {% for message in messages %}
+        <div class="mb-4 p-4 rounded bg-green-100 text-green-800">{{ message }}</div>
+      {% endfor %}
+    {% endif %}
+
+    <h2 class="text-2xl font-bold mb-4 text-gray-800">Pending Seller Applications</h2>
+    <div class="bg-white rounded shadow overflow-hidden mb-10">
+      <table class="w-full text-left">
+        <thead class="bg-gray-100">
+          <tr>
+            <th class="p-4 text-gray-600 font-semibold">Username</th>
+            <th class="p-4 text-gray-600 font-semibold">Shop Name</th>
+            <th class="p-4 text-gray-600 font-semibold">Actions</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-100">
+          {% for seller in pending_sellers %}
+          <tr class="hover:bg-gray-50">
+            <td class="p-4 text-gray-800">{{ seller.user.username }}</td>
+            <td class="p-4 text-gray-800">{{ seller.user.shop.shop_name }}</td>
+            <td class="p-4 flex gap-2">
+              <form method="POST" action="{% url 'admin_seller_approve' seller.user.id %}">
+                {% csrf_token %}
+                <button class="px-4 py-1.5 bg-green-500 hover:bg-green-600 text-white text-sm font-medium rounded transition">Approve</button>
+              </form>
+              <form method="POST" action="{% url 'admin_seller_reject' seller.user.id %}" onsubmit="return confirm('Are you sure you want to reject this application?');">
+                {% csrf_token %}
+                <button class="px-4 py-1.5 bg-red-500 hover:bg-red-600 text-white text-sm font-medium rounded transition">Reject</button>
+              </form>
+            </td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="3" class="p-8 text-center text-gray-500">No pending applications at this time.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <h2 class="text-2xl font-bold mb-4 text-gray-800">Approved Sellers</h2>
+    <div class="bg-white rounded shadow overflow-hidden">
+      <table class="w-full text-left">
+        <thead class="bg-gray-100">
+          <tr>
+            <th class="p-4 text-gray-600 font-semibold">Username</th>
+            <th class="p-4 text-gray-600 font-semibold">Shop Name</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-100">
+          {% for seller in approved_sellers %}
+          <tr class="hover:bg-gray-50">
+            <td class="p-4 text-gray-800">{{ seller.user.username }}</td>
+            <td class="p-4 text-gray-800">{{ seller.user.shop.shop_name }}</td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="2" class="p-8 text-center text-gray-500">No approved sellers yet.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </main>
+</body>
+</html>

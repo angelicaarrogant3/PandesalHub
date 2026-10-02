@@ -70,6 +70,13 @@ def add_to_reservation_cart(request, product_id):
         # Get or create cart
         cart, created = ReservationCart.objects.get_or_create(user=request.user)
         
+        # Check if cart contains items from a different seller
+        if cart.items.exists():
+            first_cart_item = cart.items.first()
+            if first_cart_item.product.seller != product.seller:
+                messages.error(request, 'You can only reserve from one shop at a time. Please empty your reservation cart to reserve from this shop.')
+                return redirect('reservation_shop')
+        
         # Check if item already exists in cart
         cart_item, created = ReservationCartItem.objects.get_or_create(
             cart=cart,
@@ -161,6 +168,7 @@ def submit_reservation(request):
                 
                 reservation = Reservation.objects.create(
                     user=request.user,
+                    seller=item.product.seller,
                     product=item.product,
                     quantity=item.quantity,
                     total_amount=total_amount,
@@ -277,6 +285,7 @@ def reservation_checkout(request):
                     
                     reservation = Reservation.objects.create(
                         user=request.user,
+                        seller=item.product.seller,
                         product=item.product,
                         quantity=item.quantity,
                         total_amount=total_amount,
@@ -378,9 +387,9 @@ def reservation_create(request, product_id):
         downpayment_percent = product.reservation_downpayment_percent / Decimal('100')
         downpayment_amount = total_amount * downpayment_percent
         
-        # Create reservation
         reservation = Reservation.objects.create(
             user=request.user,
+            seller=product.seller,
             product=product,
             quantity=quantity,
             total_amount=total_amount,
