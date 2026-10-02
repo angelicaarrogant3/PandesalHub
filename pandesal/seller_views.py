@@ -4,6 +4,7 @@ from django.contrib import messages
 from django.http import JsonResponse
 from .models import Shop, UserProfile, Pandesal, Order, Reservation, Notification
 from django.contrib.auth.models import User
+from django.db.models import Sum
 from .forms import ShopForm, SellerProductForm
 from django.views.decorators.clickjacking import xframe_options_sameorigin
 
@@ -17,7 +18,28 @@ def seller_dashboard(request):
         return redirect('home')
         
     shop = getattr(request.user, 'shop', None)
-    return render(request, 'pandesal/seller/dashboard.html', {'shop': shop})
+    
+    # Calculate stats
+    orders = Order.objects.filter(seller=request.user)
+    new_orders_count = orders.filter(status__in=['pending', 'pending_confirmation']).count()
+    preparing_count = orders.filter(status__in=['confirmed', 'ready_for_pickup']).count()
+    completed_count = orders.filter(status='completed').count()
+    
+    total_sales = orders.filter(status='completed').aggregate(Sum('total_amount'))['total_amount__sum'] or 0
+    
+    recent_orders = orders.order_by('-created_at')[:5]
+    low_stock_products = Pandesal.objects.filter(seller=request.user, stock__lt=10).order_by('stock')
+    
+    context = {
+        'shop': shop,
+        'new_orders_count': new_orders_count,
+        'preparing_count': preparing_count,
+        'completed_count': completed_count,
+        'total_sales': total_sales,
+        'recent_orders': recent_orders,
+        'low_stock_products': low_stock_products,
+    }
+    return render(request, 'pandesal/seller/dashboard.html', context)
 
 @login_required
 def seller_shop_settings(request):

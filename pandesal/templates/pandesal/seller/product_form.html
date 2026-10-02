@@ -1,35 +1,9 @@
-{% load static %}
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>{% if is_edit %}Edit{% else %}Add{% endif %} Product - Seller Dashboard</title>
-  <script src="{% static 'pandesal/js/tailwind.js' %}"></script>
-  <link rel="stylesheet" href="{% static 'pandesal/css/fontawesome/all.min.css' %}" />
-</head>
-<body class="bg-gray-50">
-  <header class="h-16 bg-white shadow flex justify-between items-center px-6 z-10 relative">
-    <div class="flex items-center gap-3">
-      <div class="text-green-600 font-bold text-xl">PandesalHub Seller</div>
-    </div>
-    <div class="flex items-center gap-4">
-      <span class="font-semibold text-gray-700">{{ user.username }}</span>
-      <a href="{% url 'logout' %}" class="text-red-600 hover:text-red-800"><i class="fas fa-sign-out-alt"></i> Logout</a>
-    </div>
-  </header>
-  
-  <div class="flex">
-    <!-- Sidebar -->
-    <aside class="w-64 bg-white shadow min-h-[calc(100vh-4rem)] p-4">
-      <nav class="space-y-2">
-        <a href="{% url 'seller_dashboard' %}" class="block px-4 py-2 text-gray-700 hover:bg-green-50 hover:text-green-700 rounded font-semibold transition"><i class="fas fa-chart-line w-6"></i> Dashboard</a>
-        <a href="{% url 'seller_products' %}" class="block px-4 py-2 bg-green-50 text-green-700 rounded font-semibold"><i class="fas fa-box w-6"></i> My Products</a>
-      </nav>
-    </aside>
-    
-    <!-- Main Content -->
-    <main class="flex-1 p-8">
-      <div class="max-w-2xl mx-auto bg-white p-8 rounded-lg shadow border border-gray-100">
+{% extends 'pandesal/seller/seller_base.html' %}
+
+{% block title %}{% if is_edit %}Edit{% else %}Add{% endif %} Product - Seller Dashboard{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto bg-white p-8 rounded-lg shadow border border-gray-100">
         <div class="flex items-center justify-between mb-6">
           <h1 class="text-2xl font-bold text-gray-800">{% if is_edit %}Edit{% else %}Add{% endif %} Product</h1>
           <a href="{% url 'seller_products' %}" class="text-gray-500 hover:text-gray-800">Back</a>
@@ -54,7 +28,4 @@
           <button type="submit" class="mt-8 w-full px-4 py-3 bg-green-600 hover:bg-green-700 text-white rounded font-bold transition shadow">Save Product</button>
         </form>
       </div>
-    </main>
-  </div>
-</body>
-</html>
+{% endblock %}

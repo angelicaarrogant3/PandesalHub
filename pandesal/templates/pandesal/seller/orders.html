@@ -1,36 +1,9 @@
-{% load static %}
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>Orders - Seller Dashboard</title>
-  <script src="{% static 'pandesal/js/tailwind.js' %}"></script>
-  <link rel="stylesheet" href="{% static 'pandesal/css/fontawesome/all.min.css' %}" />
-</head>
-<body class="bg-gray-50">
-  <header class="h-16 bg-white shadow flex justify-between items-center px-6 z-10 relative">
-    <div class="flex items-center gap-3">
-      <div class="text-green-600 font-bold text-xl">PandesalHub Seller</div>
-    </div>
-    <div class="flex items-center gap-4">
-      <span class="font-semibold text-gray-700">{{ user.username }}</span>
-      <a href="{% url 'logout' %}" class="text-red-600 hover:text-red-800"><i class="fas fa-sign-out-alt"></i> Logout</a>
-    </div>
-  </header>
-  
-  <div class="flex">
-    <aside class="w-64 bg-white shadow min-h-[calc(100vh-4rem)] p-4">
-      <nav class="space-y-2">
-        <a href="{% url 'seller_dashboard' %}" class="block px-4 py-2 text-gray-700 hover:bg-green-50 hover:text-green-700 rounded font-semibold transition"><i class="fas fa-chart-line w-6"></i> Dashboard</a>
-        <a href="{% url 'seller_products' %}" class="block px-4 py-2 text-gray-700 hover:bg-green-50 hover:text-green-700 rounded font-semibold transition"><i class="fas fa-box w-6"></i> My Products</a>
-        <a href="{% url 'seller_orders' %}" class="block px-4 py-2 bg-green-50 text-green-700 rounded font-semibold transition"><i class="fas fa-shopping-cart w-6"></i> Orders</a>
-        <a href="{% url 'seller_reservations' %}" class="block px-4 py-2 text-gray-700 hover:bg-green-50 hover:text-green-700 rounded font-semibold transition"><i class="fas fa-calendar-alt w-6"></i> Reservations</a>
-        <a href="{% url \'seller_shop_settings\' %}" class="block px-4 py-2 text-gray-700 hover:bg-green-50 hover:text-green-700 rounded transition"><i class="fas fa-store w-6"></i> Shop Settings</a>
-      </nav>
-    </aside>
-    
-    <main class="flex-1 p-8">
-      <h1 class="text-3xl font-bold text-gray-800 mb-6">Manage Orders</h1>
+{% extends 'pandesal/seller/seller_base.html' %}
+
+{% block title %}Orders - Seller Dashboard{% endblock %}
+
+{% block content %}
+<h1 class="text-3xl font-bold text-gray-800 mb-6">Manage Orders</h1>
       
       <form method="GET" class="mb-6 flex gap-4">
         <select name="status" class="border border-gray-300 rounded px-4 py-2 bg-white" onchange="this.form.submit()">
@@ -73,7 +46,4 @@
           </tbody>
         </table>
       </div>
-    </main>
-  </div>
-</body>
-</html>
+{% endblock %}

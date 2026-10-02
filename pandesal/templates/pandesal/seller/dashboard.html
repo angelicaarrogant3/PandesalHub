@@ -1,58 +1,131 @@
-{% load static %}
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>Seller Dashboard</title>
-  <script src="{% static 'pandesal/js/tailwind.js' %}"></script>
-  <link rel="stylesheet" href="{% static 'pandesal/css/fontawesome/all.min.css' %}" />
-</head>
-<body class="bg-gray-50">
-  <header class="h-16 bg-white shadow flex justify-between items-center px-6 z-10 relative">
-    <div class="flex items-center gap-3">
-      <div class="text-green-600 font-bold text-xl">PandesalHub Seller</div>
+{% extends 'pandesal/seller/seller_base.html' %}
+
+{% block title %}Seller Dashboard - PandesalHub{% endblock %}
+
+{% block content %}
+<div class="mb-8">
+  <h1 class="text-3xl font-bold text-gray-800">Welcome, {{ shop.shop_name|default:user.username }}! 👋</h1>
+  <p class="text-gray-500 mt-2">Here's what's happening in your shop today.</p>
+</div>
+
+<!-- Stat Cards -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+  <!-- New Orders -->
+  <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 flex flex-col justify-center items-center">
+    <div class="w-12 h-12 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center mb-4">
+      <i class="fas fa-shopping-basket text-xl"></i>
     </div>
-    <div class="flex items-center gap-4">
-      <span class="font-semibold text-gray-700">{{ user.username }}</span>
-      <a href="{% url 'logout' %}" class="text-red-600 hover:text-red-800"><i class="fas fa-sign-out-alt"></i> Logout</a>
+    <div class="text-3xl font-bold text-gray-800 mb-1">{{ new_orders_count }}</div>
+    <div class="text-sm font-medium text-gray-500 uppercase tracking-wide">New Orders</div>
+  </div>
+
+  <!-- Preparing -->
+  <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 flex flex-col justify-center items-center">
+    <div class="w-12 h-12 bg-yellow-50 text-yellow-600 rounded-full flex items-center justify-center mb-4">
+      <i class="fas fa-fire-burner text-xl"></i>
     </div>
-  </header>
-  
-  <div class="flex">
-    <!-- Sidebar -->
-    <aside class="w-64 bg-white shadow min-h-[calc(100vh-4rem)] p-4">
-      <nav class="space-y-2">
-        <a href="{% url 'seller_dashboard' %}" class="block px-4 py-2 bg-green-50 text-green-700 rounded font-semibold"><i class="fas fa-chart-line w-6"></i> Dashboard</a>
-        <a href="{% url 'seller_products' %}" class="block px-4 py-2 text-gray-700 hover:bg-green-50 hover:text-green-700 rounded font-semibold transition"><i class="fas fa-box w-6"></i> My Products</a>
-        <a href="{% url 'seller_orders' %}" class="block px-4 py-2 text-gray-700 hover:bg-green-50 hover:text-green-700 rounded font-semibold transition"><i class="fas fa-shopping-cart w-6"></i> Orders</a>
-        <a href="{% url 'seller_reservations' %}" class="block px-4 py-2 text-gray-700 hover:bg-green-50 hover:text-green-700 rounded font-semibold transition"><i class="fas fa-calendar-alt w-6"></i> Reservations</a>
-        <a href="{% url \'seller_shop_settings\' %}" class="block px-4 py-2 text-gray-700 hover:bg-green-50 hover:text-green-700 rounded transition"><i class="fas fa-store w-6"></i> Shop Settings</a>
-      </nav>
-    </aside>
-    
-    <!-- Main Content -->
-    <main class="flex-1 p-8">
-      <h1 class="text-3xl font-bold mb-2 text-gray-800">Welcome, {{ shop.shop_name }}</h1>
-      <p class="text-gray-600 mb-8">This is your seller dashboard. From here, you can manage your shop, products, and incoming orders.</p>
-      
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div class="bg-white p-6 rounded-lg shadow border border-gray-100 flex flex-col items-center justify-center">
-          <i class="fas fa-box text-4xl text-blue-500 mb-3"></i>
-          <h3 class="text-lg font-semibold text-gray-700">My Products</h3>
-          <p class="text-gray-500 text-sm">Manage your inventory</p>
+    <div class="text-3xl font-bold text-gray-800 mb-1">{{ preparing_count }}</div>
+    <div class="text-sm font-medium text-gray-500 uppercase tracking-wide">Preparing</div>
+  </div>
+
+  <!-- Completed -->
+  <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 flex flex-col justify-center items-center">
+    <div class="w-12 h-12 bg-green-50 text-green-600 rounded-full flex items-center justify-center mb-4">
+      <i class="fas fa-check-circle text-xl"></i>
+    </div>
+    <div class="text-3xl font-bold text-gray-800 mb-1">{{ completed_count }}</div>
+    <div class="text-sm font-medium text-gray-500 uppercase tracking-wide">Completed</div>
+  </div>
+
+  <!-- Total Sales -->
+  <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 flex flex-col justify-center items-center">
+    <div class="w-12 h-12 bg-purple-50 text-purple-600 rounded-full flex items-center justify-center mb-4">
+      <i class="fas fa-coins text-xl"></i>
+    </div>
+    <div class="text-3xl font-bold text-gray-800 mb-1">₱{{ total_sales|floatformat:2 }}</div>
+    <div class="text-sm font-medium text-gray-500 uppercase tracking-wide">Total Sales</div>
+  </div>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+  <!-- Recent Orders -->
+  <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+    <div class="p-5 border-b border-gray-100 flex justify-between items-center">
+      <h3 class="text-lg font-semibold text-gray-800">Recent Orders</h3>
+      <a href="{% url 'seller_orders' %}" class="text-sm font-medium text-green-600 hover:text-green-800">View All</a>
+    </div>
+    <div class="divide-y divide-gray-100">
+      {% for order in recent_orders %}
+      <div class="p-5 flex items-center justify-between hover:bg-gray-50 transition-colors">
+        <div class="flex items-center gap-4">
+          <div class="w-10 h-10 rounded bg-gray-100 flex items-center justify-center text-gray-500 font-bold">
+            #{{ order.id }}
+          </div>
+          <div>
+            <div class="font-medium text-gray-800">{{ order.user.get_full_name|default:order.user.username }}</div>
+            <div class="text-sm text-gray-500">{{ order.created_at|date:"M d, Y h:i A" }}</div>
+          </div>
         </div>
-        <div class="bg-white p-6 rounded-lg shadow border border-gray-100 flex flex-col items-center justify-center">
-          <i class="fas fa-shopping-cart text-4xl text-green-500 mb-3"></i>
-          <h3 class="text-lg font-semibold text-gray-700">Orders</h3>
-          <p class="text-gray-500 text-sm">Process incoming orders</p>
-        </div>
-        <div class="bg-white p-6 rounded-lg shadow border border-gray-100 flex flex-col items-center justify-center">
-          <i class="fas fa-star text-4xl text-yellow-500 mb-3"></i>
-          <h3 class="text-lg font-semibold text-gray-700">Ratings</h3>
-          <p class="text-gray-500 text-sm">View customer feedback</p>
+        <div class="text-right">
+          <div class="font-bold text-gray-800">₱{{ order.total_amount }}</div>
+          <div>
+            {% if order.status == 'pending' or order.status == 'pending_confirmation' %}
+              <span class="inline-block px-2 py-1 bg-yellow-100 text-yellow-800 text-xs font-semibold rounded-full">Pending</span>
+            {% elif order.status == 'confirmed' or order.status == 'ready_for_pickup' or order.status == 'out_for_delivery' %}
+              <span class="inline-block px-2 py-1 bg-blue-100 text-blue-800 text-xs font-semibold rounded-full">Preparing</span>
+            {% elif order.status == 'completed' %}
+              <span class="inline-block px-2 py-1 bg-green-100 text-green-800 text-xs font-semibold rounded-full">Completed</span>
+            {% else %}
+              <span class="inline-block px-2 py-1 bg-red-100 text-red-800 text-xs font-semibold rounded-full">{{ order.get_status_display }}</span>
+            {% endif %}
+          </div>
         </div>
       </div>
-    </main>
+      {% empty %}
+      <div class="p-8 text-center text-gray-500">
+        <i class="fas fa-inbox text-3xl mb-3 text-gray-300 block"></i>
+        No recent orders.
+      </div>
+      {% endfor %}
+    </div>
   </div>
-</body>
-</html>
+
+  <!-- Low Stock Products -->
+  <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+    <div class="p-5 border-b border-gray-100 flex justify-between items-center">
+      <h3 class="text-lg font-semibold text-gray-800">Low Stock Products</h3>
+      <a href="{% url 'seller_products' %}" class="text-sm font-medium text-green-600 hover:text-green-800">Manage Inventory</a>
+    </div>
+    <div class="divide-y divide-gray-100">
+      {% for product in low_stock_products %}
+      <div class="p-5 flex items-center justify-between hover:bg-gray-50 transition-colors">
+        <div class="flex items-center gap-4">
+          {% if product.image %}
+            <img src="{{ product.image.url }}" class="w-12 h-12 object-cover rounded bg-gray-100 border border-gray-200">
+          {% else %}
+            <div class="w-12 h-12 rounded bg-gray-100 flex items-center justify-center text-gray-400">
+              <i class="fas fa-bread-slice"></i>
+            </div>
+          {% endif %}
+          <div>
+            <div class="font-medium text-gray-800">{{ product.name }}</div>
+            <div class="text-sm text-gray-500">₱{{ product.price }}</div>
+          </div>
+        </div>
+        <div class="text-right">
+          <div class="font-bold {% if product.stock == 0 %}text-red-600{% elif product.stock < 5 %}text-orange-500{% else %}text-yellow-600{% endif %} text-lg">
+            {{ product.stock }}
+          </div>
+          <div class="text-xs text-gray-500 uppercase tracking-wide">Left</div>
+        </div>
+      </div>
+      {% empty %}
+      <div class="p-8 text-center text-gray-500">
+        <i class="fas fa-check-circle text-3xl mb-3 text-green-300 block"></i>
+        All your products have sufficient stock.
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+{% endblock %}

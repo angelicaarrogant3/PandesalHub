@@ -203,6 +203,14 @@ def login_view(request):
             login(request, user)
             if user.is_superuser:
                 return redirect("admin_dashboard")
+            
+            try:
+                profile = user.userprofile
+                if profile.user_type == 'seller' and profile.is_approved_seller:
+                    return redirect("seller_dashboard")
+            except:
+                pass
+                
             return redirect("index_user")
 
         if not identifier:
@@ -262,6 +270,13 @@ def index_user(request):
     # Make sure only non-admin users land here
     if request.user.is_superuser:
         return redirect("/admin/")
+        
+    try:
+        profile = request.user.userprofile
+        if profile.user_type == 'seller' and profile.is_approved_seller:
+            return redirect('seller_dashboard')
+    except:
+        pass
     
     img_dir = os.path.join(settings.BASE_DIR, 'pandesal', 'static', 'pandesal', 'img')
     exts = ('.png', '.jpg', '.jpeg', '.webp', '.gif', '.svg')
@@ -297,6 +312,13 @@ def shop_user(request):
     # Make sure only non-admin users land here
     if request.user.is_superuser:
         return redirect("/admin/")
+        
+    try:
+        profile = request.user.userprofile
+        if profile.user_type == 'seller' and profile.is_approved_seller:
+            return redirect('seller_products')
+    except:
+        pass
     
     # Get pandesal products that are available
     from django.db.models import Q
