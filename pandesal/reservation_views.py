@@ -529,12 +529,12 @@ def admin_reservation_confirm(request, reservation_id):
         with transaction.atomic():
             product = reservation.product
             
-            # Update reservation status to pending_payment so user can now pay
+            # Update reservation status to pending_payment so customer can now pay
             reservation.status = 'pending_payment'
             reservation.save()
             # Notification automatically created by signal
         
-        messages.success(request, f'Reservation #{reservation.id} confirmed. User can now proceed to payment.')
+        messages.success(request, f'Reservation #{reservation.id} confirmed. Customer can now proceed to payment.')
     except Exception as e:
         messages.error(request, f'Error confirming reservation: {str(e)}')
     
@@ -562,7 +562,7 @@ def admin_reservation_reject(request, reservation_id):
     
     # Notification automatically created by signal
     
-    messages.success(request, f'Reservation #{reservation.id} rejected. User notified.')
+    messages.success(request, f'Reservation #{reservation.id} rejected. Customer notified.')
     return redirect('admin_reservation_detail', reservation_id=reservation_id)
 
 
@@ -583,7 +583,7 @@ def admin_reservation_complete(request, reservation_id):
     reservation.save()
     # Notification automatically created by signal
     
-    messages.success(request, f'Reservation #{reservation.id} marked as completed. User notified.')
+    messages.success(request, f'Reservation #{reservation.id} marked as completed. Customer notified.')
     return redirect('admin_reservation_detail', reservation_id=reservation_id)
 
 

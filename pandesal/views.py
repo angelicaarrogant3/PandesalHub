@@ -1147,7 +1147,7 @@ def admin_user_create(request):
                 defaults={'shop_name': f"{first_name or username}'s Shop"}
             )
         
-        messages.success(request, f'User "{username}" created successfully!')
+        messages.success(request, f'Account for "{username}" created successfully!')
         return redirect('admin_users')
     
     return render(request, "pandesal/admin_user_create.html")
@@ -1258,7 +1258,7 @@ def admin_user_edit(request, user_id):
                 defaults={'shop_name': f"{first_name or username}'s Shop"}
             )
         
-        success_msg = f'User "{username}" updated successfully!'
+        success_msg = f'Account for "{username}" updated successfully!'
         if is_ajax:
             return JsonResponse({'success': True, 'message': success_msg})
         
@@ -1283,7 +1283,7 @@ def admin_user_toggle(request, user_id):
         user_obj.save()
         
         status = 'activated' if user_obj.is_active else 'deactivated'
-        return JsonResponse({'success': True, 'message': f'User {status} successfully'})
+        return JsonResponse({'success': True, 'message': f'Account {status} successfully'})
     
     return JsonResponse({'success': False, 'error': 'Invalid request method'})
 
@@ -1300,7 +1300,7 @@ def admin_user_delete(request, user_id):
         username = user_obj.username
         user_obj.delete()
         
-        return JsonResponse({'success': True, 'message': f'User "{username}" deleted successfully'})
+        return JsonResponse({'success': True, 'message': f'Account for "{username}" deleted successfully'})
     
     return JsonResponse({'success': False, 'error': 'Invalid request method'})
 
@@ -2270,7 +2270,7 @@ def admin_order_detail(request, order_id):
                         order.save()
                         # Notification automatically created by signal
                     
-                    messages.success(request, f'Order #{order.id} payment confirmed. Stock deducted. User notified.')
+                    messages.success(request, f'Order #{order.id} payment confirmed. Stock deducted. Customer notified.')
                 except Exception as e:
                     messages.error(request, f'Error confirming order: {str(e)}')
             else:
@@ -2283,7 +2283,7 @@ def admin_order_detail(request, order_id):
                 order.save()
                 # Notification automatically created by signal
                 
-                messages.success(request, f'Order #{order.id} rejected. User notified.')
+                messages.success(request, f'Order #{order.id} rejected. Customer notified.')
             else:
                 messages.error(request, 'Order is not pending confirmation.')
         
