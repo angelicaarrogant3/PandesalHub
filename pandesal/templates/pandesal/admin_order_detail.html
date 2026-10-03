@@ -168,13 +168,22 @@
                             <div>
                         <p><span class="info-label">Order Date:</span> {{ order.created_at|date:"F d, Y h:i A" }}</p>
                         <p><span class="info-label">Last Updated:</span> {{ order.updated_at|date:"F d, Y h:i A" }}</p>
-                        <p><span class="info-label">Delivery Method:</span> 
+                        <div class="mb-2"><span class="info-label">Delivery Method:</span> 
                             {% if order.delivery %}
                                 <i class="fas fa-truck text-primary"></i> Delivery
+                                {% if order.delivery_address %}
+                                <div class="mt-2 text-sm border-l-2 border-green-500 pl-3 ml-1 bg-green-50 p-2 rounded max-w-sm">
+                                  <span class="info-label text-xs block mb-1 text-green-700">Delivery Address:</span>
+                                  <a href="https://www.google.com/maps/search/?api=1&query={{ order.delivery_address|urlencode }}" target="_blank" rel="noopener" class="text-green-800 hover:underline flex items-start gap-1 font-medium">
+                                    <i class="fas fa-map-marker-alt mt-1 text-green-600"></i>
+                                    <span>{{ order.delivery_address }}</span>
+                                  </a>
+                                </div>
+                                {% endif %}
                             {% else %}
                                 <i class="fas fa-store text-success"></i> Pickup
                             {% endif %}
-                        </p>
+                        </div>
                                 <p><span class="info-label">Payment Method:</span> {{ order.get_payment_method_display }}</p>
                             </div>
                             <div>

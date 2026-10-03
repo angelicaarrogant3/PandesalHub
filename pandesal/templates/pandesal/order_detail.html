@@ -263,7 +263,18 @@
                   <p class="text-sm text-gray-500">Delivery Method</p>
                   <p class="font-semibold text-gray-800">
                     {% if order.delivery %}
-                      <i class="fas fa-truck text-green-600"></i> Delivery
+                      <div class="flex flex-col">
+                        <span><i class="fas fa-truck text-green-600"></i> Delivery</span>
+                        {% if order.delivery_address %}
+                        <div class="mt-2 text-sm border-l-2 border-green-500 pl-3 ml-1 bg-green-50 p-2 rounded max-w-sm">
+                          <span class="text-xs text-green-700 block mb-1">Delivery Address:</span>
+                          <a href="https://www.google.com/maps/search/?api=1&query={{ order.delivery_address|urlencode }}" target="_blank" rel="noopener" class="text-green-800 hover:underline flex items-start gap-1 font-medium">
+                            <i class="fas fa-map-marker-alt mt-1 text-green-600"></i>
+                            <span>{{ order.delivery_address }}</span>
+                          </a>
+                        </div>
+                        {% endif %}
+                      </div>
                     {% else %}
                       <i class="fas fa-store text-green-600"></i> Pickup
                     {% endif %}
