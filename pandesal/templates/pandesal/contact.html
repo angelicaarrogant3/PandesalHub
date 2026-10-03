@@ -3,6 +3,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   {% include "pandesal/includes/seo_meta.html" %}
   
 
@@ -16,7 +17,7 @@
     {% include "pandesal/includes/guest_navbar_style.html" %}
   </style>
 </head>
-<body class="{% if user.is_authenticated and not user.is_superuser %}bg-gray-50 flex h-screen{% endif %}" style="background-image: url('{% static "pandesal/img/homebg.png" %}'); background-size: cover; background-position: center; background-repeat: no-repeat; background-attachment: fixed; background-color: #faf7f2;">
+<body class="flex flex-col min-h-screen {% if user.is_authenticated and not user.is_superuser %}bg-gray-50{% endif %}" style="background-image: url('{% static "pandesal/img/homebg.png" %}'); background-size: cover; background-position: center; background-repeat: no-repeat; background-attachment: fixed; background-color: #faf7f2;">
 
 {% if user.is_authenticated and not user.is_superuser %}
   {# User contact UI removed. Authenticated users are redirected to the Messages inbox by the view. #}
