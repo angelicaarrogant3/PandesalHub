@@ -1684,6 +1684,7 @@ def checkout_cart(request):
     if request.method == 'POST':
         delivery_option = request.POST.get('delivery_option')  # 'delivery' or 'pickup'
         notes = request.POST.get('notes', '').strip()
+        delivery_address = request.POST.get('delivery_address', '').strip()
         
         # Calculate totals
         total_quantity = sum(item['quantity'] for item in cart.values())
@@ -1717,6 +1718,10 @@ def checkout_cart(request):
             
             if not payment_proof:
                 messages.error(request, 'Payment proof is required for delivery orders.')
+                return redirect('checkout_cart')
+            
+            if not delivery_address:
+                messages.error(request, 'Delivery address is required for delivery orders.')
                 return redirect('checkout_cart')
             
             # Validate file type (only images)
@@ -1788,6 +1793,7 @@ def checkout_cart(request):
                 payment_method=payment_method,
                 gcash_reference=gcash_reference,
                 delivery=is_delivery,
+                delivery_address=delivery_address if is_delivery else None,
                 notes=notes
             )
             
@@ -1821,8 +1827,19 @@ def checkout_cart(request):
     cart_items = []
     subtotal = Decimal('0.00')
     total_quantity = 0
+    shop_locations = []
     
     for product_id, item in cart.items():
+        try:
+            product = Pandesal.objects.get(id=product_id)
+            seller_shop = product.seller.shop.shop_name if product.seller and hasattr(product.seller, 'shop') else "PandesalHub"
+            seller_location = product.location if product.location else "Main Store Address"
+            location_info = f"{seller_shop}: {seller_location}"
+            if location_info not in shop_locations:
+                shop_locations.append(location_info)
+        except Pandesal.DoesNotExist:
+            pass
+            
         item_total = Decimal(item['price']) * item['quantity']
         cart_items.append({
             'product_id': product_id,
@@ -1850,6 +1867,7 @@ def checkout_cart(request):
         'shipping_fee': shipping_fee,
         'delivery_downpayment': delivery_downpayment,
         'gcash_number': gcash_number,
+        'shop_locations': shop_locations,
     }
     return render(request, 'pandesal/checkout.html', context)
 

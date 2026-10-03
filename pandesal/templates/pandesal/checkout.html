@@ -232,7 +232,18 @@
                 <div class="flex items-center justify-between">
                   <div>
                     <p class="font-medium text-gray-900">Pickup</p>
-                    <p class="text-sm text-gray-600">Pick up at our store</p>
+                    {% if shop_locations %}
+                      <div class="text-sm text-gray-600 mt-1">
+                        <p class="font-semibold text-xs text-gray-500 uppercase tracking-wider mb-1">Pickup Locations:</p>
+                        <ul class="list-disc pl-4 text-xs space-y-1">
+                        {% for location in shop_locations %}
+                          <li>{{ location }}</li>
+                        {% endfor %}
+                        </ul>
+                      </div>
+                    {% else %}
+                      <p class="text-sm text-gray-600">Pick up at our store</p>
+                    {% endif %}
                   </div>
                   <span class="text-green-600 font-semibold">FREE</span>
                 </div>
@@ -256,9 +267,12 @@
                 </div>
                 <div class="mt-2">
                   <label class="block text-sm text-gray-700 mb-1">Estimated Delivery Time</label>
-                  <input type="text" id="deliveryTimeDisplay" class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50" readonly>
+                  <input type="text" id="deliveryTimeDisplay" class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 mb-3" readonly>
                   <input type="hidden" name="delivery_time" id="deliveryTimeInput">
-                  <p class="text-xs text-gray-500 mt-1">Admin will confirm the exact delivery time (minimum 30 minutes from order placement)</p>
+                  <p class="text-xs text-gray-500 mt-1 mb-4">Admin will confirm the exact delivery time (minimum 30 minutes from order placement)</p>
+                  
+                  <label class="block text-sm text-gray-700 mb-1">Delivery Address <span class="text-red-500">*</span></label>
+                  <textarea name="delivery_address" id="deliveryAddressInput" rows="2" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500" placeholder="Enter your full delivery address..."></textarea>
                 </div>
               </div>
             </label>
@@ -439,11 +453,13 @@
       // Handle delivery option changes
       deliveryOptions.forEach(option => {
         option.addEventListener('change', function() {
+          const deliveryAddressInput = document.getElementById('deliveryAddressInput');
           if (this.value === 'delivery') {
             isDelivery = true;
             gcashPayment.classList.remove('hidden');
             currentShippingFee = shippingFee;
             shippingFeeDisplay.textContent = `₱${currentShippingFee.toFixed(2)}`;
+            if (deliveryAddressInput) deliveryAddressInput.required = true;
             
             // Calculate downpayment
             currentDownpayment = (subtotal + currentShippingFee) * 0.50;
@@ -457,6 +473,7 @@
             currentDownpayment = 0;
             shippingFeeDisplay.textContent = '₱0.00';
             downpaymentRow.classList.add('hidden');
+            if (deliveryAddressInput) deliveryAddressInput.required = false;
           }
           updateTotal();
         });

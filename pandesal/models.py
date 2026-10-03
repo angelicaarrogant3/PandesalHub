@@ -365,6 +365,7 @@ class Order(models.Model):
     
     # Delivery options
     delivery = models.BooleanField(default=False, help_text="True for delivery, False for pickup")
+    delivery_address = models.TextField(blank=True, null=True, help_text="Customer delivery address")
     
     # Notes
     notes = models.TextField(blank=True, help_text="Customer notes or special requests")

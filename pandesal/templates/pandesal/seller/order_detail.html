@@ -69,6 +69,12 @@
             <p><strong>Total:</strong> ₱{{ order.total_amount }}</p>
             <p><strong>Method:</strong> {{ order.get_payment_method_display }}</p>
             <p><strong>Type:</strong> {% if order.delivery %}Delivery{% else %}Pickup{% endif %}</p>
+            {% if order.delivery and order.delivery_address %}
+            <p class="mt-2 pt-2 border-t text-sm">
+              <strong class="block mb-1 text-gray-700">Delivery Address:</strong>
+              <span class="text-gray-600">{{ order.delivery_address }}</span>
+            </p>
+            {% endif %}
           </div>
         </div>
       </div>
