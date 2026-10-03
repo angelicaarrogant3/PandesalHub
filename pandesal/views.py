@@ -505,16 +505,24 @@ def mark_notification_read(request, notification_id):
     notification.read = True
     notification.save()
     
-    # Redirect to the related page based on notification type
-    if notification.order:
-        # Redirect to order detail page
-        return redirect('order_detail', order_id=notification.order.id)
-    elif notification.reservation:
-        # Redirect to user reservations page
-        return redirect('my_reservations')
-    else:
-        # Default: go back to notifications
-        return redirect('user_notifications')
+    # Redirect to the related page based on notification type.
+    # Sellers must go to the seller views; customers go to their own views.
+    order = notification.order
+    reservation = notification.reservation
+
+    if order:
+        if order.seller_id == request.user.id:
+            return redirect('seller_order_detail', order_id=order.id)
+        if order.user_id == request.user.id:
+            return redirect('order_detail', order_id=order.id)
+    elif reservation:
+        if reservation.seller_id == request.user.id:
+            return redirect('seller_reservation_detail', reservation_id=reservation.id)
+        if reservation.user_id == request.user.id:
+            return redirect('my_reservations')
+
+    # Default: go back to notifications
+    return redirect('user_notifications')
 
 
 # ----------------- Admin Views -----------------
