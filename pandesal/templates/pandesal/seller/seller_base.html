@@ -226,10 +226,6 @@
         {% endif %}
       </a>
 
-      <a href="{% url 'user_notifications' %}" class="flex items-center gap-4 px-4 py-3 rounded-xl {% if request.resolver_match.url_name == 'user_notifications' %}text-green-700 bg-green-50{% else %}text-gray-600 hover:text-green-700 hover:bg-green-50{% endif %} transition">
-        <i class="fa-solid fa-bell text-lg min-w-[20px]"></i>
-        <span class="sidebar-text">Notifications</span>
-      </a>
 
       <a href="{% url 'user_profile' %}" class="flex items-center gap-4 px-4 py-3 rounded-xl {% if request.resolver_match.url_name == 'user_profile' %}text-green-700 bg-green-50{% else %}text-gray-600 hover:text-green-700 hover:bg-green-50{% endif %} transition">
         <i class="fa-solid fa-user-circle text-lg min-w-[20px]"></i>

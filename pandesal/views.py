@@ -254,6 +254,8 @@ def shop_view(request):
         if shop_id:
             pandesals = pandesals.filter(seller__shop__id=shop_id)
             
+        pandesals = pandesals.order_by('seller__shop__id', 'name')
+            
         shops = Shop.objects.filter(is_active=True)
             
         return render(request, "pandesal/shop.html", {
@@ -336,6 +338,8 @@ def shop_user(request):
     shop_id = request.GET.get('shop')
     if shop_id:
         pandesals = pandesals.filter(seller__shop__id=shop_id)
+        
+    pandesals = pandesals.order_by('seller__shop__id', 'name')
         
     shops = Shop.objects.filter(is_active=True)
     
@@ -1381,10 +1385,8 @@ def messages_inbox(request):
     # Keep lightweight recent users for compatibility (can be removed if not used)
     recent_users = [t['user'] for t in recent_threads[:10]]
 
-    # For regular users, provide admin user for easy messaging
-    admin_user = None
-    if not request.user.is_superuser:
-        admin_user = User.objects.filter(is_superuser=True).first()
+    # For backwards compatibility with templates that might still use admin_user
+    admin_user = User.objects.filter(is_superuser=True).first()
     
     context = {
         'received': received[:50],
@@ -1460,23 +1462,20 @@ def message_thread(request, user_id: int):
     Message.objects.filter(sender=other_user, recipient=request.user, is_read=False).update(is_read=True)
 
     # Get all conversation threads for sidebar
-    from django.db.models import Max, Count, Case, When, IntegerField
+    user_ids = Message.objects.filter(
+        Q(sender=request.user) | Q(recipient=request.user)
+    ).values_list('sender_id', 'recipient_id')
     
-    if request.user.is_superuser:
-        # Admin sees all users they've messaged with
-        user_ids = Message.objects.filter(
-            Q(sender=request.user) | Q(recipient=request.user)
-        ).values_list('sender_id', 'recipient_id')
-        
-        all_user_ids = set()
-        for sender_id, recipient_id in user_ids:
-            if sender_id != request.user.id:
-                all_user_ids.add(sender_id)
-            if recipient_id != request.user.id:
-                all_user_ids.add(recipient_id)
-        
-        all_threads = []
-        for uid in all_user_ids:
+    all_user_ids = set()
+    for sender_id, recipient_id in user_ids:
+        if sender_id and sender_id != request.user.id:
+            all_user_ids.add(sender_id)
+        if recipient_id and recipient_id != request.user.id:
+            all_user_ids.add(recipient_id)
+    
+    all_threads = []
+    for uid in all_user_ids:
+        try:
             u = User.objects.get(pk=uid)
             last_msg = Message.objects.filter(
                 Q(sender=request.user, recipient=u) | Q(sender=u, recipient=request.user)
@@ -1489,25 +1488,20 @@ def message_thread(request, user_id: int):
                 'last_message': last_msg,
                 'unread_count': unread
             })
-        
-        all_threads.sort(key=lambda x: x['last_message'].created_at if x['last_message'] else timezone.now(), reverse=True)
-    else:
-        # Regular users only see admin
+        except User.DoesNotExist:
+            pass
+    
+    all_threads.sort(key=lambda x: x['last_message'].created_at if x['last_message'] else timezone.now(), reverse=True)
+
+    # For compatibility, if no threads and not superuser, maybe add admin_user
+    if not all_threads and not request.user.is_superuser:
         admin_user = User.objects.filter(is_superuser=True).first()
-        if admin_user:
-            last_msg = Message.objects.filter(
-                Q(sender=request.user, recipient=admin_user) | Q(sender=admin_user, recipient=request.user)
-            ).order_by('-created_at').first()
-            
-            unread = Message.objects.filter(sender=admin_user, recipient=request.user, is_read=False).count()
-            
+        if admin_user and admin_user.id != request.user.id:
             all_threads = [{
                 'other_user': admin_user,
-                'last_message': last_msg,
-                'unread_count': unread
+                'last_message': None,
+                'unread_count': 0
             }]
-        else:
-            all_threads = []
 
     return render(request, 'pandesal/messages_thread.html', {
         'other_user': other_user,

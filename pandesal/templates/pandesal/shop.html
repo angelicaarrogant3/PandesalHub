@@ -139,8 +139,28 @@
     {% endif %}
 
     <!-- Responsive Product Grid: 3 Cards Per Row on Desktop -->
-    <div id="productsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-      {% for k in pandesals %}
+    <div id="productsGrid">
+      {% regroup pandesals by seller.shop as shop_list %}
+      {% for shop in shop_list %}
+        <div class="shop-section mb-12">
+          <!-- Shop Header -->
+          <div class="flex items-center gap-4 mb-6 pb-2 border-b-2 border-green-600/20">
+            {% if shop.grouper %}
+              {% if shop.grouper.logo %}
+                <img src="{{ shop.grouper.logo.url }}" alt="{{ shop.grouper.shop_name }}" class="w-10 h-10 rounded-full object-cover shadow-sm">
+              {% else %}
+                <div class="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center text-green-600 shadow-sm"><i class="fas fa-store"></i></div>
+              {% endif %}
+              <h2 class="text-2xl font-bold text-gray-800">{{ shop.grouper.shop_name }}</h2>
+              <a href="?shop={{ shop.grouper.id }}" class="ml-auto text-sm font-semibold text-green-600 hover:text-green-700 hover:underline flex items-center gap-1">Visit Shop <i class="fas fa-chevron-right text-xs"></i></a>
+            {% else %}
+              <div class="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center text-gray-500 shadow-sm"><i class="fas fa-store-slash"></i></div>
+              <h2 class="text-2xl font-bold text-gray-800">Uncategorized</h2>
+            {% endif %}
+          </div>
+          
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {% for k in shop.list %}
         <div class="product-card product-card-modern"
              data-name="{{ k.name|lower }}" 
              data-description="{{ k.description|lower|default:'' }}">
@@ -202,13 +222,14 @@
 
           </div>
 
-        </div>
-      {% empty %}
-        <div class="col-span-full text-center py-16 bg-white/80 rounded-2xl border">
-          <p class="text-gray-600">No pandesal available yet.</p>
-        </div>
-      {% endfor %}
-    </div>
+            </div>
+          </div>
+        {% empty %}
+          <div class="text-center py-16 bg-white/80 rounded-2xl border w-full">
+            <p class="text-gray-600">No pandesal available yet.</p>
+          </div>
+        {% endfor %}
+      </div>
 
   </main>
 

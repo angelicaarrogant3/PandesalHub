@@ -333,29 +333,46 @@
     <main class="flex-1 p-6 lg:p-8">
       <!-- Category Filter Badges -->
       <div class="mb-8 flex flex-wrap gap-3">
-        <button class="category-filter active flex items-center gap-2 px-6 py-2.5 rounded-full font-semibold text-sm transition-all shadow-sm" 
-                data-category="all"
-                style="background-color: #1c7446; color: white;">
+        <button class="category-filter active flex items-center gap-2 px-6 py-2.5 rounded-full font-semibold text-sm transition-all shadow-sm bg-[#1c7446] text-white" 
+                data-category="all">
           <i class="fas fa-list"></i>
           <span>All Products</span>
         </button>
-        <button class="category-filter flex items-center gap-2 px-6 py-2.5 rounded-full font-semibold text-sm transition-all shadow-sm" 
-                data-category="order_now"
-                style="background-color: #ffffff; color: #1c7446; border: 1px solid rgba(28,116,70,0.2);">
+        <button class="category-filter flex items-center gap-2 px-6 py-2.5 rounded-full font-semibold text-sm transition-all shadow-sm bg-white text-[#1c7446] border border-[#1c7446]/20" 
+                data-category="order_now">
           <i class="fas fa-shopping-bag"></i>
           <span>Order Now</span>
         </button>
-        <button class="category-filter flex items-center gap-2 px-6 py-2.5 rounded-full font-semibold text-sm transition-all shadow-sm" 
-                data-category="reservation"
-                style="background-color: #ffffff; color: #1c7446; border: 1px solid rgba(28,116,70,0.2);">
+        <button class="category-filter flex items-center gap-2 px-6 py-2.5 rounded-full font-semibold text-sm transition-all shadow-sm bg-white text-[#1c7446] border border-[#1c7446]/20" 
+                data-category="reservation">
           <i class="fas fa-calendar"></i>
           <span>For Reservation</span>
         </button>
       </div>
 
       <!-- 3-Column Responsive Grid on Desktop -->
-      <div id="productsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-        {% for pandesal in pandesals %}
+      <div id="productsGrid">
+        {% regroup pandesals by seller.shop as shop_list %}
+        {% for shop in shop_list %}
+          <div class="shop-section mb-10">
+            <!-- Shop Header -->
+            <div class="flex items-center gap-4 mb-6 pb-2 border-b-2 border-green-600/20">
+              {% if shop.grouper %}
+                {% if shop.grouper.logo %}
+                  <img src="{{ shop.grouper.logo.url }}" alt="{{ shop.grouper.shop_name }}" class="w-10 h-10 rounded-full object-cover shadow-sm">
+                {% else %}
+                  <div class="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center text-green-600 shadow-sm"><i class="fas fa-store"></i></div>
+                {% endif %}
+                <h2 class="text-2xl font-bold text-gray-800">{{ shop.grouper.shop_name }}</h2>
+                <a href="?shop={{ shop.grouper.id }}" class="ml-auto text-sm font-semibold text-green-600 hover:text-green-700 hover:underline flex items-center gap-1">Visit Shop <i class="fas fa-chevron-right text-xs"></i></a>
+              {% else %}
+                <div class="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center text-gray-500 shadow-sm"><i class="fas fa-store-slash"></i></div>
+                <h2 class="text-2xl font-bold text-gray-800">Uncategorized</h2>
+              {% endif %}
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {% for pandesal in shop.list %}
         <div class="product-card bg-white rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 border border-[#1c7446]/10 overflow-hidden flex flex-col h-full" 
              data-name="{{ pandesal.name|lower }}" 
              data-description="{{ pandesal.description|lower }}"
@@ -423,7 +440,7 @@
                     <span class="description-full hidden">{{ pandesal.description }}</span>
                   </p>
                   {% if pandesal.description|wordcount > 14 %}
-                    <button onclick="toggleShopDescription({{ pandesal.id }})" class="text-[#1c7446] hover:underline text-xs font-semibold mt-1">
+                    <button onclick="toggleShopDescription('{{ pandesal.id }}')" class="text-[#1c7446] hover:underline text-xs font-semibold mt-1">
                       <span class="read-more-btn">Read more</span>
                       <span class="read-less-btn hidden">Show less</span>
                     </button>
@@ -442,7 +459,7 @@
 
               {% if 'order_now' in pandesal.categories %}
                 {% if pandesal.can_order and pandesal.stock > 0 %}
-                  <button onclick="openProductModal({{ pandesal.id }}, '{{ pandesal.name|escapejs }}', {{ pandesal.price }}, {{ pandesal.stock }}, '{{ pandesal.image.url|default:''|escapejs }}', {{ pandesal.min_order_quantity|default:1 }}, {{ pandesal.delivery_min_quantity|default:10 }})" 
+                  <button onclick="openProductModal('{{ pandesal.id }}', '{{ pandesal.name|escapejs }}', '{{ pandesal.price }}', '{{ pandesal.stock }}', '{% if pandesal.image %}{{ pandesal.image.url|escapejs }}{% endif %}', '{{ pandesal.min_order_quantity|default:1 }}', '{{ pandesal.delivery_min_quantity|default:10 }}')" 
                      class="px-5 py-2.5 bg-[#1c7446] hover:bg-[#145a35] text-white rounded-full font-semibold text-sm transition-all flex items-center gap-2 shadow-sm hover:shadow-md">
                     <i class="fas fa-shopping-cart text-xs"></i>
                     <span>Add to Cart</span>
@@ -457,13 +474,13 @@
                   </button>
                 {% endif %}
               {% elif 'reservation' in pandesal.categories %}
-                <button onclick="openReservationModal({{ pandesal.id }}, '{{ pandesal.name|escapejs }}', {{ pandesal.price }}, {{ pandesal.min_order_quantity|default:1 }})" 
+                <button onclick="openReservationModal('{{ pandesal.id }}', '{{ pandesal.name|escapejs }}', '{{ pandesal.price }}', '{{ pandesal.min_order_quantity|default:1 }}')" 
                         class="px-5 py-2.5 bg-[#1c7446] hover:bg-[#145a35] text-white rounded-full font-semibold text-sm transition-all flex items-center gap-2 shadow-sm hover:shadow-md">
                   <i class="fas fa-calendar-plus text-xs"></i>
                   <span>Reserve Now</span>
                 </button>
               {% else %}
-                <button onclick="openProductModal({{ pandesal.id }}, '{{ pandesal.name|escapejs }}', {{ pandesal.price }}, {{ pandesal.stock }}, '{{ pandesal.image.url|default:''|escapejs }}', {{ pandesal.min_order_quantity|default:1 }}, {{ pandesal.delivery_min_quantity|default:10 }})" 
+                <button onclick="openProductModal('{{ pandesal.id }}', '{{ pandesal.name|escapejs }}', '{{ pandesal.price }}', '{{ pandesal.stock }}', '{% if pandesal.image %}{{ pandesal.image.url|escapejs }}{% endif %}', '{{ pandesal.min_order_quantity|default:1 }}', '{{ pandesal.delivery_min_quantity|default:10 }}')" 
                    class="px-5 py-2.5 bg-[#1c7446] hover:bg-[#145a35] text-white rounded-full font-semibold text-sm transition-all flex items-center gap-2 shadow-sm hover:shadow-md">
                   <i class="fas fa-shopping-cart text-xs"></i>
                   <span>Add to Cart</span>
@@ -473,11 +490,14 @@
 
           </div>
         </div>
+              {% endfor %}
+            </div>
+          </div>
         {% empty %}
-        <div class="col-span-full text-center py-16 bg-white/80 rounded-2xl border border-gray-200">
-          <i class="fas fa-store text-4xl text-gray-300 mb-4"></i>
-          <p class="text-gray-600 font-medium">No pandesal products available at the moment.</p>
-        </div>
+          <div class="text-center py-16 bg-white/80 rounded-2xl border border-gray-200 w-full">
+            <i class="fas fa-store text-4xl text-gray-300 mb-4"></i>
+            <p class="text-gray-600 font-medium">No pandesal products available at the moment.</p>
+          </div>
         {% endfor %}
       </div>
 

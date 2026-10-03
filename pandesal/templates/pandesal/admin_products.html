@@ -125,8 +125,8 @@
       <a href="{% url 'admin_dashboard' %}" class="flex items-center gap-4 px-4 py-3 rounded-xl {% if request.resolver_match.url_name == 'admin_dashboard' %}text-green-700 bg-green-50{% else %}text-gray-600 hover:text-green-700 hover:bg-green-50{% endif %} transition"><i class="fa-solid fa-house text-lg min-w-[20px]"></i><span class="sidebar-text">Home</span></a>
       <a href="{% url 'admin_products' %}" class="flex items-center gap-4 px-4 py-3 rounded-xl {% if request.resolver_match.url_name == 'admin_products' %}text-green-700 bg-green-50{% else %}text-gray-600 hover:text-green-700 hover:bg-green-50{% endif %} transition"><i class="fa-solid fa-box text-lg min-w-[20px]"></i><span class="sidebar-text">Products</span></a>
       <a href="{% url 'admin_content' %}" class="flex items-center gap-4 px-4 py-3 rounded-xl {% if request.resolver_match.url_name == 'admin_content' %}text-green-700 bg-green-50{% else %}text-gray-600 hover:text-green-700 hover:bg-green-50{% endif %} transition"><i class="fa-solid fa-edit text-lg min-w-[20px]"></i><span class="sidebar-text">Content</span></a>
-      <a href="{% url 'admin_orders' %}" class="flex items-center gap-4 px-4 py-3 rounded-xl {% if request.resolver_match.url_name == 'admin_orders' or request.resolver_match.url_name == 'admin_order_detail' %}text-green-700 bg-green-50{% else %}text-gray-600 hover:text-green-700 hover:bg-green-50{% endif %} transition"><i class="fa-solid fa-shopping-cart text-lg min-w-[20px]"></i><span class="sidebar-text">Orders</span></a>
-      <a href="{% url 'admin_reservations' %}" class="flex items-center gap-4 px-4 py-3 rounded-xl {% if request.resolver_match.url_name == 'admin_reservations' %}text-green-700 bg-green-50{% else %}text-gray-600 hover:text-green-700 hover:bg-green-50{% endif %} transition"><i class="fa-solid fa-calendar-check text-lg min-w-[20px]"></i><span class="sidebar-text">Reservations</span></a>
+      
+      
       <a href="{% url 'admin_users' %}" class="flex items-center gap-4 px-4 py-3 rounded-xl {% if 'user' in request.resolver_match.url_name or 'customer' in request.resolver_match.url_name %}text-green-700 bg-green-50{% else %}text-gray-600 hover:text-green-700 hover:bg-green-50{% endif %} transition"><i class="fa-solid fa-users text-lg min-w-[20px]"></i><span class="sidebar-text">Customers</span></a>
       <a href="{% url 'admin_sellers' %}" class="flex items-center gap-4 px-4 py-3 rounded-xl {% if 'seller' in request.resolver_match.url_name %}text-green-700 bg-green-50{% else %}text-gray-600 hover:text-green-700 hover:bg-green-50{% endif %} transition"><i class="fa-solid fa-store text-lg min-w-[20px]"></i><span class="sidebar-text">Sellers</span></a>
       <a href="{% url 'messages_inbox' %}" class="flex items-center gap-4 px-4 py-3 rounded-xl text-gray-600 hover:text-green-700 hover:bg-green-50 transition relative"><i class="fa-solid fa-message text-lg min-w-[20px]"></i><span class="sidebar-text">Messages</span>{% if unread_messages_count > 0 %}<span class="absolute right-3 top-1/2 -translate-y-1/2 bg-red-500 text-white text-xs font-bold rounded-full min-w-[20px] h-5 flex items-center justify-center px-1.5">{{ unread_messages_count }}</span>{% endif %}</a>
@@ -142,12 +142,9 @@
             <div class="p-6">
                 <div class="mb-6 flex items-center justify-between">
                     <div>
-                        <h1 class="text-3xl font-bold text-gray-800">Products Management</h1>
-                        <p class="text-gray-600">Manage your pandesal products</p>
+                        <h1 class="text-3xl font-bold text-gray-800">Products View</h1>
+                        <p class="text-gray-600">View all pandesal products</p>
                     </div>
-                    <button onclick="openProductTypeModal()" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md">
-                        <i class="fas fa-plus mr-2"></i>Add New Product
-                    </button>
                 </div>
 
                 <!-- Messages -->
@@ -245,24 +242,13 @@
                                         <p class="text-xs text-gray-500">{{ product.get_availability_display }}</p>
                                     </div>
                                     
-                                    <div class="flex space-x-2">
-                                        <a href="{% url 'admin_product_edit' product.id %}" class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-sm">
-                                            <i class="fas fa-edit mr-1"></i>Edit
-                                        </a>
-                                        <a href="{% url 'admin_product_delete' product.id %}" class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-sm">
-                                            <i class="fas fa-trash mr-1"></i>Delete
-                                        </a>
-                                    </div>
                                 </div>
                         </div>
                     {% empty %}
                         <div class="col-span-full text-center py-12">
                             <i class="fas fa-box text-gray-400 text-6xl mb-4"></i>
                             <h3 class="text-lg font-medium text-gray-900 mb-2">No products found</h3>
-                            <p class="text-gray-500 mb-4">Get started by adding your first product.</p>
-                            <button onclick="openProductTypeModal()" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md">
-                                <i class="fas fa-plus mr-2"></i>Add Product
-                            </button>
+                            <p class="text-gray-500 mb-4">There are no products currently available.</p>
                         </div>
                     {% endfor %}
                 </div>
@@ -323,47 +309,6 @@
         </div>
     </div>
 
-    <!-- Product Type Selection Modal -->
-    <div id="productTypeModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-        <div class="bg-white rounded-2xl shadow-2xl max-w-4xl w-full p-8 transform transition-all">
-            <div class="text-center mb-8">
-                <h2 class="text-3xl font-bold text-gray-800 mb-2">Choose Product Type</h2>
-                <p class="text-gray-600">Select the type of product you want to add</p>
-            </div>
-
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-3xl mx-auto">
-                <!-- Order Now -->
-                <a href="{% url 'admin_product_create' %}?type=order_now" 
-                   class="group block p-6 bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl border-2 border-gray-300 hover:border-gray-700 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
-                    <div class="flex flex-col items-center text-center">
-                        <div class="w-16 h-16 bg-gray-800 rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                            <i class="fas fa-shopping-bag text-white text-2xl"></i>
-                        </div>
-                        <h3 class="text-xl font-bold text-gray-800 mb-2">Order Now</h3>
-                        <p class="text-sm text-gray-600">Products that require advance ordering with preparation time</p>
-                    </div>
-                </a>
-
-                <!-- For Reservation -->
-                <a href="{% url 'admin_product_create' %}?type=reservation" 
-                   class="group block p-6 bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl border-2 border-blue-200 hover:border-blue-500 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
-                    <div class="flex flex-col items-center text-center">
-                        <div class="w-16 h-16 bg-blue-500 rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                            <i class="fas fa-calendar text-white text-2xl"></i>
-                        </div>
-                        <h3 class="text-xl font-bold text-blue-700 mb-2">For Reservation</h3>
-                        <p class="text-sm text-gray-600">Products that can be reserved for future dates</p>
-                    </div>
-                </a>
-            </div>
-
-            <div class="mt-8 text-center">
-                <button onclick="closeProductTypeModal()" class="px-6 py-2 bg-gray-300 hover:bg-gray-400 text-gray-800 rounded-lg font-medium transition-colors">
-                    Cancel
-                </button>
-            </div>
-        </div>
-    </div>
 
   <script>
     // Sidebar toggle
@@ -423,31 +368,6 @@
           d.classList.remove('show');
         });
       }
-    });
-
-    // Product modal functions
-    function openProductTypeModal() {
-        document.getElementById('productTypeModal').classList.remove('hidden');
-        document.body.style.overflow = 'hidden';
-    }
-
-    function closeProductTypeModal() {
-        document.getElementById('productTypeModal').classList.add('hidden');
-        document.body.style.overflow = 'auto';
-    }
-
-    // Close modal when clicking outside
-    document.getElementById('productTypeModal').addEventListener('click', function(e) {
-        if (e.target === this) {
-            closeProductTypeModal();
-        }
-    });
-
-    // Close modal with Escape key
-    document.addEventListener('keydown', function(e) {
-        if (e.key === 'Escape') {
-            closeProductTypeModal();
-        }
     });
 
     // Product tab switching

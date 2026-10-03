@@ -132,8 +132,8 @@
       <a href="{% url 'admin_dashboard' %}" class="flex items-center gap-4 px-4 py-3 rounded-xl {% if request.resolver_match.url_name == 'admin_dashboard' %}text-green-700 bg-green-50{% else %}text-gray-600 hover:text-green-700 hover:bg-green-50{% endif %} transition"><i class="fa-solid fa-house text-lg min-w-[20px]"></i><span class="sidebar-text">Home</span></a>
       <a href="{% url 'admin_products' %}" class="flex items-center gap-4 px-4 py-3 rounded-xl {% if request.resolver_match.url_name == 'admin_products' %}text-green-700 bg-green-50{% else %}text-gray-600 hover:text-green-700 hover:bg-green-50{% endif %} transition"><i class="fa-solid fa-box text-lg min-w-[20px]"></i><span class="sidebar-text">Products</span></a>
       <a href="{% url 'admin_content' %}" class="flex items-center gap-4 px-4 py-3 rounded-xl {% if request.resolver_match.url_name == 'admin_content' %}text-green-700 bg-green-50{% else %}text-gray-600 hover:text-green-700 hover:bg-green-50{% endif %} transition"><i class="fa-solid fa-edit text-lg min-w-[20px]"></i><span class="sidebar-text">Content</span></a>
-      <a href="{% url 'admin_orders' %}" class="flex items-center gap-4 px-4 py-3 rounded-xl {% if request.resolver_match.url_name == 'admin_orders' or request.resolver_match.url_name == 'admin_order_detail' %}text-green-700 bg-green-50{% else %}text-gray-600 hover:text-green-700 hover:bg-green-50{% endif %} transition"><i class="fa-solid fa-shopping-cart text-lg min-w-[20px]"></i><span class="sidebar-text">Orders</span></a>
-      <a href="{% url 'admin_reservations' %}" class="flex items-center gap-4 px-4 py-3 rounded-xl {% if request.resolver_match.url_name == 'admin_reservations' %}text-green-700 bg-green-50{% else %}text-gray-600 hover:text-green-700 hover:bg-green-50{% endif %} transition"><i class="fa-solid fa-calendar-check text-lg min-w-[20px]"></i><span class="sidebar-text">Reservations</span></a>
+      
+      
       <a href="{% url 'admin_users' %}" class="flex items-center gap-4 px-4 py-3 rounded-xl {% if 'user' in request.resolver_match.url_name or 'customer' in request.resolver_match.url_name %}text-green-700 bg-green-50{% else %}text-gray-600 hover:text-green-700 hover:bg-green-50{% endif %} transition"><i class="fa-solid fa-users text-lg min-w-[20px]"></i><span class="sidebar-text">Customers</span></a>
       <a href="{% url 'admin_sellers' %}" class="flex items-center gap-4 px-4 py-3 rounded-xl {% if 'seller' in request.resolver_match.url_name %}text-green-700 bg-green-50{% else %}text-gray-600 hover:text-green-700 hover:bg-green-50{% endif %} transition"><i class="fa-solid fa-store text-lg min-w-[20px]"></i><span class="sidebar-text">Sellers</span></a>
       <a href="{% url 'messages_inbox' %}" class="flex items-center gap-4 px-4 py-3 rounded-xl text-gray-600 hover:text-green-700 hover:bg-green-50 transition relative"><i class="fa-solid fa-message text-lg min-w-[20px]"></i><span class="sidebar-text">Messages</span>{% if unread_messages_count > 0 %}<span class="absolute right-3 top-1/2 -translate-y-1/2 bg-red-500 text-white text-xs font-bold rounded-full min-w-[20px] h-5 flex items-center justify-center px-1.5">{{ unread_messages_count }}</span>{% endif %}</a>
@@ -180,53 +180,7 @@
                 <div class="lg:col-span-8">
                     <!-- Stats Cards -->
                     <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 mb-6">
-                        <!-- Sales Card -->
-                        <div class="bg-white rounded-lg shadow">
-                            <div class="p-5">
-                                <div class="flex justify-between items-start mb-3">
-                                    <h5 class="text-sm font-semibold text-gray-600">Sales <span class="text-gray-400 font-normal">| Today</span></h5>
-                                    <div class="relative">
-                                        <button class="text-gray-400 hover:text-gray-600">
-                                            <i class="bi bi-three-dots"></i>
-                                        </button>
-                                    </div>
-                                </div>
-                                <div class="flex items-center">
-                                    <div class="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center shrink-0">
-                                        <i class="bi bi-cart text-xl text-blue-600"></i>
-                                    </div>
-                                    <div class="ml-3">
-                                        <h6 class="text-2xl font-bold text-gray-900">{{ order_status.completed|default:0 }}</h6>
-                                        <span class="text-green-600 text-xs font-semibold">12%</span>
-                                        <span class="text-gray-500 text-xs ml-1">increase</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
 
-                        <!-- Revenue Card -->
-                        <div class="bg-white rounded-lg shadow">
-                            <div class="p-5">
-                                <div class="flex justify-between items-start mb-3">
-                                    <h5 class="text-sm font-semibold text-gray-600">Revenue <span class="text-gray-400 font-normal">| This Month</span></h5>
-                                    <div class="relative">
-                                        <button class="text-gray-400 hover:text-gray-600">
-                                            <i class="bi bi-three-dots"></i>
-                                        </button>
-                                    </div>
-                                </div>
-                                <div class="flex items-center">
-                                    <div class="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center shrink-0">
-                                        <span class="text-xl font-bold text-green-600">₱</span>
-                                    </div>
-                                    <div class="ml-3">
-                                        <h6 class="text-2xl font-bold text-gray-900">₱{{ total_revenue|default:"0" }}</h6>
-                                        <span class="text-green-600 text-xs font-semibold">8%</span>
-                                        <span class="text-gray-500 text-xs ml-1">increase</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
 
                         <!-- Customers Card -->
                         <div class="bg-white rounded-lg shadow">
@@ -297,109 +251,7 @@
                         </div>
                     </div>
 
-                    <!-- Recent Sales -->
-                    <div class="bg-white rounded-lg shadow mb-6">
-                        <div class="p-6 border-b border-gray-200">
-                            <div class="flex justify-between items-center">
-                                <h5 class="text-lg font-semibold text-gray-800">Recent Sales <span class="text-gray-400 font-normal text-sm">| Today</span></h5>
-                                <div class="relative">
-                                    <button class="text-gray-400 hover:text-gray-600">
-                                        <i class="bi bi-three-dots"></i>
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="p-6 overflow-x-auto">
-                            <table class="w-full">
-                                <thead>
-                                    <tr class="border-b border-gray-200">
-                                        <th class="text-left py-3 px-2 text-sm font-semibold text-gray-700">#</th>
-                                        <th class="text-left py-3 px-2 text-sm font-semibold text-gray-700">Customer</th>
-                                        <th class="text-left py-3 px-2 text-sm font-semibold text-gray-700">Product</th>
-                                        <th class="text-left py-3 px-2 text-sm font-semibold text-gray-700">Price</th>
-                                        <th class="text-left py-3 px-2 text-sm font-semibold text-gray-700">Status</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {% for order in recent_orders|slice:":5" %}
-                                    <tr class="border-b border-gray-100 hover:bg-gray-50">
-                                        <td class="py-3 px-2">
-                                            <a href="{% url 'admin_order_detail' order.id %}" class="text-blue-600 hover:underline">#{{ order.id }}</a>
-                                        </td>
-                                        <td class="py-3 px-2 text-sm text-gray-700">{{ order.user.username }}</td>
-                                        <td class="py-3 px-2">
-                                            <a href="{% url 'admin_order_detail' order.id %}" class="text-blue-600 hover:underline text-sm">
-                                                {% if order.items.first %}{{ order.items.first.product.name|truncatewords:3 }}{% else %}Order items{% endif %}
-                                            </a>
-                                        </td>
-                                        <td class="py-3 px-2 text-sm text-gray-700">₱{{ order.total_amount }}</td>
-                                        <td class="py-3 px-2">
-                                            {% if order.status == 'completed' %}
-                                                <span class="px-3 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-700">Approved</span>
-                                            {% elif order.status == 'pending' %}
-                                                <span class="px-3 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-700">Pending</span>
-                                            {% elif order.status == 'cancelled' %}
-                                                <span class="px-3 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-700">Rejected</span>
-                                            {% else %}
-                                                <span class="px-3 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-700">{{ order.status|title }}</span>
-                                            {% endif %}
-                                        </td>
-                                    </tr>
-                                    {% empty %}
-                                    <tr>
-                                        <td colspan="5" class="py-6 text-center text-gray-500">No recent sales</td>
-                                    </tr>
-                                    {% endfor %}
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
 
-                    <!-- Top Selling -->
-                    <div class="bg-white rounded-lg shadow">
-                        <div class="p-6 border-b border-gray-200">
-                            <div class="flex justify-between items-center">
-                                <h5 class="text-lg font-semibold text-gray-800">Top Selling <span class="text-gray-400 font-normal text-sm">| Today</span></h5>
-                                <div class="relative">
-                                    <button class="text-gray-400 hover:text-gray-600">
-                                        <i class="bi bi-three-dots"></i>
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="p-6 overflow-x-auto">
-                            <table class="w-full">
-                                <thead>
-                                    <tr class="border-b border-gray-200">
-                                        <th class="text-left py-3 px-2 text-sm font-semibold text-gray-700">Preview</th>
-                                        <th class="text-left py-3 px-2 text-sm font-semibold text-gray-700">Product</th>
-                                        <th class="text-left py-3 px-2 text-sm font-semibold text-gray-700">Price</th>
-                                        <th class="text-left py-3 px-2 text-sm font-semibold text-gray-700">Sold</th>
-                                        <th class="text-left py-3 px-2 text-sm font-semibold text-gray-700">Revenue</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {% for product in top_products|slice:":5" %}
-                                    <tr class="border-b border-gray-100 hover:bg-gray-50">
-                                        <td class="py-3 px-2">
-                                            <img src="{{ product.image.url }}" alt="{{ product.name }}" class="w-12 h-12 object-cover rounded">
-                                        </td>
-                                        <td class="py-3 px-2">
-                                            <a href="{% url 'admin_products' %}" class="text-blue-600 hover:underline font-semibold text-sm">{{ product.name }}</a>
-                                        </td>
-                                        <td class="py-3 px-2 text-sm text-gray-700">₱{{ product.price }}</td>
-                                        <td class="py-3 px-2 text-sm font-semibold text-gray-900">{{ product.total_sold|default:0 }}</td>
-                                        <td class="py-3 px-2 text-sm text-gray-700">₱{{ product.total_revenue|default:0 }}</td>
-                                    </tr>
-                                    {% empty %}
-                                    <tr>
-                                        <td colspan="5" class="py-6 text-center text-gray-500">No products available</td>
-                                    </tr>
-                                    {% endfor %}
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
                 </div>
 
                 <!-- Right side column -->

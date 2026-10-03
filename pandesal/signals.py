@@ -4,7 +4,7 @@ Signals for automatic notification creation
 from django.db.models.signals import post_save, pre_save
 from django.dispatch import receiver
 from django.contrib.auth.models import User
-from .models import Order, Reservation, Notification
+from .models import Order, Reservation, Notification, UserProfile
 
 
 # Track previous status to detect changes
@@ -47,32 +47,20 @@ def create_order_notifications(sender, instance, created, **kwargs):
     if not created and previous_status == current_status:
         return
     
-    # NEW ORDER - Notify admin and seller
+    # NEW ORDER - Notify seller only (no longer admin)
     if created:
         customer_name = instance.user.get_full_name() or instance.user.username
-        
-        if instance.delivery:
-            # Delivery order with payment pending
-            Notification.objects.create(
-                type='payment_pending',
-                message=f'Order #{instance.id}: {customer_name} submitted a delivery order with downpayment. Please review.',
-                user=None,  # Admin notification
-                order=instance
-            )
-        else:
-            # Pickup order
-            Notification.objects.create(
-                type='order_submitted',
-                message=f'Order #{instance.id}: {customer_name} placed a pickup order.',
-                user=None,  # Admin notification
-                order=instance
-            )
             
         # Notify Seller
         if instance.seller:
+            if instance.delivery:
+                message = f'Order #{instance.id}: {customer_name} submitted a delivery order with downpayment. Please review.'
+            else:
+                message = f'New Order #{instance.id} from {customer_name}.'
+                
             Notification.objects.create(
                 type='order_submitted',
-                message=f'New Order #{instance.id} from {customer_name}.',
+                message=message,
                 user=instance.seller,
                 order=instance
             )
@@ -147,22 +135,15 @@ def create_reservation_notifications(sender, instance, created, **kwargs):
     if not created and previous_status == current_status:
         return
     
-    # NEW RESERVATION - Notify admin and seller
+    # NEW RESERVATION - Notify seller only (no longer admin)
     if created:
         customer_name = instance.user.get_full_name() or instance.user.username
         product_name = instance.product.name if instance.product else "Unknown Product"
         
-        Notification.objects.create(
-            type='reservation_submitted',
-            message=f'Reservation #{instance.id}: {customer_name} submitted a reservation for {product_name} on {instance.reservation_date}.',
-            user=None,  # Admin notification
-            reservation=instance
-        )
-        
         if instance.seller:
             Notification.objects.create(
                 type='reservation_submitted',
-                message=f'New Reservation #{instance.id} from {customer_name} for {product_name}.',
+                message=f'New Reservation #{instance.id} from {customer_name} for {product_name} on {instance.reservation_date}.',
                 user=instance.seller,
                 reservation=instance
             )
@@ -218,3 +199,15 @@ def create_reservation_notifications(sender, instance, created, **kwargs):
                     user=instance.seller,
                     reservation=instance
                 )
+
+@receiver(post_save, sender=User)
+def create_user_profile(sender, instance, created, **kwargs):
+    if created:
+        UserProfile.objects.get_or_create(user=instance)
+
+@receiver(post_save, sender=User)
+def save_user_profile(sender, instance, **kwargs):
+    try:
+        instance.userprofile.save()
+    except UserProfile.DoesNotExist:
+        UserProfile.objects.create(user=instance)
