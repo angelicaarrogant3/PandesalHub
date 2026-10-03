@@ -98,6 +98,20 @@ def seller_product_edit(request, product_id):
     return render(request, 'pandesal/seller/product_form.html', {'form': form, 'product': product, 'is_edit': True})
 
 @login_required
+def seller_product_delete(request, product_id):
+    profile = request.user.userprofile
+    if profile.user_type != 'seller' or not profile.is_approved_seller:
+        return redirect('home')
+        
+    product = get_object_or_404(Pandesal, id=product_id, seller=request.user)
+    
+    if request.method == 'POST':
+        product.delete()
+        messages.success(request, "Product deleted successfully!")
+        return redirect('seller_products')
+        
+    return render(request, 'pandesal/seller/product_confirm_delete.html', {'product': product})
+@login_required
 def seller_orders(request):
     profile = request.user.userprofile
     if profile.user_type != 'seller' or not profile.is_approved_seller:

@@ -50,7 +50,8 @@
                 {% endif %}
               </td>
               <td class="p-4">
-                <a href="{% url 'seller_product_edit' product.id %}" class="text-blue-600 hover:text-blue-800 font-medium text-sm border border-blue-200 px-3 py-1 rounded hover:bg-blue-50 transition">Edit</a>
+                <a href="{% url 'seller_product_edit' product.id %}" class="text-blue-600 hover:text-blue-800 font-medium text-sm border border-blue-200 px-3 py-1 rounded hover:bg-blue-50 transition mr-2">Edit</a>
+                <a href="{% url 'seller_product_delete' product.id %}" class="text-red-600 hover:text-red-800 font-medium text-sm border border-red-200 px-3 py-1 rounded hover:bg-red-50 transition">Delete</a>
               </td>
             </tr>
             {% empty %}

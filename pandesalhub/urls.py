@@ -49,6 +49,7 @@ urlpatterns = [
     path("seller/products/", seller_views.seller_products, name="seller_products"),
     path("seller/products/create/", seller_views.seller_product_create, name="seller_product_create"),
     path("seller/products/<int:product_id>/edit/", seller_views.seller_product_edit, name="seller_product_edit"),
+    path("seller/products/<int:product_id>/delete/", seller_views.seller_product_delete, name="seller_product_delete"),
     path("seller/orders/", seller_views.seller_orders, name="seller_orders"),
     path("seller/orders/<int:order_id>/", seller_views.seller_order_detail, name="seller_order_detail"),
     path("seller/orders/<int:order_id>/status/", seller_views.seller_order_status_update, name="seller_order_status_update"),
