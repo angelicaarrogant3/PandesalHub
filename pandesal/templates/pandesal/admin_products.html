@@ -156,21 +156,7 @@
                     {% endfor %}
                 {% endif %}
 
-                <!-- Product Type Tabs -->
-                <div class="bg-white rounded-lg shadow mb-6">
-                    <div class="border-b border-gray-200">
-                        <nav class="flex -mb-px">
-                            <button onclick="switchProductTab('order')" id="orderTab" class="product-tab-btn flex-1 py-4 px-6 text-center border-b-2 border-green-600 font-medium text-green-600 focus:outline-none transition-colors">
-                                <i class="fas fa-shopping-cart mr-2"></i>Order Products
-                                <span id="orderCount" class="ml-2 bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">0</span>
-                            </button>
-                            <button onclick="switchProductTab('reservation')" id="reservationTab" class="product-tab-btn flex-1 py-4 px-6 text-center border-b-2 border-transparent font-medium text-gray-500 hover:text-gray-700 hover:border-gray-300 focus:outline-none transition-colors">
-                                <i class="fas fa-calendar-check mr-2"></i>Reservation Products
-                                <span id="reservationCount" class="ml-2 bg-gray-100 text-gray-800 text-xs px-2 py-1 rounded-full">0</span>
-                            </button>
-                        </nav>
-                    </div>
-                </div>
+
 
                 <!-- Products by Shop -->
                 <div class="products-container">
@@ -391,66 +377,6 @@
       }
     });
 
-    // Product tab switching
-    function switchProductTab(type) {
-      const orderTab = document.getElementById('orderTab');
-      const reservationTab = document.getElementById('reservationTab');
-      const productCards = document.querySelectorAll('.product-card');
-      const shopSections = document.querySelectorAll('.shop-section');
-      
-      // Update tab styles
-      if (type === 'order') {
-        orderTab.classList.remove('border-transparent', 'text-gray-500');
-        orderTab.classList.add('border-green-600', 'text-green-600');
-        reservationTab.classList.remove('border-green-600', 'text-green-600');
-        reservationTab.classList.add('border-transparent', 'text-gray-500');
-      } else {
-        reservationTab.classList.remove('border-transparent', 'text-gray-500');
-        reservationTab.classList.add('border-green-600', 'text-green-600');
-        orderTab.classList.remove('border-green-600', 'text-green-600');
-        orderTab.classList.add('border-transparent', 'text-gray-500');
-      }
-      
-      // Filter products
-      productCards.forEach(card => {
-        if (card.dataset.type === type) {
-          card.style.display = 'block';
-        } else {
-          card.style.display = 'none';
-        }
-      });
-      
-      // Hide empty shop sections
-      shopSections.forEach(section => {
-        const visibleCards = Array.from(section.querySelectorAll('.product-card')).filter(card => card.style.display === 'block');
-        if (visibleCards.length === 0) {
-          section.style.display = 'none';
-        } else {
-          section.style.display = 'block';
-        }
-      });
-    }
-
-    // Count products and update badges on page load
-    document.addEventListener('DOMContentLoaded', function() {
-      const productCards = document.querySelectorAll('.product-card');
-      let orderCount = 0;
-      let reservationCount = 0;
-      
-      productCards.forEach(card => {
-        if (card.dataset.type === 'order') {
-          orderCount++;
-        } else if (card.dataset.type === 'reservation') {
-          reservationCount++;
-        }
-      });
-      
-      document.getElementById('orderCount').textContent = orderCount;
-      document.getElementById('reservationCount').textContent = reservationCount;
-      
-      // Show order products by default
-      switchProductTab('order');
-    });
 
     // Toggle description Read More/Less
     function toggleDescription(productId) {

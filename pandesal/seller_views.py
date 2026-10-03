@@ -43,24 +43,10 @@ def seller_dashboard(request):
 
 @login_required
 def seller_shop_settings(request):
-    profile = request.user.userprofile
-    if profile.user_type != 'seller' or not profile.is_approved_seller:
-        messages.error(request, "You do not have access to the seller dashboard.")
-        return redirect('home')
-        
-    shop = getattr(request.user, 'shop', None)
-    if request.method == 'POST':
-        form = ShopForm(request.POST, request.FILES, instance=shop)
-        if form.is_valid():
-            shop = form.save(commit=False)
-            shop.seller = request.user
-            shop.save()
-            messages.success(request, "Shop settings updated successfully.")
-            return redirect('seller_shop_settings')
-    else:
-        form = ShopForm(instance=shop)
-        
-    return render(request, 'pandesal/seller/shop_settings.html', {'form': form, 'shop': shop})
+    from django.contrib import messages
+    from django.shortcuts import redirect
+    messages.error(request, 'The Shop Settings feature has been disabled.')
+    return redirect('seller_dashboard')
 
 @login_required
 def seller_products(request):

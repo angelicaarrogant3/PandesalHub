@@ -198,10 +198,7 @@
         <span class="sidebar-text">Dashboard</span>
       </a>
 
-      <a href="{% url 'seller_shop_settings' %}" class="flex items-center gap-4 px-4 py-3 rounded-xl {% if request.resolver_match.url_name == 'seller_shop_settings' %}text-green-700 bg-green-50{% else %}text-gray-600 hover:text-green-700 hover:bg-green-50{% endif %} transition">
-        <i class="fa-solid fa-store text-lg min-w-[20px]"></i>
-        <span class="sidebar-text">My Shop</span>
-      </a>
+
 
       <a href="{% url 'seller_products' %}" class="flex items-center gap-4 px-4 py-3 rounded-xl {% if 'product' in request.resolver_match.url_name %}text-green-700 bg-green-50{% else %}text-gray-600 hover:text-green-700 hover:bg-green-50{% endif %} transition">
         <i class="fa-solid fa-box text-lg min-w-[20px]"></i>
