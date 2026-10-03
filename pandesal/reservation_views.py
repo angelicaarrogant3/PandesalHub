@@ -138,7 +138,7 @@ def update_reservation_cart(request, item_id):
 
 @login_required
 def submit_reservation(request):
-    """Submit reservation for admin confirmation (no payment yet)"""
+    """Submit reservation for seller confirmation (no payment yet)"""
     if request.method != 'POST':
         return redirect('view_cart')
     
@@ -176,7 +176,7 @@ def submit_reservation(request):
                     reservation_date=item.reservation_date,
                     reservation_time=item.reservation_time,
                     delivery=False,  # Will be set during payment
-                    status='pending',  # Waiting for admin confirmation
+                    status='pending',  # Waiting for seller confirmation
                     payment_method='gcash',
                     notes=item.notes
                 )
@@ -304,7 +304,7 @@ def reservation_checkout(request):
                 # Clear cart
                 cart.items.all().delete()
                 
-                messages.success(request, f'✅ {cart_items.count()} reservation(s) submitted successfully! Please wait for admin confirmation.')
+                messages.success(request, f'✅ {cart_items.count()} reservation(s) submitted successfully! Please wait for seller confirmation.')
                 return redirect('reservation_list')
         
         except Exception as e:
@@ -404,7 +404,7 @@ def reservation_create(request, product_id):
         )
         # Notification automatically created by signal
         
-        messages.success(request, f'✅ Reservation #{reservation.id} submitted successfully! Your reservation request has been received and is pending admin confirmation.')
+        messages.success(request, f'✅ Reservation #{reservation.id} submitted successfully! Your reservation request has been received and is pending seller confirmation.')
         return redirect('reservation_list')
     
     # GET request - show form

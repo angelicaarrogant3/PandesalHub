@@ -1756,9 +1756,9 @@ def checkout_cart(request):
         # Create the orders
         order_status = 'pending_confirmation'
         if is_delivery:
-            success_message = 'Your downpayment has been submitted. Please wait for admin confirmation.'
+            success_message = 'Your downpayment has been submitted. Please wait for seller confirmation.'
         else:
-            success_message = 'Your pickup order has been submitted. Please wait for admin confirmation before pickup.'
+            success_message = 'Your pickup order has been submitted. Please wait for seller confirmation before pickup.'
             
         created_orders = []
         from django.core.files.base import ContentFile
