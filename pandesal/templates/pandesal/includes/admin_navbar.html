@@ -117,14 +117,7 @@
       <i class="fa-solid fa-edit text-lg min-w-[20px]"></i>
       <span class="sidebar-text">Content</span>
     </a>
-    <a href="{% url 'admin_orders' %}" class="flex items-center gap-4 px-4 py-3 rounded-xl {% if 'order' in request.resolver_match.url_name %}text-green-700 bg-green-50{% else %}text-gray-600 hover:text-green-700 hover:bg-green-50{% endif %} transition">
-      <i class="fa-solid fa-shopping-cart text-lg min-w-[20px]"></i>
-      <span class="sidebar-text">Orders</span>
-    </a>
-    <a href="{% url 'admin_reservations' %}" class="flex items-center gap-4 px-4 py-3 rounded-xl {% if 'reservation' in request.resolver_match.url_name %}text-green-700 bg-green-50{% else %}text-gray-600 hover:text-green-700 hover:bg-green-50{% endif %} transition">
-      <i class="fa-solid fa-calendar-check text-lg min-w-[20px]"></i>
-      <span class="sidebar-text">Reservations</span>
-    </a>
+
     <a href="{% url 'admin_users' %}" class="flex items-center gap-4 px-4 py-3 rounded-xl {% if 'user' in request.resolver_match.url_name %}text-green-700 bg-green-50{% else %}text-gray-600 hover:text-green-700 hover:bg-green-50{% endif %} transition">
       <i class="fa-solid fa-users text-lg min-w-[20px]"></i>
       <span class="sidebar-text">Customers</span>

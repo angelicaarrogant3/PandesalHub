@@ -443,190 +443,43 @@ def my_reservations(request):
 
 @staff_member_required
 def admin_reservations(request):
-    """Admin view to manage all reservations with calendar view"""
-    from datetime import datetime, timedelta
-    from collections import defaultdict
-    
-    # Get all reservations sorted by reservation date (oldest first - first come first served)
-    reservations = Reservation.objects.all().select_related('user', 'product').order_by('reservation_date', 'reservation_time', 'created_at')
-    
-    # Filter by status
-    status_filter = request.GET.get('status')
-    if status_filter:
-        reservations = reservations.filter(status=status_filter)
-    
-    # Search by user or product
-    search_query = request.GET.get('search')
-    if search_query:
-        reservations = reservations.filter(
-            Q(user__username__icontains=search_query) |
-            Q(user__email__icontains=search_query) |
-            Q(product__name__icontains=search_query) |
-            Q(id__icontains=search_query)
-        )
-    
-    # Create calendar data - group reservations by date
-    today = datetime.now().date()
-    calendar_data = defaultdict(list)
-    
-    # Get reservations for the next 60 days
-    future_reservations = Reservation.objects.filter(
-        reservation_date__gte=today,
-        reservation_date__lte=today + timedelta(days=60)
-    ).exclude(status__in=['cancelled', 'rejected']).select_related('user', 'product')
-    
-    for reservation in future_reservations:
-        calendar_data[reservation.reservation_date].append({
-            'id': reservation.id,
-            'user': reservation.user.username,
-            'product': reservation.product.name,
-            'time': reservation.reservation_time,
-            'status': reservation.status,
-            'quantity': reservation.quantity
-        })
-    
-    # Pagination
-    paginator = Paginator(reservations, 20)
-    page_number = request.GET.get('page')
-    page_obj = paginator.get_page(page_number)
-    
-    context = {
-        'page_obj': page_obj,
-        'status_filter': status_filter,
-        'search_query': search_query,
-        'status_choices': Reservation.STATUS_CHOICES,
-        'calendar_data': dict(calendar_data),
-        'today': today,
-    }
-    return render(request, 'pandesal/admin_reservations.html', context)
-
+    from django.contrib import messages
+    from django.shortcuts import redirect
+    messages.error(request, 'Reservation management is handled by Sellers.')
+    return redirect('admin_dashboard')
 
 @staff_member_required
 def admin_reservation_detail(request, reservation_id):
-    """Admin view for reservation details with actions"""
-    reservation = get_object_or_404(Reservation, id=reservation_id)
-    
-    context = {
-        'reservation': reservation,
-        'status_choices': Reservation.STATUS_CHOICES,
-    }
-    return render(request, 'pandesal/admin_reservation_detail.html', context)
-
+    from django.contrib import messages
+    from django.shortcuts import redirect
+    messages.error(request, 'Reservation management is handled by Sellers.')
+    return redirect('admin_dashboard')
 
 @staff_member_required
 def admin_reservation_confirm(request, reservation_id):
-    """Confirm a reservation"""
-    if request.method != 'POST':
-        return redirect('admin_reservation_detail', reservation_id=reservation_id)
-    
-    reservation = get_object_or_404(Reservation, id=reservation_id)
-    
-    if reservation.status != 'pending':
-        messages.error(request, 'Only pending reservations can be confirmed.')
-        return redirect('admin_reservation_detail', reservation_id=reservation_id)
-    
-    try:
-        with transaction.atomic():
-            product = reservation.product
-            
-            # Update reservation status to pending_payment so customer can now pay
-            reservation.status = 'pending_payment'
-            reservation.save()
-            # Notification automatically created by signal
-        
-        messages.success(request, f'Reservation #{reservation.id} confirmed. Customer can now proceed to payment.')
-    except Exception as e:
-        messages.error(request, f'Error confirming reservation: {str(e)}')
-    
-    return redirect('admin_reservation_detail', reservation_id=reservation_id)
-
+    from django.contrib import messages
+    from django.shortcuts import redirect
+    messages.error(request, 'Reservation management is handled by Sellers.')
+    return redirect('admin_dashboard')
 
 @staff_member_required
 def admin_reservation_reject(request, reservation_id):
-    """Reject a reservation"""
-    if request.method != 'POST':
-        return redirect('admin_reservation_detail', reservation_id=reservation_id)
-    
-    reservation = get_object_or_404(Reservation, id=reservation_id)
-    
-    if reservation.status not in ['pending_payment', 'pending']:
-        messages.error(request, 'Only pending reservations can be rejected.')
-        return redirect('admin_reservation_detail', reservation_id=reservation_id)
-    
-    decision_notes = request.POST.get('decision_notes', '').strip()
-    
-    # Update reservation status
-    reservation.status = 'rejected'
-    reservation.decision_notes = decision_notes
-    reservation.save()
-    
-    # Notification automatically created by signal
-    
-    messages.success(request, f'Reservation #{reservation.id} rejected. Customer notified.')
-    return redirect('admin_reservation_detail', reservation_id=reservation_id)
-
+    from django.contrib import messages
+    from django.shortcuts import redirect
+    messages.error(request, 'Reservation management is handled by Sellers.')
+    return redirect('admin_dashboard')
 
 @staff_member_required
 def admin_reservation_complete(request, reservation_id):
-    """Mark a reservation as completed"""
-    if request.method != 'POST':
-        return redirect('admin_reservation_detail', reservation_id=reservation_id)
-    
-    reservation = get_object_or_404(Reservation, id=reservation_id)
-    
-    if reservation.status != 'confirmed':
-        messages.error(request, 'Only confirmed reservations can be marked as completed.')
-        return redirect('admin_reservation_detail', reservation_id=reservation_id)
-    
-    # Update reservation status
-    reservation.status = 'completed'
-    reservation.save()
-    # Notification automatically created by signal
-    
-    messages.success(request, f'Reservation #{reservation.id} marked as completed. Customer notified.')
-    return redirect('admin_reservation_detail', reservation_id=reservation_id)
-
+    from django.contrib import messages
+    from django.shortcuts import redirect
+    messages.error(request, 'Reservation management is handled by Sellers.')
+    return redirect('admin_dashboard')
 
 @staff_member_required
 @require_POST
 def admin_bulk_delete_reservations(request):
-    """Bulk delete reservations - only rejected and completed reservations can be deleted"""
-    reservation_ids = request.POST.getlist('reservation_ids')
-    
-    if not reservation_ids:
-        messages.error(request, 'No reservations selected.')
-        return redirect('admin_reservations')
-    
-    try:
-        # Get the selected reservations
-        reservations = Reservation.objects.filter(id__in=reservation_ids)
-        
-        # Check if any reservation has a status that cannot be deleted
-        invalid_reservations = []
-        for reservation in reservations:
-            if reservation.status not in ['rejected', 'completed']:
-                invalid_reservations.append({
-                    'id': reservation.id,
-                    'status': reservation.get_status_display()
-                })
-        
-        # If there are invalid reservations, show error and don't delete anything
-        if invalid_reservations:
-            error_messages = []
-            for res in invalid_reservations:
-                error_messages.append(f"Reservation #{res['id']} ({res['status']})")
-            
-            messages.error(
-                request, 
-                f"Cannot delete the following reservations because they are not rejected or completed: {', '.join(error_messages)}. Only rejected and completed reservations can be deleted."
-            )
-            return redirect('admin_reservations')
-        
-        # All reservations are valid for deletion
-        deleted_count = reservations.delete()[0]
-        messages.success(request, f'Successfully deleted {deleted_count} reservation(s).')
-        
-    except Exception as e:
-        messages.error(request, f'Error deleting reservations: {str(e)}')
-    
-    return redirect('admin_reservations')
+    from django.contrib import messages
+    from django.shortcuts import redirect
+    messages.error(request, 'Reservation management is handled by Sellers.')
+    return redirect('admin_dashboard')

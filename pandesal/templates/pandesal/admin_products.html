@@ -172,83 +172,104 @@
                     </div>
                 </div>
 
-                <!-- Products Grid -->
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                    {% for product in page_obj %}
-                        <div class="product-card bg-white rounded-lg shadow overflow-hidden" data-type="{% if product.allow_reservation %}reservation{% else %}order{% endif %}">
-                                {% if product.image %}
-                                    <img src="{{ product.image.url }}" alt="{{ product.name }}" class="w-full h-64 object-cover">
-                                {% else %}
-                                    <div class="w-full h-64 bg-gray-200 flex items-center justify-center">
-                                        <i class="fas fa-image text-gray-400 text-4xl"></i>
-                                    </div>
-                                {% endif %}
-                                <div class="p-4">
-                                    <div class="flex items-center justify-between mb-2">
-                                        <h3 class="text-lg font-semibold text-gray-800">{{ product.name }}</h3>
-                                        {% if product.is_available and product.is_available_now %}
-                                            <span class="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">
-                                                <i class="fas fa-check-circle"></i> Available
-                                            </span>
-                                        {% elif product.is_available and not product.is_available_now %}
-                                            <span class="bg-gray-100 text-gray-800 text-xs px-2 py-1 rounded-full">
-                                                <i class="fas fa-clock"></i> Order Closed
-                                            </span>
-                                        {% else %}
-                                            <span class="bg-red-100 text-red-800 text-xs px-2 py-1 rounded-full">
-                                                <i class="fas fa-times-circle"></i> Unavailable
-                                            </span>
-                                        {% endif %}
-                                    </div>
-                                    
-                                    <!-- Category Badges -->
-                                    
-                                    <p class="text-green-600 font-bold text-xl mb-2">₱{{ product.price }}</p>
-                                    
-                                    <!-- Description with Read More -->
-                                    <div class="mb-2">
-                                        <p class="text-gray-600 text-sm description-text" id="desc-{{ product.id }}">
-                                            <span class="description-short">{{ product.description|truncatewords:15 }}</span>
-                                            <span class="description-full hidden">{{ product.description }}</span>
-                                        </p>
-                                        {% if product.description|wordcount > 15 %}
-                                            <button onclick="toggleDescription({{ product.id }})" class="text-green-600 hover:text-green-700 text-xs font-medium mt-1">
-                                                <span class="read-more-btn">Read More</span>
-                                                <span class="read-less-btn hidden">Read Less</span>
-                                            </button>
-                                        {% endif %}
-                                    </div>
-                                    
-                                    <!-- Stock Info (Order Products Only) -->
-                                    {% if 'order_now' in product.categories %}
-                                    <div class="mb-2">
-                                        <span class="inline-block {% if product.stock <= 5 %}bg-red-100 text-red-800{% else %}bg-gray-100 text-gray-800{% endif %} text-xs px-2 py-1 rounded-full">
-                                            Stock: {{ product.stock }} pcs
-                                        </span>
-                                    </div>
-                                    {% endif %}
-                                    
-                                    <!-- Minimum Order Quantity (Reservation Products Only) -->
-                                    {% if 'reservation' in product.categories %}
-                                    <div class="mb-2">
-                                        <span class="inline-block bg-purple-100 text-purple-800 text-xs px-2 py-1 rounded-full">
-                                            Min Order: {{ product.min_order_quantity|default:10 }} pcs
-                                        </span>
-                                    </div>
-                                    {% endif %}
-                                    
-                                    <!-- Availability Info -->
-                                    <div class="mb-4">
-                                        <p class="text-xs text-gray-500">{{ product.get_availability_display }}</p>
-                                    </div>
-                                    
-                                </div>
+                <!-- Products by Shop -->
+                <div class="products-container">
+                    {% regroup page_obj by seller as shop_list %}
+                    {% for shop in shop_list %}
+                    <div class="mb-12 shop-section">
+                        <div class="flex items-center gap-4 mb-6 border-b border-gray-200 pb-4">
+                            <div class="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center text-green-700 text-xl font-bold shadow-sm">
+                                <i class="fas fa-store"></i>
+                            </div>
+                            <div>
+                                <h2 class="text-2xl font-bold text-gray-800">
+                                    {% if shop.grouper %}{{ shop.grouper.shop_name|default:shop.grouper.username }}{% else %}Official PandesalHub{% endif %}
+                                </h2>
+                                <p class="text-gray-500 text-sm flex items-center gap-1">
+                                    <i class="fas {% if shop.grouper %}fa-user-tag{% else %}fa-check-circle text-green-600{% endif %}"></i>
+                                    {% if shop.grouper %}Independent Vendor{% else %}Main Bakery{% endif %}
+                                </p>
+                            </div>
                         </div>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 shop-grid">
+                            {% for product in shop.list %}
+                            <div class="product-card bg-white rounded-lg shadow overflow-hidden" data-type="{% if product.allow_reservation %}reservation{% else %}order{% endif %}">
+                                    {% if product.image %}
+                                        <img src="{{ product.image.url }}" alt="{{ product.name }}" class="w-full h-64 object-cover">
+                                    {% else %}
+                                        <div class="w-full h-64 bg-gray-200 flex items-center justify-center">
+                                            <i class="fas fa-image text-gray-400 text-4xl"></i>
+                                        </div>
+                                    {% endif %}
+                                    <div class="p-4">
+                                        <div class="flex items-center justify-between mb-2">
+                                            <h3 class="text-lg font-semibold text-gray-800">{{ product.name }}</h3>
+                                            {% if product.is_available and product.is_available_now %}
+                                                <span class="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full whitespace-nowrap">
+                                                    <i class="fas fa-check-circle"></i> Available
+                                                </span>
+                                            {% elif product.is_available and not product.is_available_now %}
+                                                <span class="bg-gray-100 text-gray-800 text-xs px-2 py-1 rounded-full whitespace-nowrap">
+                                                    <i class="fas fa-clock"></i> Closed
+                                                </span>
+                                            {% else %}
+                                                <span class="bg-red-100 text-red-800 text-xs px-2 py-1 rounded-full whitespace-nowrap">
+                                                    <i class="fas fa-times-circle"></i> Unavail
+                                                </span>
+                                            {% endif %}
+                                        </div>
+                                        
+                                        <p class="text-green-600 font-bold text-xl mb-2">₱{{ product.price }}</p>
+                                        
+                                        <!-- Description with Read More -->
+                                        <div class="mb-2">
+                                            <p class="text-gray-600 text-sm description-text" id="desc-{{ product.id }}">
+                                                <span class="description-short">{{ product.description|truncatewords:15 }}</span>
+                                                <span class="description-full hidden">{{ product.description }}</span>
+                                            </p>
+                                            {% if product.description|wordcount > 15 %}
+                                                <button onclick="toggleDescription({{ product.id }})" class="text-green-600 hover:text-green-700 text-xs font-medium mt-1">
+                                                    <span class="read-more-btn">Read More</span>
+                                                    <span class="read-less-btn hidden">Read Less</span>
+                                                </button>
+                                            {% endif %}
+                                        </div>
+                                        
+                                        <!-- Stock Info (Order Products Only) -->
+                                        {% if 'order_now' in product.categories %}
+                                        <div class="mb-2">
+                                            <span class="inline-block {% if product.stock <= 5 %}bg-red-100 text-red-800{% else %}bg-gray-100 text-gray-800{% endif %} text-xs px-2 py-1 rounded-full">
+                                                Stock: {{ product.stock }} pcs
+                                            </span>
+                                        </div>
+                                        {% endif %}
+                                        
+                                        <!-- Minimum Order Quantity (Reservation Products Only) -->
+                                        {% if 'reservation' in product.categories %}
+                                        <div class="mb-2">
+                                            <span class="inline-block bg-purple-100 text-purple-800 text-xs px-2 py-1 rounded-full">
+                                                Min Order: {{ product.min_order_quantity|default:10 }} pcs
+                                            </span>
+                                        </div>
+                                        {% endif %}
+                                        
+                                        <!-- Availability Info -->
+                                        <div class="mb-4">
+                                            <p class="text-xs text-gray-500">{{ product.get_availability_display }}</p>
+                                        </div>
+                                    </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
                     {% empty %}
-                        <div class="col-span-full text-center py-12">
-                            <i class="fas fa-box text-gray-400 text-6xl mb-4"></i>
-                            <h3 class="text-lg font-medium text-gray-900 mb-2">No products found</h3>
-                            <p class="text-gray-500 mb-4">There are no products currently available.</p>
+                        <div class="col-span-full text-center py-16 bg-white/80 rounded-2xl border w-full">
+                            <div class="w-24 h-24 bg-green-50 rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner">
+                                <i class="fas fa-bread-slice text-green-300 text-4xl"></i>
+                            </div>
+                            <h3 class="text-2xl font-bold text-gray-800 mb-2">No products found</h3>
+                            <p class="text-gray-500 mb-6 max-w-md mx-auto">There are currently no products available in the marketplace.</p>
                         </div>
                     {% endfor %}
                 </div>
@@ -375,6 +396,7 @@
       const orderTab = document.getElementById('orderTab');
       const reservationTab = document.getElementById('reservationTab');
       const productCards = document.querySelectorAll('.product-card');
+      const shopSections = document.querySelectorAll('.shop-section');
       
       // Update tab styles
       if (type === 'order') {
@@ -395,6 +417,16 @@
           card.style.display = 'block';
         } else {
           card.style.display = 'none';
+        }
+      });
+      
+      // Hide empty shop sections
+      shopSections.forEach(section => {
+        const visibleCards = Array.from(section.querySelectorAll('.product-card')).filter(card => card.style.display === 'block');
+        if (visibleCards.length === 0) {
+          section.style.display = 'none';
+        } else {
+          section.style.display = 'block';
         }
       });
     }
