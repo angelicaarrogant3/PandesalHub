@@ -132,6 +132,7 @@ class Pandesal(models.Model):
     seller = models.ForeignKey(User, on_delete=models.CASCADE, related_name='products', null=True, blank=True)
     price = models.DecimalField(max_digits=6, decimal_places=2)
     description = models.TextField(blank=True, null=True)
+    location = models.CharField(max_length=255, blank=True, default='', help_text="Where customers can buy / pick up this pandesal (e.g. Zone 2, Brgy. Caraycaray, Naval, Biliran)")
     image = models.ImageField(upload_to='pandesal_images/', blank=True, null=True)
     categories = models.JSONField(default=list, blank=True, help_text="Categories of pandesal (can select multiple)")
     

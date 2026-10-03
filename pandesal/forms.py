@@ -249,12 +249,16 @@ class SellerProductForm(forms.ModelForm):
     class Meta:
         model = Pandesal
         fields = [
-            'name', 'price', 'description', 'image', 'is_available', 
+            'name', 'price', 'description', 'location', 'image', 'is_available', 
             'stock', 'preparation_time_hours', 'preparation_days',
             'categories'
         ]
+        labels = {
+            'location': 'Selling Location',
+        }
         widgets = {
             'description': forms.Textarea(attrs={'rows': 3}),
+            'location': forms.TextInput(attrs={'placeholder': 'e.g. Zone 2, Brgy. Caraycaray, Naval, Biliran'}),
         }
 
     def __init__(self, *args, **kwargs):
