@@ -229,7 +229,7 @@
 
       {% if user.userprofile.user_type == 'seller' %}
       <a href="{% url 'seller_dashboard' %}" class="flex items-center gap-4 px-4 py-3 rounded-xl text-gray-600 hover:text-green-700 hover:bg-green-50 transition"><i class="fa-solid fa-house text-lg min-w-[20px]"></i><span class="sidebar-text">Home</span></a>
-      <a href="{% url 'seller_shop_settings' %}" class="flex items-center gap-4 px-4 py-3 rounded-xl text-gray-600 hover:text-green-700 hover:bg-green-50 transition"><i class="fa-solid fa-store text-lg min-w-[20px]"></i><span class="sidebar-text">Shop</span></a>
+
       <a href="{% url 'seller_products' %}" class="flex items-center gap-4 px-4 py-3 rounded-xl text-gray-600 hover:text-green-700 hover:bg-green-50 transition"><i class="fa-solid fa-box text-lg min-w-[20px]"></i><span class="sidebar-text">Products</span></a>
       <a href="{% url 'seller_orders' %}" class="flex items-center gap-4 px-4 py-3 rounded-xl text-gray-600 hover:text-green-700 hover:bg-green-50 transition"><i class="fa-solid fa-shopping-cart text-lg min-w-[20px]"></i><span class="sidebar-text">Orders</span></a>
       <a href="{% url 'seller_reservations' %}" class="flex items-center gap-4 px-4 py-3 rounded-xl text-gray-600 hover:text-green-700 hover:bg-green-50 transition"><i class="fa-solid fa-calendar-check text-lg min-w-[20px]"></i><span class="sidebar-text">Reservations</span></a>
@@ -312,6 +312,7 @@
                   <i class="fas fa-user-circle text-base md:text-lg"></i>
                   <span>My Profile</span>
                 </button>
+                {% if user.userprofile.user_type == 'customer' %}
                 <button onclick="switchProfileTab('orders')" id="ordersTab" 
                         class="profile-tab-btn flex items-center gap-2 px-3 md:px-4 py-3 md:py-4 text-xs md:text-sm font-medium text-gray-600 border-b-2 border-transparent hover:text-green-600 hover:border-gray-300 transition-colors whitespace-nowrap">
                   <i class="fas fa-shopping-bag text-base md:text-lg"></i>
@@ -322,6 +323,7 @@
                   <i class="fas fa-calendar-check text-base md:text-lg"></i>
                   <span>My Reservations</span>
                 </button>
+                {% endif %}
               </nav>
             </div>
 

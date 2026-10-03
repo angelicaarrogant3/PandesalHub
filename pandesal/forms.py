@@ -257,5 +257,17 @@ class SellerProductForm(forms.ModelForm):
             'description': forms.Textarea(attrs={'rows': 3}),
         }
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for field_name, field in self.fields.items():
+            if type(field.widget) in (forms.TextInput, forms.NumberInput, forms.Textarea, forms.Select):
+                field.widget.attrs['class'] = 'w-full border border-gray-300 rounded-lg p-2 mt-1 focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none'
+            elif type(field.widget) == forms.CheckboxInput:
+                field.widget.attrs['class'] = 'h-4 w-4 text-green-600 rounded border-gray-300 focus:ring-green-500 mt-2'
+            elif type(field.widget) == forms.CheckboxSelectMultiple:
+                field.widget.attrs['class'] = 'space-y-2 mt-2'
+            elif type(field.widget) == forms.FileInput:
+                field.widget.attrs['class'] = 'w-full border border-gray-300 rounded-lg p-2 mt-1 focus:outline-none file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-green-50 file:text-green-700 hover:file:bg-green-100'
+
     def clean_categories(self):
         return list(self.cleaned_data.get('categories', []))
