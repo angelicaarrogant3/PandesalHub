@@ -2016,6 +2016,26 @@ def admin_bulk_delete_orders(request):
     messages.error(request, 'Order management is handled by Sellers.')
     return redirect('admin_dashboard')
 
+# ---------------------------
+# Reservation Views (imported from reservation_views module)
+# ---------------------------
+from .reservation_views import (
+    reservation_shop,
+    reservation_create,
+    my_reservations,
+    add_to_reservation_cart,
+    reservation_cart,
+    remove_from_reservation_cart,
+    update_reservation_cart,
+    reservation_checkout,
+    admin_reservations,
+    admin_reservation_detail,
+    admin_reservation_confirm,
+    admin_reservation_reject,
+    admin_reservation_complete,
+    admin_bulk_delete_reservations
+)
+
 @login_required
 def unified_cart(request):
     """Unified cart view showing both order cart and reservation cart"""
