@@ -418,6 +418,8 @@
       </div>
     {% endif %}
   </main>
+  
+  {% include 'pandesal/includes/footer.html' %}
 {% endif %}
 
 {% if user.is_authenticated and not user.is_superuser %}
@@ -515,6 +517,5 @@
 </div>
 {% endif %}
 
-  {% include 'pandesal/includes/footer.html' %}
 </body>
 </html>
