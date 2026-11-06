@@ -1,0 +1,261 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="{% static 'pandesal/js/tailwind.js' %}"></script>
+  <link rel="stylesheet" href="{% static 'pandesal/css/fontawesome/all.min.css' %}" />
+  <script>
+    tailwind.config = {
+      theme: { extend: { colors: {
+        primary: '#16a34a', secondary: '#15803d',
+        leaf: '#E3F1E7', pine: '#123322', moss: '#1B7A43', fern: '#2FB567',
+      } } }
+    }
+  </script>
+  <style>
+    body { font-family: ui-sans-serif, system-ui, -apple-system, sans-serif; }
+
+    /* Fields */
+    .f-input, .f-textarea, .f-select {
+      width: 100%; border: 1px solid #E2E8F0; border-radius: 0.9rem;
+      padding: 0.7rem 0.95rem; font-size: 0.875rem; color: #123322; background: #fff;
+      outline: none; transition: border-color .15s, box-shadow .15s;
+    }
+    .f-input:focus, .f-textarea:focus, .f-select:focus {
+      border-color: #2FB567; box-shadow: 0 0 0 3px rgba(47,181,103,.15);
+    }
+    .f-input::placeholder, .f-textarea::placeholder { color: #9CA3AF; }
+    .f-label { display:block; font-size: .8rem; font-weight: 600; color:#123322; margin-bottom:.4rem; }
+    .f-help { font-size:.72rem; color:#94A3B8; margin-top:.35rem; }
+    .f-err { font-size:.72rem; color:#DC2626; margin-top:.35rem; }
+    .req { color:#2FB567; }
+
+    /* Native widgets get classes from Django form; also target raw inputs as fallback */
+    #id_name, #id_price, #id_stock, #id_preparation_time_hours, #id_preparation_days,
+    #id_location, #id_description {
+      width: 100%; border: 1px solid #E2E8F0; border-radius: 0.9rem;
+      padding: 0.7rem 0.95rem; font-size: 0.875rem; color: #123322; background: #fff;
+      outline: none; transition: border-color .15s, box-shadow .15s;
+    }
+    #id_name:focus, #id_price:focus, #id_stock:focus, #id_preparation_time_hours:focus,
+    #id_preparation_days:focus, #id_location:focus, #id_description:focus {
+      border-color:#2FB567; box-shadow:0 0 0 3px rgba(47,181,103,.15);
+    }
+    #id_image { display: none; }
+
+    /* Categories */
+    #id_categories { display: flex; flex-wrap: wrap; gap: .5rem; padding-top: .2rem; }
+    #id_categories li { list-style: none; }
+    #id_categories label {
+      display: flex; align-items: center; gap: .5rem; font-size: .82rem; color: #334155;
+      cursor: pointer; padding: .45rem .8rem; border: 1px solid #E2E8F0; border-radius: 9999px; transition: .15s;
+    }
+    #id_categories label:hover { border-color:#2FB567; }
+    #id_categories input:checked + span { color:#1B7A43; font-weight:600; }
+    #id_categories input { accent-color:#1B7A43; width:.95rem; height:.95rem; }
+
+    /* Upload box */
+    .dropzone {
+      border: 1.5px dashed #CBD5E1; border-radius: 1rem; background: #F8FAF9;
+      padding: 1.4rem; text-align: center; cursor: pointer; transition: .15s;
+    }
+    .dropzone:hover, .dropzone.drag { border-color:#2FB567; background:#F1F8F3; }
+
+    /* Toggle */
+    .switch { position: relative; display:inline-block; width:42px; height:24px; }
+    .switch input { opacity:0; width:0; height:0; }
+    .slider { position:absolute; inset:0; background:#CBD5E1; border-radius:9999px; transition:.2s; }
+    .slider:before { content:""; position:absolute; height:18px; width:18px; left:3px; top:3px; background:#fff; border-radius:50%; transition:.2s; }
+    .switch input:checked + .slider { background:#1B7A43; }
+    .switch input:checked + .slider:before { transform: translateX(18px); }
+  </style>
+</head>
+<body class="bg-white text-pine">
+  <form method="POST" enctype="multipart/form-data" class="flex flex-col h-screen">
+    {% csrf_token %}
+    <input type="hidden" name="modal" value="1">
+
+    <!-- Header -->
+    <div class="shrink-0 flex items-start justify-between px-6 py-5 border-b border-gray-100">
+      <div class="flex items-center gap-3">
+        <span class="w-11 h-11 rounded-2xl bg-leaf flex items-center justify-center text-moss shrink-0">
+          <i class="fas fa-{% if is_edit %}pen-to-square{% else %}box-open{% endif %} text-lg"></i>
+        </span>
+        <div>
+          <h2 class="text-lg font-bold text-pine leading-tight">{% if is_edit %}Edit Product{% else %}Add Product{% endif %}</h2>
+          <p class="text-xs text-gray-500">{% if is_edit %}Update the details of your product{% else %}Add a new product to your shop catalog{% endif %}</p>
+        </div>
+      </div>
+      <button type="button" onclick="if(window.parent.closeProductModal){window.parent.closeProductModal();}" class="w-9 h-9 rounded-xl text-gray-400 hover:bg-gray-100 hover:text-gray-600 flex items-center justify-center transition">
+        <i class="fas fa-xmark text-lg"></i>
+      </button>
+    </div>
+
+    <!-- Body -->
+    <div class="flex-1 overflow-y-auto px-6 py-6">
+      {% if form.non_field_errors %}
+        <div class="mb-5 px-4 py-3 rounded-2xl bg-red-50 border border-red-200 text-red-700 text-sm">{{ form.non_field_errors }}</div>
+      {% endif %}
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+        <!-- Name -->
+        <div class="md:col-span-2">
+          <label class="f-label" for="id_name">Name <span class="req">*</span></label>
+          {{ form.name }}
+          {% if form.name.errors %}<p class="f-err">{{ form.name.errors.0 }}</p>{% endif %}
+        </div>
+
+        <!-- Price -->
+        <div>
+          <label class="f-label" for="id_price">Price <span class="req">*</span></label>
+          {{ form.price }}
+          {% if form.price.errors %}<p class="f-err">{{ form.price.errors.0 }}</p>{% endif %}
+        </div>
+
+        <!-- Stock -->
+        <div>
+          <label class="f-label" for="id_stock">Stock <span class="req">*</span></label>
+          {{ form.stock }}
+          <p class="f-help">Available pieces in stock</p>
+          {% if form.stock.errors %}<p class="f-err">{{ form.stock.errors.0 }}</p>{% endif %}
+        </div>
+
+        <!-- Preparation time hours -->
+        <div>
+          <label class="f-label" for="id_preparation_time_hours">Preparation time (hours) <span class="req">*</span></label>
+          {{ form.preparation_time_hours }}
+          <p class="f-help">Hours needed to prepare this item</p>
+          {% if form.preparation_time_hours.errors %}<p class="f-err">{{ form.preparation_time_hours.errors.0 }}</p>{% endif %}
+        </div>
+
+        <!-- Preparation days -->
+        <div>
+          <label class="f-label" for="id_preparation_days">Preparation days <span class="req">*</span></label>
+          {{ form.preparation_days }}
+          {% if form.preparation_days.errors %}<p class="f-err">{{ form.preparation_days.errors.0 }}</p>{% endif %}
+        </div>
+
+        <!-- Selling location -->
+        <div class="md:col-span-2">
+          <label class="f-label" for="id_location">{{ form.location.label }}</label>
+          {{ form.location }}
+          {% if form.location.errors %}<p class="f-err">{{ form.location.errors.0 }}</p>{% endif %}
+        </div>
+
+        <!-- Description -->
+        <div class="md:col-span-2">
+          <label class="f-label" for="id_description">{{ form.description.label }}</label>
+          {{ form.description }}
+          {% if form.description.errors %}<p class="f-err">{{ form.description.errors.0 }}</p>{% endif %}
+        </div>
+
+        <!-- Image upload -->
+        <div class="md:col-span-2">
+          <label class="f-label">Image</label>
+          <div id="dropzone" class="dropzone">
+            <div id="dzEmpty">
+              <i class="fas fa-cloud-arrow-up text-2xl text-moss mb-2"></i>
+              <p class="text-sm text-gray-600"><span class="font-semibold text-moss">Click to upload</span> or drag and drop</p>
+              <p class="text-xs text-gray-400 mt-1">PNG, JPG or GIF (max. 800×400px)</p>
+            </div>
+            <div id="dzFile" class="hidden items-center justify-center gap-3">
+              <img id="dzPreview" class="hidden w-14 h-14 object-cover rounded-xl border border-gray-200" alt="preview">
+              <div class="text-left">
+                <p id="dzName" class="text-sm font-semibold text-pine"></p>
+                <button type="button" id="dzRemove" class="text-xs text-red-600 hover:underline">Remove</button>
+              </div>
+            </div>
+          </div>
+          {{ form.image }}
+          {% if form.image.errors %}<p class="f-err">{{ form.image.errors.0 }}</p>{% endif %}
+        </div>
+
+        <!-- Categories -->
+        <div class="md:col-span-2">
+          <label class="f-label">{{ form.categories.label }}</label>
+          {{ form.categories }}
+          {% if form.categories.errors %}<p class="f-err">{{ form.categories.errors.0 }}</p>{% endif %}
+        </div>
+
+        <!-- Is available toggle -->
+        <div class="md:col-span-2 flex items-center justify-between rounded-2xl bg-leaf/50 px-4 py-3">
+          <div>
+            <p class="text-sm font-semibold text-pine">Is available</p>
+            <p class="text-xs text-gray-500">Show this product in the shop</p>
+          </div>
+          <label class="switch">
+            {{ form.is_available }}
+            <span class="slider"></span>
+          </label>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="shrink-0 flex items-center justify-end gap-3 px-6 py-4 border-t border-gray-100 bg-white">
+      <button type="button" onclick="if(window.parent.closeProductModal){window.parent.closeProductModal();}" class="px-5 py-2.5 rounded-2xl bg-white border border-gray-200 text-gray-600 font-semibold hover:bg-gray-50 transition">Cancel</button>
+      <button type="submit" class="px-6 py-2.5 rounded-2xl bg-moss hover:bg-fern text-white font-semibold shadow-sm transition">
+        <i class="fas fa-{% if is_edit %}floppy-disk{% else %}plus{% endif %} mr-2"></i>{% if is_edit %}Save Changes{% else %}Create Product{% endif %}
+      </button>
+    </div>
+  </form>
+
+  <script>
+    // Wrap native checkboxes so the toggle renders as a switch
+    (function () {
+      var avail = document.getElementById('id_is_available');
+      if (avail) { avail.className = ''; }
+
+      // Image dropzone
+      var input = document.getElementById('id_image');
+      var dz = document.getElementById('dropzone');
+      var empty = document.getElementById('dzEmpty');
+      var fileBox = document.getElementById('dzFile');
+      var preview = document.getElementById('dzPreview');
+      var nameEl = document.getElementById('dzName');
+      var removeBtn = document.getElementById('dzRemove');
+
+      function showFile(file) {
+        if (!file) return;
+        nameEl.textContent = file.name;
+        empty.classList.add('hidden');
+        fileBox.classList.remove('hidden');
+        fileBox.classList.add('flex');
+        if (/^image\//.test(file.type)) {
+          preview.src = URL.createObjectURL(file);
+          preview.classList.remove('hidden');
+        } else {
+          preview.classList.add('hidden');
+        }
+      }
+      function clearFile() {
+        input.value = '';
+        fileBox.classList.add('hidden');
+        fileBox.classList.remove('flex');
+        empty.classList.remove('hidden');
+        preview.classList.add('hidden');
+      }
+
+      if (dz && input) {
+        dz.addEventListener('click', function () { input.click(); });
+        input.addEventListener('change', function () { showFile(input.files[0]); });
+        removeBtn.addEventListener('click', function (e) { e.stopPropagation(); clearFile(); });
+        ['dragenter', 'dragover'].forEach(function (ev) {
+          dz.addEventListener(ev, function (e) { e.preventDefault(); dz.classList.add('drag'); });
+        });
+        ['dragleave', 'drop'].forEach(function (ev) {
+          dz.addEventListener(ev, function (e) { e.preventDefault(); dz.classList.remove('drag'); });
+        });
+        dz.addEventListener('drop', function (e) {
+          if (e.dataTransfer.files && e.dataTransfer.files.length) {
+            input.files = e.dataTransfer.files;
+            showFile(input.files[0]);
+          }
+        });
+      }
+    })();
+  </script>
+</body>
+</html>

@@ -1,65 +1,13 @@
+{% extends "pandesal/includes/admin_base.html" %}
 {% load static %}
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-  {% include "pandesal/includes/seo_meta.html" %}
-  
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <script src="{% static 'pandesal/js/tailwind.js' %}"></script>
-    <link rel="stylesheet" href="{% static 'pandesal/css/fontawesome/all.min.css' %}" />
-    <link rel="stylesheet" href="{% static 'pandesal/css/bootstrap-icons/bootstrap-icons.css' %}">
-    <link rel="icon" href="{% static 'pandesal/img/pandesalhub_icon.png' %}" type="image/png">
-    
-    <script>
-    tailwind.config = {
-      theme: {
-        extend: {
-          colors: {
-            primary: '#16a34a',
-            secondary: '#15803d',
-          }
-        }
-      }
-    }
-    </script>
-    <style>
+{% block page_title %}Order #{{ order.id }}{% endblock %}
+{% block page_subtitle %}View and manage order details{% endblock %}
+
+{% block extra_css %}
+<style>
       .transition-all { transition: all 300ms ease-in-out; }
-      
-      /* Sidebar styles */
-      #sidebar { 
-        transform: translateX(-100%); 
-      }
-      #sidebar.show { 
-        transform: translateX(0); 
-      }
-      
-      @media (min-width: 1024px) {
-        #sidebar { 
-          transform: translateX(0); 
-          width: 280px; 
-        }
-        #sidebar.collapsed { 
-          width: 80px; 
-        }
-        #sidebar.collapsed .sidebar-text { 
-          display: none; 
-        }
-        #sidebar.collapsed nav a { 
-          justify-content: center; 
-          padding-left: 0; 
-          padding-right: 0; 
-        }
-        #mainContent {
-          margin-left: 280px;
-        }
-        #mainContent.expanded {
-          margin-left: 80px;
-        }
-      }
-      
-      
+
       /* Order page specific styles */
       .order-card {
           background: white;
@@ -105,24 +53,19 @@
           margin-bottom: 20px;
       }
     </style>
-</head>
-<body class="bg-green-50 h-full overflow-x-hidden">
+{% endblock %}
 
-  {% include 'pandesal/includes/admin_navbar.html' %}
-    
-    <!-- Main Content -->
-    <main id="mainContent" class="pt-20 transition-all">
-        <div class="p-4 lg:p-8">
-            <div class="max-w-6xl mx-auto">
-                <div class="bg-white rounded-2xl shadow-lg p-6 lg:p-8">
-                    <!-- Header -->
-                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 pb-6 border-b border-gray-200">
-                        <div>
-                            <h2 class="text-3xl font-bold text-gray-800">
-                                <i class="fas fa-receipt text-primary"></i> Order #{{ order.id }}
-                            </h2>
-                            <p class="text-gray-600 text-sm mt-1">View and manage order details</p>
-                        </div>
+{% block header_actions %}
+<a href="{% url 'admin_orders' %}" class="bg-ink hover:bg-tealsoft text-white px-4 py-2.5 rounded-2xl flex items-center shadow font-medium transition">
+    <i class="fas fa-arrow-left mr-2"></i>Back to Orders
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto">
+                    <div class="bg-white rounded-2xl shadow-lg p-6 lg:p-8">
+                    <!-- Status -->
+                    <div class="flex justify-end mb-4">
                         <span class="status-badge status-{{ order.status }}">
                             {{ order.get_status_display }}
                         </span>
@@ -331,17 +274,8 @@
                             </div>
                         </form>
                     </div>
-
-                    <!-- Actions -->
-                    <div class="mt-6 pt-6 border-t border-gray-200">
-                        <a href="{% url 'admin_orders' %}" class="inline-flex items-center gap-2 bg-gray-600 hover:bg-gray-700 text-white font-semibold py-3 px-6 rounded-lg transition shadow-md hover:shadow-lg">
-                            <i class="fas fa-arrow-left"></i> Back to Orders
-                        </a>
-                    </div>
                 </div>
-            </div>
-        </div>
-    </main>
+</div>
 
     <!-- Payment Proof Modal -->
     {% if order.payment_proof %}
@@ -359,5 +293,4 @@
         </div>
     </div>
     {% endif %}
-</body>
-</html>
+{% endblock %}

@@ -1,0 +1,125 @@
+{% extends "pandesal/includes/admin_base.html" %}
+{% load static %}
+
+{% block page_title %}Messages{% endblock %}
+{% block page_subtitle %}View and manage your inbox{% endblock %}
+
+{% block header_actions %}{% endblock %}
+
+{% block content %}
+<!-- Messages -->
+{% if messages %}
+    {% for message in messages %}
+        <div class="mb-4 p-4 rounded-2xl {% if message.tags == 'success' %}bg-green-100 text-green-700{% elif message.tags == 'error' %}bg-red-100 text-red-700{% else %}bg-blue-100 text-blue-700{% endif %}">
+            {{ message }}
+        </div>
+    {% endfor %}
+{% endif %}
+
+<section class="bg-white rounded-3xl shadow-sm p-6 max-w-4xl mx-auto">
+    <div class="flex items-center gap-2 text-ink mb-5">
+        <span class="inline-flex h-9 w-9 items-center justify-center rounded-2xl bg-sage text-tealsoft">
+            <i class="fa-solid fa-users"></i>
+        </span>
+        <h2 class="font-semibold text-lg">Contacts</h2>
+    </div>
+
+    {% if recent_threads %}
+    <div class="mb-6">
+        <div class="text-[11px] tracking-widest text-gray-400 uppercase mb-2">Recent</div>
+        <div class="flex flex-col gap-1">
+            {% for t in recent_threads %}
+            {% with u=t.user m=t.last_message %}
+            <a href="{% url 'message_thread' user_id=u.id %}"
+               class="group px-3 py-2.5 rounded-2xl {% if t.unread_count > 0 %}bg-sage border-teal-700/30{% else %}hover:bg-sage/60 border-transparent hover:border-teal-700/10{% endif %} transition border flex items-center justify-between">
+                <div class="flex items-center gap-3 min-w-0 flex-1">
+                    <div class="relative shrink-0">
+                        {% if u.userprofile.profile_picture %}
+                            <img src="{{ u.userprofile.profile_picture.url }}" alt="{{ u.username }}" class="w-10 h-10 rounded-full object-cover ring-2 ring-teal-700/20">
+                        {% else %}
+                            <div class="w-10 h-10 rounded-full bg-sage text-tealsoft flex items-center justify-center font-semibold">
+                                {{ u.username|slice:":1"|upper }}
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div class="min-w-0 flex-1">
+                        <div class="flex items-center gap-2">
+                            <span class="{% if t.unread_count > 0 %}font-semibold{% else %}font-medium{% endif %} text-ink text-sm truncate">
+                                {% if u.is_superuser %}PandesalHub{% else %}{{ u.get_full_name|default:u.username }}{% endif %}
+                            </span>
+                        </div>
+                        {% if m %}
+                            <p class="text-xs {% if t.unread_count > 0 %}text-gray-700 font-medium{% else %}text-gray-500{% endif %} truncate">{{ m.body|truncatewords:8 }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="flex items-center gap-2 ml-2 shrink-0">
+                    {% if m %}<span class="text-[10px] text-gray-400">{{ m.timestamp|timesince }} ago</span>{% endif %}
+                    {% if t.unread_count > 0 %}
+                        <div class="w-5 h-5 rounded-full bg-teal-700 text-white text-[10px] font-bold flex items-center justify-center">
+                            {{ t.unread_count }}
+                        </div>
+                    {% endif %}
+                </div>
+            </a>
+            {% endwith %}
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="space-y-4">
+        <div class="text-[11px] tracking-widest text-gray-400 uppercase">All Contacts</div>
+
+        <!-- Search -->
+        <div class="relative">
+            <i class="fa-solid fa-magnifying-glass text-gray-400 absolute left-4 top-1/2 -translate-y-1/2"></i>
+            <input id="userFilter" type="text" placeholder="Search users..."
+                   class="w-full pl-11 pr-4 py-3 border border-gray-200 rounded-2xl bg-white focus:outline-none focus:ring-2 focus:ring-teal-600/40 placeholder:text-gray-400">
+        </div>
+
+        <!-- Users list -->
+        {% if all_users %}
+        <div id="userList" class="nice-scroll max-h-[70vh] overflow-y-auto flex flex-col divide-y divide-gray-100 rounded-2xl border border-gray-100">
+            {% for u in all_users %}
+            <a class="user-item group flex items-center justify-between px-4 py-3 hover:bg-sage/60 transition"
+               href="{% url 'message_thread' user_id=u.id %}"
+               data-username="{{ u.username|lower }}">
+                <div class="flex items-center gap-3 min-w-0">
+                    <div class="w-9 h-9 rounded-full bg-sage text-tealsoft flex items-center justify-center">
+                        <i class="fa-solid fa-at text-xs"></i>
+                    </div>
+                    <span class="text-sm text-ink truncate">@{{ u.username }}</span>
+                </div>
+                <i class="fa-solid fa-comments text-teal-700 opacity-70 group-hover:opacity-100"></i>
+            </a>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="rounded-2xl border border-dashed border-gray-300 p-8 text-center text-gray-500">
+            <div class="mb-2 text-2xl">🍞</div>
+            <p class="text-sm">No users available yet. Start a conversation from a message or contact.</p>
+        </div>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // User search filter
+    (function () {
+        const filterInput = document.getElementById('userFilter');
+        const listRoot = document.getElementById('userList');
+        if (!filterInput || !listRoot) return;
+        const items = listRoot.querySelectorAll('.user-item');
+        filterInput.addEventListener('input', (e) => {
+            const q = e.target.value.trim().toLowerCase();
+            items.forEach(it => {
+                const name = it.getAttribute('data-username') || '';
+                it.style.display = name.includes(q) ? '' : 'none';
+            });
+        });
+    })();
+</script>
+{% endblock %}

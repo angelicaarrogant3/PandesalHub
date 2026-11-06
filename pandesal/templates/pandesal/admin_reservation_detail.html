@@ -1,44 +1,11 @@
+{% extends "pandesal/includes/admin_base.html" %}
 {% load static %}
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-  {% include "pandesal/includes/seo_meta.html" %}
-  
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <script src="{% static 'pandesal/js/tailwind.js' %}"></script>
-    <link rel="stylesheet" href="{% static 'pandesal/css/fontawesome/all.min.css' %}" />
-    <link rel="stylesheet" href="{% static 'pandesal/css/bootstrap-icons/bootstrap-icons.css' %}">
-    <link rel="icon" href="{% static 'pandesal/img/pandesalhub_icon.png' %}" type="image/png">
-    
-    <script>
-    tailwind.config = {
-      theme: {
-        extend: {
-          colors: {
-            primary: '#16a34a',
-            secondary: '#15803d',
-          }
-        }
-      }
-    }
-    </script>
-    <style>
-      .transition-all { transition: all 300ms ease-in-out; }
-      #sidebar { transform: translateX(-100%); }
-      #sidebar.show { transform: translateX(0); }
-      
-      @media (min-width: 1024px) {
-        #sidebar { transform: translateX(0); width: 280px; }
-        #sidebar.collapsed { width: 80px; }
-        #sidebar.collapsed .sidebar-text { display: none; }
-        #sidebar.collapsed nav a { justify-content: center; padding-left: 0; padding-right: 0; }
-      }
-      
-      .dropdown-menu { display: none; }
-      .dropdown-menu.show { display: block; }
-      
+{% block page_title %}Reservation #{{ reservation.id }}{% endblock %}
+{% block page_subtitle %}Manage reservation details and status{% endblock %}
+
+{% block extra_css %}
+<style>
       .status-badge {
           padding: 10px 20px;
           border-radius: 9999px;
@@ -51,25 +18,16 @@
       .status-completed { background-color: #bbf7d0; color: #14532d; }
       .status-rejected, .status-cancelled { background-color: #fee2e2; color: #991b1b; }
     </style>
-</head>
-<body class="bg-green-50 h-full overflow-x-hidden">
+{% endblock %}
 
-  {% include 'pandesal/includes/admin_navbar.html' %}
+{% block header_actions %}
+<a href="{% url 'admin_reservations' %}" class="bg-ink hover:bg-tealsoft text-white px-4 py-2.5 rounded-2xl flex items-center shadow font-medium transition">
+    <i class="fas fa-arrow-left mr-2"></i>Back to List
+</a>
+{% endblock %}
 
-        <!-- Main Content -->
-        <main id="mainContent" class="lg:ml-[280px] flex-1 flex flex-col pt-20 transition-all">
-            <div class="p-4 lg:p-8">
-            <div class="max-w-5xl mx-auto">
-                <!-- Header -->
-                <div class="flex items-center justify-between mb-6">
-                    <div>
-                        <h1 class="text-3xl font-bold text-gray-800">Reservation #{{ reservation.id }}</h1>
-                        <p class="text-gray-600 mt-1">Manage reservation details and status</p>
-                    </div>
-                    <a href="{% url 'admin_reservations' %}" class="px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition">
-                        <i class="fas fa-arrow-left mr-2"></i>Back to List
-                    </a>
-                </div>
+{% block content %}
+<div class="max-w-5xl mx-auto">
 
                 <!-- Messages -->
                 {% if messages %}
@@ -205,9 +163,7 @@
                         {% endif %}
                     </div>
                 </div>
-            </div>
-            </div>
-        </main>
+</div>
 
     <!-- Reject Modal -->
     <div id="rejectModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
@@ -230,7 +186,4 @@
             </form>
         </div>
     </div>
-
-    {% include 'pandesal/includes/navbar_scripts.html' %}
-</body>
-</html>
+{% endblock %}

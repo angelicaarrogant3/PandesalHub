@@ -2,13 +2,15 @@
 
 {% block title %}Delete Product - Seller Dashboard{% endblock %}
 
+{% block page_title %}Delete Product{% endblock %}
+{% block page_subtitle %}This action cannot be undone{% endblock %}
+
 {% block content %}
-<div class="max-w-2xl mx-auto bg-white p-8 rounded-lg shadow border border-gray-100 mt-10">
+<div class="max-w-2xl mx-auto bg-white p-8 rounded-3xl shadow-sm border border-gray-100 mt-4">
   <div class="text-center">
     <div class="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-red-100 mb-6">
       <i class="fas fa-exclamation-triangle text-red-600 text-2xl"></i>
     </div>
-    <h1 class="text-2xl font-bold text-gray-800 mb-2">Delete Product</h1>
     <p class="text-gray-600 mb-8">Are you sure you want to delete the product <strong class="text-gray-800">"{{ product.name }}"</strong>? This action cannot be undone.</p>
     
     <form method="POST" class="flex justify-center gap-4">

@@ -19,142 +19,198 @@
           colors: {
             primary: '#16a34a',
             secondary: '#15803d',
+            sage: '#E7EFE9',
+            ink: '#1D3B33',
+            tealsoft: '#2E5E51',
           }
         }
       }
     }
-  </script>
-  <style>
+    </script>
+    <style>
       .transition-all { transition: all 300ms ease-in-out; }
+
+      /* Sidebar show/hide */
       #sidebar { transform: translateX(-100%); }
       #sidebar.show { transform: translateX(0); }
-      
+
       @media (min-width: 1024px) {
         #sidebar { transform: translateX(0); width: 280px; }
-        #sidebar.collapsed { width: 80px; }
-        #sidebar.collapsed .sidebar-text { display: none; }
+        #sidebar.collapsed { width: 92px; }
+        #sidebar.collapsed .sidebar-text,
+        #sidebar.collapsed .sidebar-brand-text { display: none; }
         #sidebar.collapsed nav a { justify-content: center; padding-left: 0; padding-right: 0; }
+        #sidebar.collapsed .sidebar-heading { display: none; }
       }
-      
+
       .dropdown-menu { display: none; }
       .dropdown-menu.show { display: block; }
+
+      /* MediCore-inspired teal gradient surfaces */
+      .grad-sidebar {
+        background: linear-gradient(160deg, #23473D 0%, #2F6355 45%, #57A38C 100%);
+      }
+      .grad-header {
+        background: linear-gradient(120deg, #CFE6D8 0%, #E1EFE6 60%, #EAF3EC 100%);
+      }
+      .nav-pill.active {
+        background: rgba(255, 255, 255, 0.16);
+        box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.25);
+        color: #fff;
+      }
+      .nav-pill:not(.active):hover {
+        background: rgba(255, 255, 255, 0.08);
+        color: #fff;
+      }
+
+      /* Calendar */
+      .cal-cell { width: 34px; height: 34px; }
+      .cal-today {
+        background: #23473D;
+        color: #fff;
+        font-weight: 600;
+      }
+      .cal-head {
+        border: 1.5px solid #94A3B8;
+        color: #334155;
+      }
     </style>
 </head>
-<body class="bg-green-50 h-full overflow-x-hidden">
-
-  <!-- Top Navbar -->
-  <header class="fixed top-0 left-0 right-0 h-20 bg-white shadow-md z-50 flex items-center px-4 lg:px-6">
-    <div class="flex items-center gap-4">
-      <a href="{% url 'admin_dashboard' %}" class="flex items-center gap-3">
-        <img src="{% static 'pandesal/img/pandesalhub_icon.png' %}" alt="Logo" class="w-10 h-10 rounded-full">
-        <span class="hidden lg:block text-xl font-bold text-green-600">PandesalHub</span>
-      </a>
-      <button id="sidebarToggle" class="p-2 hover:bg-gray-100 rounded-lg transition-colors">
-        <i class="fa-solid fa-bars text-2xl text-gray-700"></i>
-      </button>
-    </div>
-    <div class="hidden md:flex flex-1 max-w-xl mx-8">
-      <div class="relative w-full">
-        <input type="text" 
-               id="pageSearchInput"
-               placeholder="Search on this page..." 
-               class="w-full px-4 py-2 pl-10 pr-20 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-sm">
-        <i class="fa-solid fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
-        <div class="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
-          <span id="searchCounter" class="text-xs text-gray-500 hidden"></span>
-          <button type="button" id="clearPageSearch" class="text-gray-400 hover:text-gray-600 p-1 hidden">
-            <i class="fas fa-times text-sm"></i>
-          </button>
-        </div>
-      </div>
-    </div>
-    <div class="ml-auto flex items-center gap-2">
-      <button class="md:hidden p-2 hover:bg-gray-100 rounded-lg"><i class="fa-solid fa-search text-xl text-gray-600"></i></button>
-      <div class="relative">
-        <button class="p-2 hover:bg-gray-100 rounded-lg relative" onclick="toggleDropdown('notifDropdown')">
-          <i class="fa-solid fa-bell text-xl text-gray-600"></i>
-          {% if admin_unread_notifications_count > 0 %}
-            <span class="absolute top-1 right-1 w-5 h-5 bg-primary text-white text-xs rounded-full flex items-center justify-center font-semibold">{{ admin_unread_notifications_count }}</span>
-          {% endif %}
-        </button>
-        <div id="notifDropdown" class="dropdown-menu absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-xl border border-gray-200 py-2">
-          <div class="px-4 py-3 border-b border-gray-200">
-            <p class="text-sm font-semibold text-gray-700">
-              {% if admin_unread_notifications_count > 0 %}
-                You have {{ admin_unread_notifications_count }} new notification{{ admin_unread_notifications_count|pluralize }}
-              {% else %}
-                No new notifications
-              {% endif %}
-            </p>
-          </div>
-          <div class="max-h-64 overflow-y-auto">
-            {% if admin_recent_notifications %}
-              {% for notif in admin_recent_notifications %}
-                <a href="{% url 'admin_mark_notification_read' notif.id %}" class="flex items-start gap-3 px-4 py-3 hover:bg-gray-50 transition-colors border-b border-gray-100 last:border-0">
-                  <i class="{% if 'Order' in notif.message %}fas fa-shopping-cart{% elif 'Reservation' in notif.message %}fas fa-calendar-check{% elif 'stock' in notif.message %}fas fa-box{% else %}fas fa-info-circle{% endif %} text-2xl text-green-600 mt-1"></i>
-                  <div class="flex-1">
-                    <p class="text-sm text-gray-800">{{ notif.message|truncatewords:10 }}</p>
-                    <p class="text-xs text-gray-400 mt-1">{{ notif.created_at|timesince }} ago</p>
-                  </div>
-                </a>
-              {% endfor %}
-            {% else %}
-              <div class="px-4 py-6 text-center text-gray-500 text-sm">
-                <i class="fas fa-bell-slash text-2xl mb-2"></i>
-                <p>No notifications</p>
-              </div>
-            {% endif %}
-          </div>
-          <div class="px-4 py-2 border-t border-gray-200">
-            <a href="{% url 'admin_notifications' %}" class="text-sm text-primary hover:underline">Show all notifications</a>
-          </div>
-        </div>
-      </div>
-      <div class="relative">
-        <button class="flex items-center gap-2 p-2 hover:bg-gray-100 rounded-lg" onclick="toggleDropdown('profileDropdown')">
-          <img src="{% static 'pandesal/img/pandesalhub_icon.png' %}" alt="Profile" class="w-9 h-9 rounded-full">
-          <span class="hidden md:block text-sm font-medium text-secondary">{{ user.username }}</span>
-          <i class="bi bi-chevron-down text-xs text-gray-500"></i>
-        </button>
-        <div id="profileDropdown" class="dropdown-menu absolute right-0 mt-2 w-64 bg-white rounded-lg shadow-xl border border-gray-200 py-2">
-          <div class="px-4 py-3 border-b border-gray-200"><h6 class="text-sm font-semibold text-gray-800">{{ user.username }}</h6><span class="text-xs text-gray-500">{{ user.email }}</span></div>
-          <a href="/admin/" class="flex items-center gap-3 px-4 py-2 hover:bg-gray-50 transition-colors"><i class="bi bi-gear text-lg text-gray-600"></i><span class="text-sm text-gray-700">Django Admin</span></a>
-          <div class="border-t border-gray-200 my-1"></div>
-          <a href="{% url 'logout' %}" onclick="return confirm('Are you sure you want to log out?')" class="flex items-center gap-3 px-4 py-2 hover:bg-red-50 transition-colors"><i class="bi bi-box-arrow-right text-lg text-red-600"></i><span class="text-sm text-red-600">Sign Out</span></a>
-        </div>
-      </div>
-    </div>
-  </header>
+<body class="bg-[#F1F5F2] h-full overflow-x-hidden font-sans">
 
   <!-- Sidebar -->
-  <aside id="sidebar" class="fixed top-20 left-0 bottom-0 w-[280px] bg-white shadow-lg z-40 flex flex-col transition-all">
-    <nav class="mt-8 px-4 space-y-2 text-base flex-1 overflow-y-auto">
-      <a href="{% url 'admin_dashboard' %}" class="flex items-center gap-4 px-4 py-3 rounded-xl {% if request.resolver_match.url_name == 'admin_dashboard' %}text-green-700 bg-green-50{% else %}text-gray-600 hover:text-green-700 hover:bg-green-50{% endif %} transition"><i class="fa-solid fa-house text-lg min-w-[20px]"></i><span class="sidebar-text">Home</span></a>
-      <a href="{% url 'admin_products' %}" class="flex items-center gap-4 px-4 py-3 rounded-xl {% if request.resolver_match.url_name == 'admin_products' %}text-green-700 bg-green-50{% else %}text-gray-600 hover:text-green-700 hover:bg-green-50{% endif %} transition"><i class="fa-solid fa-box text-lg min-w-[20px]"></i><span class="sidebar-text">Products</span></a>
-      <a href="{% url 'admin_content' %}" class="flex items-center gap-4 px-4 py-3 rounded-xl {% if request.resolver_match.url_name == 'admin_content' %}text-green-700 bg-green-50{% else %}text-gray-600 hover:text-green-700 hover:bg-green-50{% endif %} transition"><i class="fa-solid fa-edit text-lg min-w-[20px]"></i><span class="sidebar-text">Content</span></a>
-      
-      
-      <a href="{% url 'admin_users' %}" class="flex items-center gap-4 px-4 py-3 rounded-xl {% if 'user' in request.resolver_match.url_name or 'customer' in request.resolver_match.url_name %}text-green-700 bg-green-50{% else %}text-gray-600 hover:text-green-700 hover:bg-green-50{% endif %} transition"><i class="fa-solid fa-users text-lg min-w-[20px]"></i><span class="sidebar-text">Customers</span></a>
-      <a href="{% url 'admin_sellers' %}" class="flex items-center gap-4 px-4 py-3 rounded-xl {% if 'seller' in request.resolver_match.url_name %}text-green-700 bg-green-50{% else %}text-gray-600 hover:text-green-700 hover:bg-green-50{% endif %} transition"><i class="fa-solid fa-store text-lg min-w-[20px]"></i><span class="sidebar-text">Sellers</span></a>
-      <a href="{% url 'messages_inbox' %}" class="flex items-center gap-4 px-4 py-3 rounded-xl text-gray-600 hover:text-green-700 hover:bg-green-50 transition relative"><i class="fa-solid fa-message text-lg min-w-[20px]"></i><span class="sidebar-text">Messages</span>{% if unread_messages_count > 0 %}<span class="absolute right-3 top-1/2 -translate-y-1/2 bg-red-500 text-white text-xs font-bold rounded-full min-w-[20px] h-5 flex items-center justify-center px-1.5">{{ unread_messages_count }}</span>{% endif %}</a>
-      <a href="/admin/" class="flex items-center gap-4 px-4 py-3 rounded-xl text-gray-600 hover:text-green-700 hover:bg-green-50 transition"><i class="fa-solid fa-cog text-lg min-w-[20px]"></i><span class="sidebar-text">Django Admin</span></a>
-    </nav>
+  <aside id="sidebar" class="fixed top-0 left-0 bottom-0 w-[280px] z-50 p-4 transition-all">
+    <div class="h-full rounded-[28px] grad-sidebar shadow-xl flex flex-col overflow-hidden">
+      <!-- Brand -->
+      <div class="flex items-center gap-3 px-6 pt-8 pb-6">
+        <div class="w-10 h-10 rounded-xl bg-white/95 flex items-center justify-center shrink-0">
+          <img src="{% static 'pandesal/img/pandesalhub_icon.png' %}" alt="Logo" class="w-8 h-8 rounded-full object-cover">
+        </div>
+        <span class="sidebar-brand-text text-lg font-bold text-white tracking-wide">PandesalHub</span>
+      </div>
+
+      <!-- Nav -->
+      <nav class="flex-1 px-4 space-y-1.5 overflow-y-auto pb-6">
+        <a href="{% url 'admin_dashboard' %}" class="nav-pill {% if request.resolver_match.url_name == 'admin_dashboard' %}active{% endif %} flex items-center gap-3 px-4 py-3 rounded-2xl text-white/80 text-sm font-medium transition">
+          <i class="fa-solid fa-house text-base min-w-[18px]"></i><span class="sidebar-text">Home</span>
+        </a>
+        <a href="{% url 'admin_products' %}" class="nav-pill {% if request.resolver_match.url_name == 'admin_products' %}active{% endif %} flex items-center gap-3 px-4 py-3 rounded-2xl text-white/80 text-sm font-medium transition">
+          <i class="fa-solid fa-box text-base min-w-[18px]"></i><span class="sidebar-text">Products</span>
+        </a>
+        <a href="{% url 'admin_content' %}" class="nav-pill {% if request.resolver_match.url_name == 'admin_content' %}active{% endif %} flex items-center gap-3 px-4 py-3 rounded-2xl text-white/80 text-sm font-medium transition">
+          <i class="fa-solid fa-pen-to-square text-base min-w-[18px]"></i><span class="sidebar-text">Content</span>
+        </a>
+        <a href="{% url 'admin_users' %}" class="nav-pill {% if 'user' in request.resolver_match.url_name or 'customer' in request.resolver_match.url_name %}active{% endif %} flex items-center gap-3 px-4 py-3 rounded-2xl text-white/80 text-sm font-medium transition">
+          <i class="fa-solid fa-users text-base min-w-[18px]"></i><span class="sidebar-text">Customers</span>
+        </a>
+        <a href="{% url 'admin_sellers' %}" class="nav-pill {% if 'seller' in request.resolver_match.url_name %}active{% endif %} flex items-center gap-3 px-4 py-3 rounded-2xl text-white/80 text-sm font-medium transition">
+          <i class="fa-solid fa-store text-base min-w-[18px]"></i><span class="sidebar-text">Sellers</span>
+        </a>
+        <a href="{% url 'messages_inbox' %}" class="nav-pill flex items-center gap-3 px-4 py-3 rounded-2xl text-white/80 text-sm font-medium transition relative">
+          <i class="fa-solid fa-message text-base min-w-[18px]"></i><span class="sidebar-text">Messages</span>
+          {% if unread_messages_count > 0 %}<span class="ml-auto sidebar-text bg-white text-teal-800 text-xs font-bold rounded-full min-w-[20px] h-5 flex items-center justify-center px-1.5">{{ unread_messages_count }}</span>{% endif %}
+        </a>
+        <a href="/admin/" class="nav-pill flex items-center gap-3 px-4 py-3 rounded-2xl text-white/80 text-sm font-medium transition">
+          <i class="fa-solid fa-cog text-base min-w-[18px]"></i><span class="sidebar-text">Django Admin</span>
+        </a>
+      </nav>
+
+      <!-- Logout -->
+      <div class="px-4 pb-6">
+        <a href="{% url 'logout' %}" onclick="return confirm('Are you sure you want to log out?')" class="flex items-center gap-3 px-4 py-3 rounded-2xl text-white/70 hover:text-white hover:bg-white/10 text-sm font-medium transition">
+          <i class="fa-solid fa-right-from-bracket text-base min-w-[18px]"></i><span class="sidebar-text">Sign Out</span>
+        </a>
+      </div>
+    </div>
   </aside>
 
   <!-- Overlay for mobile -->
-  <div id="overlay" class="fixed inset-0 bg-black/50 z-30 hidden lg:hidden"></div>
-    
+  <div id="overlay" class="fixed inset-0 bg-black/50 z-40 hidden lg:hidden"></div>
+
   <!-- Main Content -->
-  <div id="mainContent" class="lg:ml-[280px] flex-1 flex flex-col min-h-screen pt-20 transition-all">
-        <div class="p-6">
-            <div class="mb-6">
-                <h1 class="text-3xl font-bold text-gray-700">Welcome back, {{ user.username }}!</h1>
+  <div id="mainContent" class="lg:ml-[280px] min-h-screen transition-all p-4 lg:p-6">
+
+    <!-- Outer rounded panel -->
+    <div class="rounded-[28px] bg-sage p-4 lg:p-6 min-h-[calc(100vh-2rem)]">
+
+      <!-- Dashboard Grid -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+        <!-- Left column -->
+        <div class="lg:col-span-8 space-y-6">
+
+          <!-- Header card -->
+          <div class="rounded-3xl grad-header shadow-sm px-5 lg:px-6 py-5 flex flex-wrap items-center gap-4">
+            <button id="sidebarToggle" class="lg:hidden w-11 h-11 rounded-2xl bg-white/70 shadow-sm flex items-center justify-center text-gray-600 hover:text-ink transition">
+              <i class="fa-solid fa-bars"></i>
+            </button>
+
+            <div class="mr-auto">
+              <h1 class="text-2xl lg:text-3xl font-bold text-ink leading-tight">Home</h1>
+              <p class="text-sm text-gray-500 mt-0.5">Welcome, {{ user.username }}!</p>
             </div>
 
-            <!-- Messages -->
-            {% if messages %}
+            <div class="hidden md:block relative w-full lg:w-auto lg:flex-1 lg:max-w-md order-last lg:order-none">
+              <input type="text"
+                     id="pageSearchInput"
+                     placeholder="Search on this page..."
+                     class="w-full px-4 py-3 pl-11 pr-20 bg-white border-0 rounded-2xl shadow-sm focus:outline-none focus:ring-2 focus:ring-teal-600/40 text-sm text-gray-700 placeholder-gray-400">
+              <i class="fa-solid fa-search absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-sm"></i>
+              <div class="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1">
+                <span id="searchCounter" class="text-xs text-gray-500 hidden"></span>
+                <button type="button" id="clearPageSearch" class="text-gray-400 hover:text-gray-600 p-1 hidden">
+                  <i class="fas fa-times text-sm"></i>
+                </button>
+              </div>
+            </div>
+
+            <div class="relative">
+          <button class="w-11 h-11 rounded-2xl bg-white shadow-sm flex items-center justify-center relative hover:scale-105 transition" onclick="toggleDropdown('notifDropdown')">
+            <i class="fa-solid fa-bell text-lg text-gray-600"></i>
+            {% if admin_unread_notifications_count > 0 %}
+              <span class="absolute -top-1 -right-1 w-5 h-5 bg-primary text-white text-xs rounded-full flex items-center justify-center font-semibold">{{ admin_unread_notifications_count }}</span>
+            {% endif %}
+          </button>
+          <div id="notifDropdown" class="dropdown-menu absolute right-0 mt-2 w-80 bg-white rounded-2xl shadow-xl border border-gray-100 py-2 z-50">
+            <div class="px-4 py-3 border-b border-gray-100">
+              <p class="text-sm font-semibold text-gray-700">
+                {% if admin_unread_notifications_count > 0 %}
+                  You have {{ admin_unread_notifications_count }} new notification{{ admin_unread_notifications_count|pluralize }}
+                {% else %}
+                  No new notifications
+                {% endif %}
+              </p>
+            </div>
+            <div class="max-h-64 overflow-y-auto">
+              {% if admin_recent_notifications %}
+                {% for notif in admin_recent_notifications %}
+                  <a href="{% url 'admin_mark_notification_read' notif.id %}" class="flex items-start gap-3 px-4 py-3 hover:bg-gray-50 transition-colors border-b border-gray-100 last:border-0">
+                    <i class="{% if 'Order' in notif.message %}fas fa-shopping-cart{% elif 'Reservation' in notif.message %}fas fa-calendar-check{% elif 'stock' in notif.message %}fas fa-box{% else %}fas fa-info-circle{% endif %} text-2xl text-teal-700 mt-1"></i>
+                    <div class="flex-1">
+                      <p class="text-sm text-gray-800">{{ notif.message|truncatewords:10 }}</p>
+                      <p class="text-xs text-gray-400 mt-1">{{ notif.created_at|timesince }} ago</p>
+                    </div>
+                  </a>
+                {% endfor %}
+              {% else %}
+                <div class="px-4 py-6 text-center text-gray-500 text-sm">
+                  <i class="fas fa-bell-slash text-2xl mb-2"></i>
+                  <p>No notifications</p>
+                </div>
+              {% endif %}
+            </div>
+            <div class="px-4 py-2 border-t border-gray-100">
+              <a href="{% url 'admin_notifications' %}" class="text-sm text-teal-700 hover:underline">Show all notifications</a>
+            </div>
+          </div>
+        </div>
+          </div>
+
+          <!-- Messages -->
+          {% if messages %}
+            <div>
               {% for message in messages %}
-                <div class="mb-4 p-4 rounded-lg {% if message.tags == 'success' %}bg-green-100 text-green-700 border border-green-200{% elif message.tags == 'error' %}bg-red-100 text-red-700 border border-red-200{% else %}bg-blue-100 text-blue-700 border border-blue-200{% endif %}">
+                <div class="mb-3 p-4 rounded-2xl {% if message.tags == 'success' %}bg-green-100 text-green-700 border border-green-200{% elif message.tags == 'error' %}bg-red-100 text-red-700 border border-red-200{% else %}bg-blue-100 text-blue-700 border border-blue-200{% endif %}">
                   <div class="flex items-center justify-between">
                     <div class="flex items-center gap-2">
                       {% if message.tags == 'success' %}
@@ -172,138 +228,150 @@
                   </div>
                 </div>
               {% endfor %}
-            {% endif %}
-
-            <!-- Dashboard Content -->
-            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
-                <!-- Left side columns -->
-                <div class="lg:col-span-8">
-                    <!-- Stats Cards -->
-                    <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 mb-6">
-
-
-                        <!-- Customers Card -->
-                        <div class="bg-white rounded-lg shadow">
-                            <div class="p-5">
-                                <div class="flex justify-between items-start mb-3">
-                                    <h5 class="text-sm font-semibold text-gray-600">Customers <span class="text-gray-400 font-normal">| Total</span></h5>
-                                    <div class="relative">
-                                        <button class="text-gray-400 hover:text-gray-600">
-                                            <i class="bi bi-three-dots"></i>
-                                        </button>
-                                    </div>
-                                </div>
-                                <div class="flex items-center">
-                                    <div class="w-12 h-12 rounded-full bg-orange-100 flex items-center justify-center shrink-0">
-                                        <i class="bi bi-people text-xl text-orange-600"></i>
-                                    </div>
-                                    <div class="ml-3">
-                                        <h6 class="text-2xl font-bold text-gray-900">{{ total_customers|default:total_users }}</h6>
-                                        <span class="text-green-600 text-xs font-semibold">Active</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Sellers Card -->
-                        <div class="bg-white rounded-lg shadow">
-                            <div class="p-5">
-                                <div class="flex justify-between items-start mb-3">
-                                    <h5 class="text-sm font-semibold text-gray-600">Sellers <span class="text-gray-400 font-normal">| Total</span></h5>
-                                    <div class="relative">
-                                        <button class="text-gray-400 hover:text-gray-600">
-                                            <i class="bi bi-three-dots"></i>
-                                        </button>
-                                    </div>
-                                </div>
-                                <div class="flex items-center">
-                                    <div class="w-12 h-12 rounded-full bg-purple-100 flex items-center justify-center shrink-0">
-                                        <i class="bi bi-shop text-xl text-purple-600"></i>
-                                    </div>
-                                    <div class="ml-3">
-                                        <h6 class="text-2xl font-bold text-gray-900">{{ total_sellers|default:0 }}</h6>
-                                        <span class="text-purple-600 text-xs font-semibold">Registered</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Reports Chart -->
-                    <div class="bg-white rounded-lg shadow mb-6">
-                        <div class="p-6 border-b border-gray-200">
-                            <div class="flex justify-between items-center">
-                                <h5 class="text-lg font-semibold text-gray-800">Reports <span class="text-gray-400 font-normal text-sm">/Today</span></h5>
-                                <div class="relative">
-                                    <button class="text-gray-400 hover:text-gray-600">
-                                        <i class="bi bi-three-dots"></i>
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="p-6">
-                            <div id="noReportsMessage" class="hidden text-center py-12">
-                                <i class="fas fa-chart-line text-gray-300 text-5xl mb-3"></i>
-                                <p class="text-gray-500 text-lg font-medium">No reports for today</p>
-                                <p class="text-gray-400 text-sm mt-1">Check back later for updated data</p>
-                            </div>
-                            <canvas id="reportsChart" height="100"></canvas>
-                        </div>
-                    </div>
-
-
-                </div>
-
-                <!-- Right side column -->
-                <div class="lg:col-span-4">
-                    <!-- Recent Activity -->
-                    <div class="bg-white rounded-lg shadow mb-6">
-                        <div class="p-6 border-b border-gray-200">
-                            <div class="flex justify-between items-center">
-                                <h5 class="text-lg font-semibold text-gray-800">Recent Activity <span class="text-gray-400 font-normal text-sm">| Today</span></h5>
-                                <div class="relative">
-                                    <button class="text-gray-400 hover:text-gray-600">
-                                        <i class="bi bi-three-dots"></i>
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="p-6">
-                            <div class="space-y-4">
-                                {% for notif in admin_recent_notifications|slice:":6" %}
-                                <div class="flex gap-3">
-                                    <div class="text-xs text-gray-500 w-16 flex-shrink-0">{{ notif.created_at|timesince|truncatewords:2 }}</div>
-                                    <i class="bi bi-circle-fill text-xs 
-                                        {% if 'completed' in notif.message|lower %}text-green-500
-                                        {% elif 'cancelled' in notif.message|lower %}text-red-500
-                                        {% elif 'pending' in notif.message|lower %}text-blue-500
-                                        {% elif 'confirmed' in notif.message|lower %}text-cyan-500
-                                        {% else %}text-yellow-500{% endif %} 
-                                        mt-1"></i>
-                                    <div class="flex-1">
-                                        <p class="text-sm text-gray-700">{{ notif.message|truncatewords:10 }}</p>
-                                    </div>
-                                </div>
-                                {% empty %}
-                                <div class="text-center text-gray-500 py-4">
-                                    <i class="bi bi-activity text-3xl mb-2"></i>
-                                    <p class="text-sm">No recent activity</p>
-                                </div>
-                                {% endfor %}
-                            </div>
-                        </div>
-                    </div>
-                </div>
             </div>
+          {% endif %}
+
+          <!-- Stat Cards -->
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <!-- Customers -->
+          <div class="bg-white rounded-3xl shadow-sm p-5 hover:-translate-y-0.5 transition">
+            <div class="flex justify-between items-start">
+              <p class="text-sm font-medium text-gray-500">Customers</p>
+              <div class="w-9 h-9 rounded-xl bg-ink flex items-center justify-center shrink-0">
+                <i class="fa-solid fa-user-group text-white text-sm"></i>
+              </div>
+            </div>
+            <h3 class="text-3xl font-bold text-gray-900 mt-3">{{ total_customers|default:total_users }}</h3>
+            <p class="text-xs mt-2 text-gray-400"><span class="text-green-600 font-semibold">Active</span> · Total registered</p>
+          </div>
+
+          <!-- Sellers -->
+          <div class="bg-white rounded-3xl shadow-sm p-5 hover:-translate-y-0.5 transition">
+            <div class="flex justify-between items-start">
+              <p class="text-sm font-medium text-gray-500">Sellers</p>
+              <div class="w-9 h-9 rounded-xl bg-teal-600 flex items-center justify-center shrink-0">
+                <i class="fa-solid fa-store text-white text-sm"></i>
+              </div>
+            </div>
+            <h3 class="text-3xl font-bold text-gray-900 mt-3">{{ total_sellers|default:0 }}</h3>
+            <p class="text-xs mt-2 text-gray-400"><span class="text-teal-600 font-semibold">Registered</span> · Sellers</p>
+          </div>
+
+          <!-- Orders -->
+          <div class="bg-white rounded-3xl shadow-sm p-5 hover:-translate-y-0.5 transition">
+            <div class="flex justify-between items-start">
+              <p class="text-sm font-medium text-gray-500">Orders</p>
+              <div class="w-9 h-9 rounded-xl bg-emerald-500 flex items-center justify-center shrink-0">
+                <i class="fa-solid fa-bag-shopping text-white text-sm"></i>
+              </div>
+            </div>
+            <h3 class="text-3xl font-bold text-gray-900 mt-3">{{ total_orders }}</h3>
+            <p class="text-xs mt-2 text-gray-400"><span class="text-amber-600 font-semibold">{{ order_status.pending }}</span> pending · {{ order_status.completed }} completed</p>
+          </div>
         </div>
+
+        <!-- Reports + Performance -->
+        <div class="grid grid-cols-1 xl:grid-cols-3 gap-6">
+          <!-- Reports Chart -->
+          <div class="xl:col-span-2 bg-white rounded-3xl shadow-sm">
+            <div class="px-6 pt-6 pb-4 flex justify-between items-center">
+              <h5 class="text-lg font-bold text-gray-800">Reports <span class="text-gray-400 font-normal text-sm">/Today</span></h5>
+              <span class="text-xs font-medium text-gray-500 bg-sage rounded-full px-3 py-1">Weekly</span>
+            </div>
+            <div class="px-6 pb-6">
+              <div id="noReportsMessage" class="hidden text-center py-12">
+                <i class="fas fa-chart-line text-gray-300 text-5xl mb-3"></i>
+                <p class="text-gray-500 text-lg font-medium">No reports for today</p>
+                <p class="text-gray-400 text-sm mt-1">Check back later for updated data</p>
+              </div>
+              <canvas id="reportsChart" height="120"></canvas>
+            </div>
+          </div>
+
+          <!-- Performance (order status) -->
+          <div class="bg-white rounded-3xl shadow-sm">
+            <div class="px-6 pt-6 pb-4">
+              <h5 class="text-lg font-bold text-gray-800">Performance <span class="text-gray-400 font-normal text-sm">/Orders</span></h5>
+            </div>
+            <div class="px-6 pb-6">
+              <div class="flex items-end justify-between gap-3 h-44" id="perfBars"></div>
+              <div class="flex justify-between gap-3 mt-3">
+                <span class="flex-1 text-center text-xs text-gray-500">Pend</span>
+                <span class="flex-1 text-center text-xs text-gray-500">To Pay</span>
+                <span class="flex-1 text-center text-xs text-gray-500">Done</span>
+                <span class="flex-1 text-center text-xs text-gray-500">Cancel</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right column -->
+      <div class="lg:col-span-4 space-y-6">
+
+        <!-- Calendar -->
+        <div class="bg-white rounded-3xl shadow-sm p-6">
+          <div class="flex items-center justify-between mb-4">
+            <h5 id="calTitle" class="text-base font-bold text-gray-800"></h5>
+            <div class="flex gap-1">
+              <button id="calPrev" class="w-8 h-8 rounded-lg hover:bg-sage text-gray-500 transition"><i class="fa-solid fa-chevron-left text-xs"></i></button>
+              <button id="calNext" class="w-8 h-8 rounded-lg hover:bg-sage text-gray-500 transition"><i class="fa-solid fa-chevron-right text-xs"></i></button>
+            </div>
+          </div>
+          <div class="grid grid-cols-7 text-center mb-2">
+            <span class="text-[11px] font-medium text-gray-400">Mo</span>
+            <span class="text-[11px] font-medium text-gray-400">Tu</span>
+            <span class="text-[11px] font-medium text-gray-400">We</span>
+            <span class="text-[11px] font-medium text-gray-400">Th</span>
+            <span class="text-[11px] font-medium text-gray-400">Fr</span>
+            <span class="text-[11px] font-medium text-gray-400">Sa</span>
+            <span class="text-[11px] font-medium text-gray-400">Su</span>
+          </div>
+          <div id="calGrid" class="grid grid-cols-7 justify-items-center gap-y-1"></div>
+        </div>
+
+        <!-- Upcoming / Recent Activity -->
+        <div class="bg-white rounded-3xl shadow-sm">
+          <div class="px-6 pt-6 pb-4 flex justify-between items-center">
+            <h5 class="text-lg font-bold text-gray-800">Upcoming <span class="text-gray-400 font-normal text-sm">| Recent Activity</span></h5>
+          </div>
+          <div class="px-6 pb-6 space-y-3">
+            {% for notif in admin_recent_notifications|slice:":4" %}
+              <div class="rounded-2xl border border-gray-100 bg-gray-50/60 px-4 py-3 flex items-start gap-3 {% if 'completed' in notif.message|lower %}border-l-4 border-l-green-500{% elif 'cancelled' in notif.message|lower %}border-l-4 border-l-red-500{% elif 'pending' in notif.message|lower %}border-l-4 border-l-amber-400{% elif 'confirmed' in notif.message|lower %}border-l-4 border-l-cyan-500{% else %}border-l-4 border-l-teal-600{% endif %}">
+                <div class="flex-1 min-w-0">
+                  <p class="text-sm font-medium text-gray-800 truncate">{{ notif.message|truncatewords:8 }}</p>
+                  <p class="text-xs text-gray-400 mt-0.5">{{ notif.created_at|timesince }} ago</p>
+                </div>
+              </div>
+            {% empty %}
+              <div class="text-center text-gray-500 py-6">
+                <i class="bi bi-activity text-3xl mb-2"></i>
+                <p class="text-sm">No recent activity</p>
+              </div>
+            {% endfor %}
+            <a href="{% url 'admin_notifications' %}" class="block text-center text-sm text-teal-700 font-medium hover:underline pt-1">View all activity</a>
+          </div>
+        </div>
+      </div>
+      </div>
     </div>
+  </div>
+
   <script>
     // Sidebar toggle
     const sidebar = document.getElementById('sidebar');
     const overlay = document.getElementById('overlay');
     const sidebarToggle = document.getElementById('sidebarToggle');
     const mainContent = document.getElementById('mainContent');
-    
+
+    function applySidebarMargin() {
+      if (window.innerWidth >= 1024) {
+        mainContent.style.marginLeft = sidebar.classList.contains('collapsed') ? '92px' : '280px';
+      } else {
+        mainContent.style.marginLeft = '0';
+      }
+    }
+
     if (sidebarToggle && sidebar && overlay && mainContent) {
       sidebarToggle.addEventListener('click', function() {
         if (window.innerWidth < 1024) {
@@ -311,32 +379,23 @@
           overlay.classList.toggle('hidden');
         } else {
           sidebar.classList.toggle('collapsed');
-          if (sidebar.classList.contains('collapsed')) {
-            mainContent.style.marginLeft = '80px';
-          } else {
-            mainContent.style.marginLeft = '280px';
-          }
+          applySidebarMargin();
         }
       });
-      
+
       overlay.addEventListener('click', function() {
         sidebar.classList.remove('show');
         overlay.classList.add('hidden');
       });
-      
+
       window.addEventListener('resize', function() {
         if (window.innerWidth >= 1024) {
           overlay.classList.add('hidden');
           sidebar.classList.remove('show');
-          if (sidebar.classList.contains('collapsed')) {
-            mainContent.style.marginLeft = '80px';
-          } else {
-            mainContent.style.marginLeft = '280px';
-          }
         } else {
           sidebar.classList.remove('collapsed');
-          mainContent.style.marginLeft = '0';
         }
+        applySidebarMargin();
       });
     }
 
@@ -356,6 +415,72 @@
         });
       }
     });
+
+    // ===== Calendar =====
+    (function() {
+      const todayStr = '{{ today|date:"Y-m-d" }}';
+      const todayDate = todayStr ? new Date(todayStr + 'T00:00:00') : new Date();
+      let viewYear = todayDate.getFullYear();
+      let viewMonth = todayDate.getMonth();
+
+      const title = document.getElementById('calTitle');
+      const grid = document.getElementById('calGrid');
+      const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+
+      function render() {
+        title.textContent = months[viewMonth] + ' ' + viewYear;
+        grid.innerHTML = '';
+        const firstDay = new Date(viewYear, viewMonth, 1);
+        let startOffset = (firstDay.getDay() + 6) % 7; // Monday-first
+        const daysInMonth = new Date(viewYear, viewMonth + 1, 0).getDate();
+        const prevDays = new Date(viewYear, viewMonth, 0).getDate();
+
+        for (let i = startOffset - 1; i >= 0; i--) {
+          grid.insertAdjacentHTML('beforeend', '<span class="cal-cell flex items-center justify-center text-sm text-gray-300">' + (prevDays - i) + '</span>');
+        }
+        for (let d = 1; d <= daysInMonth; d++) {
+          const isToday = d === todayDate.getDate() && viewMonth === todayDate.getMonth() && viewYear === todayDate.getFullYear();
+          const isHead = d === 1 || isToday;
+          grid.insertAdjacentHTML('beforeend',
+            '<span class="cal-cell flex items-center justify-center text-sm rounded-full ' +
+            (isToday ? 'cal-today' : (isHead ? 'cal-head' : 'text-gray-600 hover:bg-sage')) + '">' + d + '</span>');
+        }
+        const totalCells = startOffset + daysInMonth;
+        const tail = (7 - (totalCells % 7)) % 7;
+        for (let i = 1; i <= tail; i++) {
+          grid.insertAdjacentHTML('beforeend', '<span class="cal-cell flex items-center justify-center text-sm text-gray-300">' + i + '</span>');
+        }
+      }
+
+      document.getElementById('calPrev').addEventListener('click', function() {
+        viewMonth--; if (viewMonth < 0) { viewMonth = 11; viewYear--; } render();
+      });
+      document.getElementById('calNext').addEventListener('click', function() {
+        viewMonth++; if (viewMonth > 11) { viewMonth = 0; viewYear++; } render();
+      });
+      render();
+    })();
+
+    // ===== Performance bars (order status distribution) =====
+    (function() {
+      const counts = [
+        {{ order_status.pending|default:0 }},
+        {{ order_status.to_pay|default:0 }},
+        {{ order_status.completed|default:0 }},
+        {{ order_status.cancelled|default:0 }}
+      ];
+      const colors = ['bg-slate-700', 'bg-amber-400', 'bg-teal-600', 'bg-rose-400'];
+      const max = Math.max(...counts, 1);
+      const wrap = document.getElementById('perfBars');
+      wrap.innerHTML = '';
+      counts.forEach((c, i) => {
+        const h = Math.max(Math.round((c / max) * 100), 4);
+        wrap.insertAdjacentHTML('beforeend',
+          '<div class="flex-1 flex flex-col items-center justify-end h-full gap-2">' +
+          '<span class="text-[11px] font-semibold text-gray-500">' + c + '</span>' +
+          '<div class="w-full max-w-[34px] rounded-lg ' + colors[i] + '" style="height:' + h + '%"></div></div>');
+      });
+    })();
 
     // In-page search and highlight functionality
     const pageSearchInput = document.getElementById('pageSearchInput');
@@ -377,20 +502,20 @@
 
     function highlightText(searchTerm) {
       removeHighlights();
-      
+
       if (!searchTerm || searchTerm.trim() === '') {
         return;
       }
 
-      const mainContent = document.getElementById('mainContent');
-      if (!mainContent) return;
+      const contentArea = document.getElementById('mainContent');
+      if (!contentArea) return;
 
       const walker = document.createTreeWalker(
-        mainContent,
+        contentArea,
         NodeFilter.SHOW_TEXT,
         {
           acceptNode: function(node) {
-            if (node.parentElement.tagName === 'SCRIPT' || 
+            if (node.parentElement.tagName === 'SCRIPT' ||
                 node.parentElement.tagName === 'STYLE' ||
                 node.parentElement.classList.contains('highlight-match')) {
               return NodeFilter.FILTER_REJECT;
@@ -402,12 +527,12 @@
 
       const nodesToHighlight = [];
       let node;
-      
+
       while (node = walker.nextNode()) {
         const text = node.textContent;
         const lowerText = text.toLowerCase();
         const lowerSearch = searchTerm.toLowerCase();
-        
+
         if (lowerText.includes(lowerSearch)) {
           nodesToHighlight.push(node);
         }
@@ -417,16 +542,16 @@
         const text = textNode.textContent;
         const lowerText = text.toLowerCase();
         const lowerSearch = searchTerm.toLowerCase();
-        
+
         let lastIndex = 0;
         const fragment = document.createDocumentFragment();
-        
+
         let index = lowerText.indexOf(lowerSearch);
         while (index !== -1) {
           if (index > lastIndex) {
             fragment.appendChild(document.createTextNode(text.substring(lastIndex, index)));
           }
-          
+
           const mark = document.createElement('mark');
           mark.className = 'highlight-match';
           mark.style.backgroundColor = '#fef08a';
@@ -435,22 +560,22 @@
           mark.textContent = text.substring(index, index + searchTerm.length);
           fragment.appendChild(mark);
           currentHighlights.push(mark);
-          
+
           lastIndex = index + searchTerm.length;
           index = lowerText.indexOf(lowerSearch, lastIndex);
         }
-        
+
         if (lastIndex < text.length) {
           fragment.appendChild(document.createTextNode(text.substring(lastIndex)));
         }
-        
+
         textNode.parentNode.replaceChild(fragment, textNode);
       });
 
       if (currentHighlights.length > 0) {
         searchCounter.textContent = `${currentHighlights.length} found`;
         searchCounter.classList.remove('hidden');
-        
+
         if (currentHighlights[0]) {
           currentHighlights[0].scrollIntoView({ behavior: 'smooth', block: 'center' });
           currentHighlights[0].style.backgroundColor = '#fbbf24';
@@ -458,72 +583,72 @@
       }
     }
 
-    pageSearchInput.addEventListener('input', function() {
-      const searchTerm = this.value.trim();
-      
-      if (searchTerm) {
-        clearPageSearch.classList.remove('hidden');
-        highlightText(searchTerm);
-      } else {
+    if (pageSearchInput) {
+      pageSearchInput.addEventListener('input', function() {
+        const searchTerm = this.value.trim();
+
+        if (searchTerm) {
+          clearPageSearch.classList.remove('hidden');
+          highlightText(searchTerm);
+        } else {
+          clearPageSearch.classList.add('hidden');
+          removeHighlights();
+        }
+      });
+
+      clearPageSearch.addEventListener('click', function() {
+        pageSearchInput.value = '';
         clearPageSearch.classList.add('hidden');
         removeHighlights();
-      }
-    });
+        pageSearchInput.focus();
+      });
 
-    clearPageSearch.addEventListener('click', function() {
-      pageSearchInput.value = '';
-      clearPageSearch.classList.add('hidden');
-      removeHighlights();
-      pageSearchInput.focus();
-    });
+      pageSearchInput.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter' && currentHighlights.length > 0) {
+          e.preventDefault();
 
-    pageSearchInput.addEventListener('keydown', function(e) {
-      if (e.key === 'Enter' && currentHighlights.length > 0) {
-        e.preventDefault();
-        
-        if (currentHighlights[currentMatchIndex]) {
-          currentHighlights[currentMatchIndex].style.backgroundColor = '#fef08a';
+          if (currentHighlights[currentMatchIndex]) {
+            currentHighlights[currentMatchIndex].style.backgroundColor = '#fef08a';
+          }
+
+          currentMatchIndex = (currentMatchIndex + 1) % currentHighlights.length;
+
+          if (currentHighlights[currentMatchIndex]) {
+            currentHighlights[currentMatchIndex].style.backgroundColor = '#fbbf24';
+            currentHighlights[currentMatchIndex].scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }
+
+          searchCounter.textContent = `${currentMatchIndex + 1} of ${currentHighlights.length}`;
         }
-        
-        currentMatchIndex = (currentMatchIndex + 1) % currentHighlights.length;
-        
-        if (currentHighlights[currentMatchIndex]) {
-          currentHighlights[currentMatchIndex].style.backgroundColor = '#fbbf24';
-          currentHighlights[currentMatchIndex].scrollIntoView({ behavior: 'smooth', block: 'center' });
-        }
-        
-        searchCounter.textContent = `${currentMatchIndex + 1} of ${currentHighlights.length}`;
-      }
-    });
+      });
+    }
 
     // Chart.js for Reports Chart
     const ctx = document.getElementById('reportsChart');
     const noReportsMessage = document.getElementById('noReportsMessage');
-    
+
     if (ctx) {
       // Sample data - replace with actual data from backend
       const salesData = [31, 40, 28, 51, 42, 82, 56];
       const revenueData = [11, 32, 45, 32, 34, 52, 41];
       const customersData = [15, 11, 32, 18, 9, 24, 11];
-      
+
       // Check if there's any data for today (last element in arrays)
-      const hasDataToday = salesData[salesData.length - 1] > 0 || 
-                           revenueData[revenueData.length - 1] > 0 || 
+      const hasDataToday = salesData[salesData.length - 1] > 0 ||
+                           revenueData[revenueData.length - 1] > 0 ||
                            customersData[customersData.length - 1] > 0;
-      
+
       // For demo: Set to false to show "No reports for today"
       // Change this condition based on your actual data from Django backend
       const showChart = false; // Set to false to test empty state
-      
+
       if (!showChart || !hasDataToday) {
-        // Show empty state message
         ctx.style.display = 'none';
         noReportsMessage.classList.remove('hidden');
       } else {
-        // Show chart
         ctx.style.display = 'block';
         noReportsMessage.classList.add('hidden');
-        
+
         new Chart(ctx, {
           type: 'line',
           data: {
@@ -532,8 +657,8 @@
               {
                 label: 'Sales',
                 data: salesData,
-                borderColor: '#4154f1',
-                backgroundColor: 'rgba(65, 84, 241, 0.1)',
+                borderColor: '#23473D',
+                backgroundColor: 'rgba(35, 71, 61, 0.08)',
                 fill: true,
                 tension: 0.4
               },

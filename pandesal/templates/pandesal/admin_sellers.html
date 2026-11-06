@@ -1,315 +1,265 @@
+{% extends "pandesal/includes/admin_base.html" %}
 {% load static %}
-<!DOCTYPE html>
-<html lang="en" class="h-full">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    {% include "pandesal/includes/seo_meta.html" %}
-    <script src="{% static 'pandesal/js/tailwind.js' %}"></script>
-    <link rel="stylesheet" href="{% static 'pandesal/css/fontawesome/all.min.css' %}" />
-    <link rel="stylesheet" href="{% static 'pandesal/css/bootstrap-icons/bootstrap-icons.css' %}">
-    <link rel="icon" href="{% static 'pandesal/img/pandesalhub_icon.png' %}" type="image/png">
-    <script>
-    tailwind.config = {
-      theme: {
-        extend: {
-          colors: {
-            primary: '#16a34a',
-            secondary: '#15803d',
-          }
-        }
-      }
-    }
-  </script>
-  <style>
-      .transition-all { transition: all 300ms ease-in-out; }
-      #sidebar { transform: translateX(-100%); }
-      #sidebar.show { transform: translateX(0); }
-      @media (min-width: 1024px) {
-        #sidebar { transform: translateX(0); width: 280px; }
-        #sidebar.collapsed { width: 80px; }
-        #sidebar.collapsed .sidebar-text { display: none; }
-        #sidebar.collapsed nav a { justify-content: center; padding-left: 0; padding-right: 0; }
-      }
-  </style>
-</head>
-<body class="bg-green-50 h-full overflow-x-hidden">
 
-{% include "pandesal/includes/admin_navbar.html" %}
+{% block page_title %}Sellers &amp; Vendors Management{% endblock %}
+{% block page_subtitle %}View, manage, edit, and register official marketplace bakery vendors{% endblock %}
 
-<div id="mainContent" class="lg:ml-[280px] flex-1 flex flex-col min-h-screen pt-20 transition-all">
-    <div class="p-6">
-        <div class="mb-6 flex justify-between items-center">
-            <div>
-                <h1 class="text-3xl font-bold text-gray-800">Sellers & Vendors Management</h1>
-                <p class="text-gray-600">View, manage, edit, and register official marketplace bakery vendors</p>
-            </div>
-            <button type="button" onclick="openCreateSellerModal()" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md flex items-center shadow font-medium">
-                <i class="fas fa-plus mr-2"></i>Add New Seller
-            </button>
+{% block header_actions %}
+<button type="button" onclick="openCreateSellerModal()" class="bg-ink hover:bg-tealsoft text-white px-4 py-2.5 rounded-2xl flex items-center shadow font-medium order-last lg:order-none transition">
+  <i class="fas fa-plus mr-2"></i>Add New Seller
+</button>
+{% endblock %}
+
+{% block content %}
+<!-- Messages -->
+{% if messages %}
+  {% for message in messages %}
+    <div class="mb-4 p-4 rounded-2xl {% if message.tags == 'success' %}bg-green-100 text-green-700 border border-green-200{% elif message.tags == 'error' %}bg-red-100 text-red-700 border border-red-200{% else %}bg-blue-100 text-blue-700 border border-blue-200{% endif %}">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <i class="fas {% if message.tags == 'success' %}fa-check-circle{% elif message.tags == 'error' %}fa-exclamation-circle{% else %}fa-info-circle{% endif %}"></i>
+          <span>{{ message }}</span>
         </div>
-
-        <!-- Messages -->
-        {% if messages %}
-          {% for message in messages %}
-            <div class="mb-4 p-4 rounded-lg {% if message.tags == 'success' %}bg-green-100 text-green-700 border border-green-200{% elif message.tags == 'error' %}bg-red-100 text-red-700 border border-red-200{% else %}bg-blue-100 text-blue-700 border-blue-200 border{% endif %}">
-              <div class="flex items-center justify-between">
-                <div class="flex items-center gap-2">
-                  <i class="fas {% if message.tags == 'success' %}fa-check-circle{% elif message.tags == 'error' %}fa-exclamation-circle{% else %}fa-info-circle{% endif %}"></i>
-                  <span>{{ message }}</span>
-                </div>
-                <button onclick="this.parentElement.parentElement.remove()" class="text-gray-500 hover:text-gray-700">
-                  <i class="fas fa-times"></i>
-                </button>
-              </div>
-            </div>
-          {% endfor %}
-        {% endif %}
-
-        <!-- Pending Approvals Section (If any) -->
-        {% if pending_sellers %}
-        <div class="bg-amber-50 border border-amber-200 rounded-lg shadow mb-6 p-6">
-            <h2 class="text-lg font-bold text-amber-900 mb-4 flex items-center gap-2">
-                <i class="fas fa-clock text-amber-600"></i> Pending Seller Registrations ({{ pending_sellers|length }})
-            </h2>
-            <div class="overflow-x-auto">
-                <table class="min-w-full divide-y divide-amber-200 bg-white rounded-lg overflow-hidden">
-                    <thead class="bg-amber-100/50">
-                        <tr>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-amber-900 uppercase">Shop Name</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-amber-900 uppercase">Owner</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-amber-900 uppercase">Email</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-amber-900 uppercase">Submitted</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-amber-900 uppercase">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-amber-100">
-                        {% for profile in pending_sellers %}
-                        <tr>
-                            <td class="px-6 py-4 font-semibold text-gray-900">
-                                {{ profile.user.shop.shop_name|default:"Shop Name Pending" }}
-                            </td>
-                            <td class="px-6 py-4 text-gray-700">
-                                {{ profile.user.get_full_name|default:profile.user.username }}
-                            </td>
-                            <td class="px-6 py-4 text-gray-600 text-sm">{{ profile.user.email }}</td>
-                            <td class="px-6 py-4 text-gray-500 text-sm">{{ profile.created_at|date:"M d, Y" }}</td>
-                            <td class="px-6 py-4 flex gap-2">
-                                <a href="{% url 'admin_seller_approve' profile.user.id %}" class="bg-green-600 hover:bg-green-700 text-white text-xs px-3 py-1.5 rounded font-medium">
-                                    Approve
-                                </a>
-                                <a href="{% url 'admin_seller_reject' profile.user.id %}" onclick="return confirm('Are you sure you want to reject this seller?')" class="bg-red-600 hover:bg-red-700 text-white text-xs px-3 py-1.5 rounded font-medium">
-                                    Reject
-                                </a>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        </div>
-        {% endif %}
-
-        <!-- Approved Sellers Table -->
-        <div class="bg-white rounded-lg shadow overflow-hidden">
-            <div class="p-6 border-b border-gray-200">
-                <h2 class="text-xl font-bold text-gray-800 flex items-center gap-2">
-                    <i class="fas fa-store text-green-600"></i> Active Registered Bakery Vendors
-                </h2>
-            </div>
-            <div class="overflow-x-auto">
-                <table class="min-w-full divide-y divide-gray-200">
-                    <thead class="bg-gray-50">
-                        <tr>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Shop & Vendor</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Contact</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Products</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Joined</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody class="bg-white divide-y divide-gray-200">
-                        {% if approved_sellers %}
-                            {% for profile in approved_sellers %}
-                            <tr class="hover:bg-gray-50">
-                                <td class="px-6 py-4">
-                                    <div class="flex items-center gap-3">
-                                        <div class="w-10 h-10 rounded-full bg-green-100 text-green-700 flex items-center justify-center font-bold text-lg">
-                                            <i class="fas fa-store"></i>
-                                        </div>
-                                        <div>
-                                            <div class="font-bold text-gray-900">{{ profile.user.shop.shop_name|default:"Bakery Shop" }}</div>
-                                            <div class="text-xs text-gray-500">Owner: {{ profile.user.get_full_name|default:profile.user.username }} (@{{ profile.user.username }})</div>
-                                        </div>
-                                    </div>
-                                </td>
-                                <td class="px-6 py-4">
-                                    <div class="text-sm text-gray-900">{{ profile.user.email }}</div>
-                                    <div class="text-xs text-gray-500">{{ profile.phone|default:"No phone" }}</div>
-                                </td>
-                                <td class="px-6 py-4 text-sm text-gray-700">
-                                    {{ profile.user.products.count }} items
-                                </td>
-                                <td class="px-6 py-4">
-                                    {% if profile.user.is_active %}
-                                        <span class="px-2.5 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
-                                            Active Vendor
-                                        </span>
-                                    {% else %}
-                                        <span class="px-2.5 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-800">
-                                            Deactivated
-                                        </span>
-                                    {% endif %}
-                                </td>
-                                <td class="px-6 py-4 text-sm text-gray-500">
-                                    {{ profile.user.date_joined|date:"M d, Y" }}
-                                </td>
-                                <td class="px-6 py-4">
-                                    <div class="flex items-center gap-3">
-                                        <!-- Edit Seller -->
-                                        <button type="button" onclick="openEditSellerModal('{% url 'admin_seller_edit' profile.user.id %}')" class="text-blue-600 hover:text-blue-900 focus:outline-none" title="Edit Seller">
-                                            <i class="fas fa-edit text-lg"></i>
-                                        </button>
-                                        <!-- Toggle Active Status -->
-                                        <form method="POST" action="{% url 'admin_seller_toggle' profile.user.id %}" class="inline">
-                                            {% csrf_token %}
-                                            <button type="submit" class="{% if profile.user.is_active %}text-yellow-600 hover:text-yellow-800{% else %}text-green-600 hover:text-green-800{% endif %}" title="{% if profile.user.is_active %}Deactivate Seller{% else %}Activate Seller{% endif %}">
-                                                <i class="fas {% if profile.user.is_active %}fa-pause-circle{% else %}fa-play-circle{% endif %} text-lg"></i>
-                                            </button>
-                                        </form>
-                                        <!-- Delete Seller -->
-                                        <form method="POST" action="{% url 'admin_seller_delete' profile.user.id %}" class="inline" onsubmit="return confirm('Are you sure you want to delete this seller account?')">
-                                            {% csrf_token %}
-                                            <button type="submit" class="text-red-600 hover:text-red-800" title="Delete Seller">
-                                                <i class="fas fa-trash text-lg"></i>
-                                            </button>
-                                        </form>
-                                    </div>
-                                </td>
-                            </tr>
-                            {% endfor %}
-                        {% else %}
-                            <tr>
-                                <td colspan="6" class="px-6 py-12 text-center text-gray-500">
-                                    <i class="fas fa-store-slash text-4xl mb-3 text-gray-400 block"></i>
-                                    No seller accounts registered yet. Click "Add New Seller" to create one.
-                                </td>
-                            </tr>
-                        {% endif %}
-                    </tbody>
-                </table>
-            </div>
-        </div>
+        <button onclick="this.parentElement.parentElement.remove()" class="text-gray-500 hover:text-gray-700">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
     </div>
+  {% endfor %}
+{% endif %}
+
+<!-- Pending Approvals Section -->
+{% if pending_sellers %}
+<div class="bg-amber-50 border border-amber-200 rounded-3xl shadow mb-6 p-6">
+  <h2 class="text-lg font-bold text-amber-900 mb-4 flex items-center gap-2">
+    <i class="fas fa-clock text-amber-600"></i> Pending Seller Registrations ({{ pending_sellers|length }})
+  </h2>
+  <div class="overflow-x-auto">
+    <table class="min-w-full divide-y divide-amber-200 bg-white rounded-lg overflow-hidden">
+      <thead class="bg-amber-100/50">
+        <tr>
+          <th class="px-6 py-3 text-left text-xs font-medium text-amber-900 uppercase">Shop Name</th>
+          <th class="px-6 py-3 text-left text-xs font-medium text-amber-900 uppercase">Owner</th>
+          <th class="px-6 py-3 text-left text-xs font-medium text-amber-900 uppercase">Email</th>
+          <th class="px-6 py-3 text-left text-xs font-medium text-amber-900 uppercase">Submitted</th>
+          <th class="px-6 py-3 text-left text-xs font-medium text-amber-900 uppercase">Actions</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-amber-100">
+        {% for profile in pending_sellers %}
+        <tr>
+          <td class="px-6 py-4 font-semibold text-gray-900">{{ profile.user.shop.shop_name|default:"Shop Name Pending" }}</td>
+          <td class="px-6 py-4 text-gray-700">{{ profile.user.get_full_name|default:profile.user.username }}</td>
+          <td class="px-6 py-4 text-gray-600 text-sm">{{ profile.user.email }}</td>
+          <td class="px-6 py-4 text-gray-500 text-sm">{{ profile.created_at|date:"M d, Y" }}</td>
+          <td class="px-6 py-4 flex gap-2">
+            <a href="{% url 'admin_seller_approve' profile.user.id %}" class="bg-green-600 hover:bg-green-700 text-white text-xs px-3 py-1.5 rounded font-medium">Approve</a>
+            <a href="{% url 'admin_seller_reject' profile.user.id %}" onclick="return confirm('Are you sure you want to reject this seller?')" class="bg-red-600 hover:bg-red-700 text-white text-xs px-3 py-1.5 rounded font-medium">Reject</a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endif %}
+
+<!-- Approved Sellers Table -->
+<div class="bg-white rounded-3xl shadow overflow-hidden">
+  <div class="p-6 border-b border-gray-200">
+    <h2 class="text-xl font-bold text-gray-800 flex items-center gap-2">
+      <i class="fas fa-store text-green-600"></i> Active Registered Bakery Vendors
+    </h2>
+  </div>
+  <div class="overflow-x-auto">
+    <table class="min-w-full divide-y divide-gray-200">
+      <thead class="bg-gray-50">
+        <tr>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Shop &amp; Vendor</th>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Contact</th>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Products</th>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Joined</th>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+        </tr>
+      </thead>
+      <tbody class="bg-white divide-y divide-gray-200">
+        {% if approved_sellers %}
+          {% for profile in approved_sellers %}
+          <tr class="hover:bg-gray-50">
+            <td class="px-6 py-4">
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-full bg-green-100 text-green-700 flex items-center justify-center font-bold text-lg">
+                  <i class="fas fa-store"></i>
+                </div>
+                <div>
+                  <div class="font-bold text-gray-900">{{ profile.user.shop.shop_name|default:"Bakery Shop" }}</div>
+                  <div class="text-xs text-gray-500">Owner: {{ profile.user.get_full_name|default:profile.user.username }} (@{{ profile.user.username }})</div>
+                </div>
+              </div>
+            </td>
+            <td class="px-6 py-4">
+              <div class="text-sm text-gray-900">{{ profile.user.email }}</div>
+              <div class="text-xs text-gray-500">{{ profile.phone|default:"No phone" }}</div>
+            </td>
+            <td class="px-6 py-4 text-sm text-gray-700">{{ profile.user.products.count }} items</td>
+            <td class="px-6 py-4">
+              {% if profile.user.is_active %}
+                <span class="px-2.5 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">Active Vendor</span>
+              {% else %}
+                <span class="px-2.5 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-800">Deactivated</span>
+              {% endif %}
+            </td>
+            <td class="px-6 py-4 text-sm text-gray-500">{{ profile.user.date_joined|date:"M d, Y" }}</td>
+            <td class="px-6 py-4">
+              <div class="flex items-center gap-3">
+                <button type="button" onclick="openEditSellerModal('{% url 'admin_seller_edit' profile.user.id %}')" class="text-blue-600 hover:text-blue-900 focus:outline-none" title="Edit Seller">
+                  <i class="fas fa-edit text-lg"></i>
+                </button>
+                <form method="POST" action="{% url 'admin_seller_toggle' profile.user.id %}" class="inline">
+                  {% csrf_token %}
+                  <button type="submit" class="{% if profile.user.is_active %}text-yellow-600 hover:text-yellow-800{% else %}text-green-600 hover:text-green-800{% endif %}" title="{% if profile.user.is_active %}Deactivate Seller{% else %}Activate Seller{% endif %}">
+                    <i class="fas {% if profile.user.is_active %}fa-pause-circle{% else %}fa-play-circle{% endif %} text-lg"></i>
+                  </button>
+                </form>
+                <form method="POST" action="{% url 'admin_seller_delete' profile.user.id %}" class="inline" onsubmit="return confirm('Are you sure you want to delete this seller account?')">
+                  {% csrf_token %}
+                  <button type="submit" class="text-red-600 hover:text-red-800" title="Delete Seller">
+                    <i class="fas fa-trash text-lg"></i>
+                  </button>
+                </form>
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        {% else %}
+          <tr>
+            <td colspan="6" class="px-6 py-12 text-center text-gray-500">
+              <i class="fas fa-store-slash text-4xl mb-3 text-gray-400 block"></i>
+              No seller accounts registered yet. Click "Add New Seller" to create one.
+            </td>
+          </tr>
+        {% endif %}
+      </tbody>
+    </table>
+  </div>
 </div>
 
 <!-- Create Seller Modal -->
-<div id="createSellerModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-  <div class="relative top-10 mx-auto p-6 border w-11/12 max-w-2xl shadow-lg rounded-lg bg-white mb-10">
-    <div class="flex justify-between items-center mb-6 border-b pb-3">
-      <h3 class="text-2xl font-bold text-gray-900 flex items-center gap-2">
-        <i class="fas fa-store text-green-600"></i> Add New Seller Vendor
-      </h3>
-      <button onclick="closeCreateSellerModal()" class="text-gray-400 hover:text-gray-600">
-        <i class="fas fa-times text-2xl"></i>
-      </button>
+<div id="createSellerModal" class="hidden fixed inset-0 bg-ink/40 backdrop-blur-sm overflow-y-auto h-full w-full z-50">
+  <div class="relative top-10 mb-10 mx-auto w-11/12 max-w-2xl shadow-2xl rounded-3xl bg-[#F1F5F2] overflow-hidden">
+    <!-- Header -->
+    <div class="flex justify-between items-center px-6 py-4 grad-header border-b border-white/40">
+      <div class="flex items-center gap-3">
+        <span class="w-10 h-10 rounded-2xl bg-white/80 flex items-center justify-center text-tealsoft"><i class="fas fa-store"></i></span>
+        <div>
+          <h3 class="text-xl font-bold text-ink leading-tight">Add New Seller Vendor</h3>
+          <p class="text-sm text-gray-500">Fields marked with <span class="text-red-500 font-semibold">*</span> are required.</p>
+        </div>
+      </div>
+      <button onclick="closeCreateSellerModal()" class="w-10 h-10 rounded-2xl bg-white/70 hover:bg-white text-gray-500 hover:text-ink transition flex items-center justify-center"><i class="fas fa-times text-lg"></i></button>
     </div>
-    
-    <form method="POST" action="{% url 'admin_seller_create' %}" class="space-y-4">
-        {% csrf_token %}
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Shop Name *</label>
-                <input type="text" name="shop_name" required placeholder="e.g. Maria's Malunggay Bakery"
-                       class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500">
-            </div>
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Username *</label>
-                <input type="text" name="username" required placeholder="e.g. mariabakery"
-                       class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500">
-            </div>
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Email *</label>
-                <input type="email" name="email" required placeholder="seller@example.com"
-                       class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500">
-            </div>
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Phone Number</label>
-                <input type="text" name="phone" placeholder="09123456789"
-                       class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500">
-            </div>
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">First Name</label>
-                <input type="text" name="first_name" placeholder="Maria"
-                       class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500">
-            </div>
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Last Name</label>
-                <input type="text" name="last_name" placeholder="Santos"
-                       class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500">
-            </div>
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Password *</label>
-                <input type="password" name="password1" required minlength="8"
-                       class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500">
-            </div>
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Confirm Password *</label>
-                <input type="password" name="password2" required minlength="8"
-                       class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500">
-            </div>
-        </div>
 
-        <div class="mt-6 flex justify-end gap-3 pt-4 border-t">
-            <button type="button" onclick="closeCreateSellerModal()" class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50">
-                Cancel
-            </button>
-            <button type="submit" class="px-6 py-2 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-md shadow">
-                Create Seller Account
-            </button>
+    <form method="POST" action="{% url 'admin_seller_create' %}" class="p-6 space-y-5">
+      {% csrf_token %}
+
+      <!-- Shop & Contact -->
+      <div class="bg-white rounded-3xl shadow-sm p-6">
+        <div class="flex items-center gap-2 mb-5">
+          <span class="inline-flex h-9 w-9 items-center justify-center rounded-2xl bg-sage text-tealsoft"><i class="fas fa-basket-shopping"></i></span>
+          <h4 class="text-base font-semibold text-ink">Shop &amp; Contact Details</h4>
         </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+          <div class="md:col-span-2">
+            <label class="block text-sm font-semibold text-gray-700 mb-1.5">Shop Name <span class="text-red-500">*</span></label>
+            <input type="text" name="shop_name" required placeholder="e.g. Maria's Malunggay Bakery" class="w-full px-3.5 py-2.5 border border-gray-200 rounded-xl bg-white text-sm focus:outline-none focus:ring-2 focus:ring-tealsoft/40 focus:border-transparent placeholder:text-gray-400">
+          </div>
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-1.5">Username <span class="text-red-500">*</span></label>
+            <input type="text" name="username" required placeholder="e.g. mariabakery" class="w-full px-3.5 py-2.5 border border-gray-200 rounded-xl bg-white text-sm focus:outline-none focus:ring-2 focus:ring-tealsoft/40 focus:border-transparent placeholder:text-gray-400">
+          </div>
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-1.5">Email <span class="text-red-500">*</span></label>
+            <input type="email" name="email" required placeholder="seller@example.com" class="w-full px-3.5 py-2.5 border border-gray-200 rounded-xl bg-white text-sm focus:outline-none focus:ring-2 focus:ring-tealsoft/40 focus:border-transparent placeholder:text-gray-400">
+          </div>
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-1.5">First Name</label>
+            <input type="text" name="first_name" placeholder="Maria" class="w-full px-3.5 py-2.5 border border-gray-200 rounded-xl bg-white text-sm focus:outline-none focus:ring-2 focus:ring-tealsoft/40 focus:border-transparent placeholder:text-gray-400">
+          </div>
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-1.5">Last Name</label>
+            <input type="text" name="last_name" placeholder="Santos" class="w-full px-3.5 py-2.5 border border-gray-200 rounded-xl bg-white text-sm focus:outline-none focus:ring-2 focus:ring-tealsoft/40 focus:border-transparent placeholder:text-gray-400">
+          </div>
+          <div class="md:col-span-2">
+            <label class="block text-sm font-semibold text-gray-700 mb-1.5">Phone Number</label>
+            <input type="text" name="phone" placeholder="09123456789" class="w-full px-3.5 py-2.5 border border-gray-200 rounded-xl bg-white text-sm focus:outline-none focus:ring-2 focus:ring-tealsoft/40 focus:border-transparent placeholder:text-gray-400">
+          </div>
+        </div>
+      </div>
+
+      <!-- Login Password -->
+      <div class="bg-white rounded-3xl shadow-sm p-6">
+        <div class="flex items-center gap-2 mb-5">
+          <span class="inline-flex h-9 w-9 items-center justify-center rounded-2xl bg-sage text-tealsoft"><i class="fas fa-lock"></i></span>
+          <h4 class="text-base font-semibold text-ink">Login Password</h4>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-1.5">Password <span class="text-red-500">*</span></label>
+            <input type="password" name="password1" required minlength="8" placeholder="Min. 8 characters" class="w-full px-3.5 py-2.5 border border-gray-200 rounded-xl bg-white text-sm focus:outline-none focus:ring-2 focus:ring-tealsoft/40 focus:border-transparent placeholder:text-gray-400">
+          </div>
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-1.5">Confirm Password <span class="text-red-500">*</span></label>
+            <input type="password" name="password2" required minlength="8" placeholder="Re-enter password" class="w-full px-3.5 py-2.5 border border-gray-200 rounded-xl bg-white text-sm focus:outline-none focus:ring-2 focus:ring-tealsoft/40 focus:border-transparent placeholder:text-gray-400">
+          </div>
+        </div>
+      </div>
+
+      <!-- Actions -->
+      <div class="flex justify-end gap-3 pt-1">
+        <button type="button" onclick="closeCreateSellerModal()" class="px-6 py-2.5 rounded-2xl bg-white border border-gray-200 text-gray-600 hover:bg-gray-50 font-medium transition">Cancel</button>
+        <button type="submit" class="px-6 py-2.5 rounded-2xl bg-ink hover:bg-tealsoft text-white font-medium shadow transition flex items-center"><i class="fas fa-check mr-2"></i>Create Seller Account</button>
+      </div>
     </form>
   </div>
 </div>
 
 <!-- Edit Seller Modal -->
-<div id="editSellerModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-  <div class="relative top-10 mx-auto p-5 border w-11/12 max-w-4xl shadow-lg rounded-md bg-white mb-10" style="height: 85vh;">
-    <div class="flex justify-between items-center mb-4 border-b pb-2">
-      <h3 class="text-2xl font-bold text-gray-900 flex items-center gap-2">
-        <i class="fas fa-store text-green-600"></i> Edit Seller Account
-      </h3>
-      <button onclick="closeEditSellerModal()" class="text-gray-400 hover:text-gray-600">
-        <i class="fas fa-times text-2xl"></i>
-      </button>
+<div id="editSellerModal" class="hidden fixed inset-0 bg-ink/40 backdrop-blur-sm overflow-y-auto h-full w-full z-50">
+  <div class="relative top-10 mb-10 mx-auto p-0 w-11/12 max-w-3xl shadow-2xl rounded-3xl bg-[#F1F5F2] overflow-hidden" style="height: 85vh;">
+    <div class="flex justify-between items-center px-6 py-4 grad-header border-b border-white/40">
+      <div class="flex items-center gap-3">
+        <span class="w-10 h-10 rounded-2xl bg-white/80 flex items-center justify-center text-tealsoft"><i class="fas fa-store"></i></span>
+        <h3 class="text-xl font-bold text-ink">Edit Seller Account</h3>
+      </div>
+      <button onclick="closeEditSellerModal()" class="w-10 h-10 rounded-2xl bg-white/70 hover:bg-white text-gray-500 hover:text-ink transition flex items-center justify-center"><i class="fas fa-times text-lg"></i></button>
     </div>
-    <iframe id="editSellerIframe" class="w-full h-full border-0 rounded" style="height: calc(85vh - 80px);"></iframe>
+    <iframe id="editSellerIframe" class="w-full border-0" style="height: calc(85vh - 69px);"></iframe>
   </div>
 </div>
+{% endblock %}
 
+{% block extra_js %}
 <script>
-    function openCreateSellerModal() {
-        document.getElementById('createSellerModal').classList.remove('hidden');
+  function openCreateSellerModal() {
+    document.getElementById('createSellerModal').classList.remove('hidden');
+  }
+  function closeCreateSellerModal() {
+    document.getElementById('createSellerModal').classList.add('hidden');
+  }
+  function openEditSellerModal(url) {
+    document.getElementById('editSellerIframe').src = url;
+    document.getElementById('editSellerModal').classList.remove('hidden');
+  }
+  function closeEditSellerModal() {
+    document.getElementById('editSellerModal').classList.add('hidden');
+    document.getElementById('editSellerIframe').src = '';
+  }
+  window.addEventListener('message', function(e) {
+    if (e.data && e.data.type === 'sellerUpdated') {
+      closeEditSellerModal();
+      window.location.reload();
     }
-    function closeCreateSellerModal() {
-        document.getElementById('createSellerModal').classList.add('hidden');
-    }
-    function openEditSellerModal(url) {
-        document.getElementById('editSellerIframe').src = url;
-        document.getElementById('editSellerModal').classList.remove('hidden');
-    }
-    function closeEditSellerModal() {
-        document.getElementById('editSellerModal').classList.add('hidden');
-        document.getElementById('editSellerIframe').src = '';
-    }
-    window.addEventListener('message', function(e) {
-        if (e.data && e.data.type === 'sellerUpdated') {
-            closeEditSellerModal();
-            window.location.reload();
-        }
-    });
+  });
 </script>
-
-</body>
-</html>
+{% endblock %}

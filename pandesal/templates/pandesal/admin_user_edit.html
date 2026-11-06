@@ -4,20 +4,46 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  {% include "pandesal/includes/seo_meta.html" %}
-  
+    {% include "pandesal/includes/seo_meta.html" %}
 
-    <link rel="stylesheet" href="{% static 'pandesal/dist/output.css' %}">
     <script src="{% static 'pandesal/js/tailwind.js' %}"></script>
-    <!-- Icon Libraries with CDN fallback -->
-  <link rel="stylesheet" href="{% static 'pandesal/css/fontawesome/all.min.css' %}" />
+    <link rel="stylesheet" href="{% static 'pandesal/css/fontawesome/all.min.css' %}" />
     <link rel="icon" href="{% static 'pandesal/img/pandesalhub_icon.png' %}" type="image/png">
+
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              primary: '#16a34a',
+              secondary: '#15803d',
+              sage: '#E7EFE9',
+              ink: '#1D3B33',
+              tealsoft: '#2E5E51',
+            }
+          }
+        }
+      }
+    </script>
+    <style>
+      .field {
+        width: 100%;
+        border: 1px solid #E2E8F0;
+        border-radius: 0.9rem;
+        padding: 0.625rem 0.9rem;
+        font-size: 0.875rem;
+        color: #1F2937;
+        background: #fff;
+        transition: box-shadow .15s ease, border-color .15s ease;
+      }
+      .field:focus { outline: none; border-color: transparent; box-shadow: 0 0 0 2px rgba(46, 94, 81, 0.35); }
+      .field-label { display: block; font-size: 0.8125rem; font-weight: 600; color: #374151; margin-bottom: 0.4rem; }
+    </style>
     <script>
         // Toggle password visibility
         function togglePassword(inputId, iconId) {
           const input = document.getElementById(inputId);
           const icon = document.getElementById(iconId);
-          
           if (input.type === 'password') {
             input.type = 'text';
             icon.classList.remove('fa-eye');
@@ -30,256 +56,195 @@
         }
     </script>
 </head>
-<body class="bg-green-50">
+<body class="bg-[#F1F5F2]">
 
-<!-- Main Content -->
-<div class="w-full overflow-x-hidden overflow-y-auto">
-    <div class="p-6">
-        <!-- Edit User Form -->
-        <div class="bg-white rounded-lg shadow">
-            <div class="p-6">
-                <form id="editUserForm" method="POST" enctype="multipart/form-data" novalidate>
-                    {% csrf_token %}
-                    <div id="formAlert" class="hidden mb-4 px-4 py-3 rounded-md text-sm font-medium"></div>
-                    
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <!-- Username -->
-                        <div>
-                            <label for="username" class="block text-sm font-medium text-gray-700 mb-2">Username *</label>
-                            <input type="text" name="username" id="username" required
-                                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
-                                   value="{{ user_obj.username }}">
-                            {% if form.username.errors %}
-                                <p class="mt-1 text-sm text-red-600">{{ form.username.errors.0 }}</p>
-                            {% endif %}
-                        </div>
+<div class="max-w-4xl mx-auto p-5 lg:p-6 space-y-5">
+    <form id="editUserForm" method="POST" enctype="multipart/form-data" novalidate class="space-y-5">
+        {% csrf_token %}
+        <div id="formAlert" class="hidden mb-4 px-4 py-3 rounded-2xl text-sm font-medium"></div>
 
-                        <!-- Email -->
-                        <div>
-                            <label for="email" class="block text-sm font-medium text-gray-700 mb-2">Email *</label>
-                            <input type="email" name="email" id="email" required
-                                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
-                                   value="{{ user_obj.email }}">
-                            {% if form.email.errors %}
-                                <p class="mt-1 text-sm text-red-600">{{ form.email.errors.0 }}</p>
-                            {% endif %}
-                        </div>
+        <!-- Account Credentials -->
+        <div class="bg-white rounded-3xl shadow-sm p-6">
+            <div class="flex items-center gap-2 mb-5">
+                <span class="inline-flex h-9 w-9 items-center justify-center rounded-2xl bg-sage text-tealsoft"><i class="fas fa-id-card"></i></span>
+                <h3 class="text-base font-semibold text-ink">Account Credentials</h3>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                <div>
+                    <label for="username" class="field-label">Username <span class="text-red-500">*</span></label>
+                    <input type="text" name="username" id="username" required class="field" value="{{ user_obj.username }}">
+                    {% if form.username.errors %}<p class="mt-1 text-sm text-red-600">{{ form.username.errors.0 }}</p>{% endif %}
+                </div>
+                <div>
+                    <label for="email" class="field-label">Email <span class="text-red-500">*</span></label>
+                    <input type="email" name="email" id="email" required class="field" value="{{ user_obj.email }}">
+                    {% if form.email.errors %}<p class="mt-1 text-sm text-red-600">{{ form.email.errors.0 }}</p>{% endif %}
+                </div>
+                <div>
+                    <label for="first_name" class="field-label">First Name</label>
+                    <input type="text" name="first_name" id="first_name" class="field" value="{{ user_obj.first_name }}">
+                </div>
+                <div>
+                    <label for="last_name" class="field-label">Last Name</label>
+                    <input type="text" name="last_name" id="last_name" class="field" value="{{ user_obj.last_name }}">
+                </div>
 
-                        <!-- First Name -->
-                        <div>
-                            <label for="first_name" class="block text-sm font-medium text-gray-700 mb-2">First Name</label>
-                            <input type="text" name="first_name" id="first_name"
-                                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
-                                   value="{{ user_obj.first_name }}">
-                        </div>
-
-                        <!-- Last Name -->
-                        <div>
-                            <label for="last_name" class="block text-sm font-medium text-gray-700 mb-2">Last Name</label>
-                            <input type="text" name="last_name" id="last_name"
-                                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
-                                   value="{{ user_obj.last_name }}">
-                        </div>
-
-                        <!-- Password Change -->
-                        <div>
-                            <label for="password1" class="block text-sm font-medium text-gray-700 mb-2">New Password (leave blank to keep current)</label>
-                            <div class="relative">
-                                <input type="password" name="password1" id="password1"
-                                       minlength="8" maxlength="20"
-                                       pattern="^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[^\s]{8,20}$"
-                                       class="w-full px-3 py-2 pr-10 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
-                                       onfocus="document.getElementById('editPasswordRequirements').classList.remove('hidden')"
-                                       onblur="document.getElementById('editPasswordRequirements').classList.add('hidden')">
-                                <button type="button" onclick="togglePassword('password1', 'editEyeIcon1')" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700">
-                                    <i id="editEyeIcon1" class="fas fa-eye"></i>
-                                </button>
-                            </div>
-                            <div id="editPasswordRequirements" class="hidden mt-2 text-xs text-gray-600 space-y-1 bg-gray-50 p-3 rounded border border-gray-200">
-                                <p class="flex items-center gap-2 criteria-item" data-rule="length">
-                                    <span class="indicator text-gray-400">○</span> 8-20 characters
-                                </p>
-                                <p class="flex items-center gap-2 criteria-item" data-rule="uppercase">
-                                    <span class="indicator text-gray-400">○</span> At least one capital letter (A to Z)
-                                </p>
-                                <p class="flex items-center gap-2 criteria-item" data-rule="lowercase">
-                                    <span class="indicator text-gray-400">○</span> At least one lowercase letter (a to z)
-                                </p>
-                                <p class="flex items-center gap-2 criteria-item" data-rule="digit">
-                                    <span class="indicator text-gray-400">○</span> At least one number (0 to 9)
-                                </p>
-                                <p class="flex items-center gap-2 criteria-item" data-rule="nospace">
-                                    <span class="indicator text-gray-400">○</span> No spaces
-                                </p>
-                            </div>
-                            {% if form.password1.errors %}
-                                <p class="mt-1 text-sm text-red-600">{{ form.password1.errors.0 }}</p>
-                            {% endif %}
-                        </div>
-
-                        <!-- Confirm Password -->
-                        <div>
-                            <label for="password2" class="block text-sm font-medium text-gray-700 mb-2">Confirm New Password</label>
-                            <div class="relative">
-                                <input type="password" name="password2" id="password2"
-                                       class="w-full px-3 py-2 pr-10 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500">
-                                <button type="button" onclick="togglePassword('password2', 'editEyeIcon2')" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700">
-                                    <i id="editEyeIcon2" class="fas fa-eye"></i>
-                                </button>
-                            </div>
-                            {% if form.password2.errors %}
-                                <p class="mt-1 text-sm text-red-600">{{ form.password2.errors.0 }}</p>
-                            {% endif %}
-                        </div>
-                    </div>
-
-                    <!-- Account Type / Role -->
-                    <div class="mt-6">
-                        <h3 class="text-lg font-medium text-gray-900 mb-4">Account Type / Role</h3>
-                        <div class="w-full md:w-1/2">
-                            <label for="user_type" class="block text-sm font-medium text-gray-700 mb-2">Role *</label>
-                            <input type="text" value="Customer" readonly
-                                   class="w-full px-3 py-2 border border-gray-200 bg-gray-100 rounded-md text-gray-700 font-medium cursor-not-allowed">
-                            <input type="hidden" name="user_type" id="user_type" value="customer">
-                        </div>
-                    </div>
-
-                    <!-- Account Permissions -->
-                    <div class="mt-6">
-                        <h3 class="text-lg font-medium text-gray-900 mb-4">Account Permissions</h3>
-                        <div class="space-y-3">
-                            <div class="flex items-center">
-                                <input type="checkbox" name="is_active" id="is_active" {% if user_obj.is_active %}checked{% endif %}
-                                       class="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded">
-                                <label for="is_active" class="ml-2 block text-sm text-gray-900">Active</label>
-                            </div>
-                            <div class="flex items-center">
-                                <input type="checkbox" name="is_staff" id="is_staff" {% if user_obj.is_staff %}checked{% endif %}
-                                       class="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded">
-                                <label for="is_staff" class="ml-2 block text-sm text-gray-900">Staff Status</label>
-                            </div>
-                            <div class="flex items-center">
-                                <input type="checkbox" name="is_superuser" id="is_superuser" {% if user_obj.is_superuser %}checked{% endif %}
-                                       class="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded">
-                                <label for="is_superuser" class="ml-2 block text-sm text-gray-900">Superuser Status</label>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Profile Information -->
-                    <div class="mt-6">
-                        <h3 class="text-lg font-medium text-gray-900 mb-4">Profile Information</h3>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <!-- Phone -->
-                            <div>
-                                <label for="phone" class="block text-sm font-medium text-gray-700 mb-2">Phone Number *</label>
-                                <input type="text" name="phone" id="phone" required placeholder="e.g., 09123456789"
-                                       class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
-                                       value="{{ user_obj.userprofile.phone|default:'' }}">
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Delivery Address (Naval, Biliran) -->
-                    <div class="mt-6">
-                        <h3 class="text-lg font-medium text-gray-900 mb-2 flex items-center gap-2">
-                            <i class="fas fa-map-marker-alt text-green-600"></i>
-                            Delivery Address
-                        </h3>
-                        <p class="text-sm text-gray-600 mb-4 bg-blue-50 p-3 rounded-md">
-                            ℹ️ Delivery is available only within the Municipality of Naval, Biliran.
-                        </p>
-                        
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <!-- Barangay -->
-                            <div>
-                                <label for="barangay" class="block text-sm font-medium text-gray-700 mb-2">Barangay *</label>
-                                <select name="barangay" id="barangay" required
-                                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500">
-                                    <option value="">-- Select Barangay --</option>
-                                    <option value="agpangi" {% if user_obj.userprofile.barangay == 'agpangi' %}selected{% endif %}>Agpangi</option>
-                                    <option value="anislagan" {% if user_obj.userprofile.barangay == 'anislagan' %}selected{% endif %}>Anislagan</option>
-                                    <option value="atipolo" {% if user_obj.userprofile.barangay == 'atipolo' %}selected{% endif %}>Atipolo</option>
-                                    <option value="borac" {% if user_obj.userprofile.barangay == 'borac' %}selected{% endif %}>Borac</option>
-                                    <option value="cabungaan" {% if user_obj.userprofile.barangay == 'cabungaan' %}selected{% endif %}>Cabungaan</option>
-                                    <option value="calumpang" {% if user_obj.userprofile.barangay == 'calumpang' %}selected{% endif %}>Calumpang</option>
-                                    <option value="capiñahan" {% if user_obj.userprofile.barangay == 'capiñahan' %}selected{% endif %}>Capiñahan</option>
-                                    <option value="caraycaray" {% if user_obj.userprofile.barangay == 'caraycaray' %}selected{% endif %}>Caraycaray</option>
-                                    <option value="catmon" {% if user_obj.userprofile.barangay == 'catmon' %}selected{% endif %}>Catmon</option>
-                                    <option value="haguikhikan" {% if user_obj.userprofile.barangay == 'haguikhikan' %}selected{% endif %}>Haguikhikan</option>
-                                    <option value="imelda" {% if user_obj.userprofile.barangay == 'imelda' %}selected{% endif %}>Imelda</option>
-                                    <option value="larrazabal" {% if user_obj.userprofile.barangay == 'larrazabal' %}selected{% endif %}>Larrazabal</option>
-                                    <option value="libtong" {% if user_obj.userprofile.barangay == 'libtong' %}selected{% endif %}>Libtong</option>
-                                    <option value="libertad" {% if user_obj.userprofile.barangay == 'libertad' %}selected{% endif %}>Libertad</option>
-                                    <option value="lico" {% if user_obj.userprofile.barangay == 'lico' %}selected{% endif %}>Lico</option>
-                                    <option value="lucsoon" {% if user_obj.userprofile.barangay == 'lucsoon' %}selected{% endif %}>Lucsoon</option>
-                                    <option value="mabini" {% if user_obj.userprofile.barangay == 'mabini' %}selected{% endif %}>Mabini</option>
-                                    <option value="padre_inocentes_garcia" {% if user_obj.userprofile.barangay == 'padre_inocentes_garcia' %}selected{% endif %}>Padre Inocentes Garcia (Pob.)</option>
-                                    <option value="padre_sergio_eamiguel" {% if user_obj.userprofile.barangay == 'padre_sergio_eamiguel' %}selected{% endif %}>Padre Sergio Eamiguel</option>
-                                    <option value="sabang" {% if user_obj.userprofile.barangay == 'sabang' %}selected{% endif %}>Sabang</option>
-                                    <option value="san_pablo" {% if user_obj.userprofile.barangay == 'san_pablo' %}selected{% endif %}>San Pablo</option>
-                                    <option value="santo_nino" {% if user_obj.userprofile.barangay == 'santo_nino' %}selected{% endif %}>Santo Niño</option>
-                                    <option value="santissimo_rosario" {% if user_obj.userprofile.barangay == 'santissimo_rosario' %}selected{% endif %}>Santissimo Rosario Pob. (Santo Rosa)</option>
-                                    <option value="talustusan" {% if user_obj.userprofile.barangay == 'talustusan' %}selected{% endif %}>Talustusan</option>
-                                    <option value="villa_caneja" {% if user_obj.userprofile.barangay == 'villa_caneja' %}selected{% endif %}>Villa Caneja</option>
-                                    <option value="villa_consuelo" {% if user_obj.userprofile.barangay == 'villa_consuelo' %}selected{% endif %}>Villa Consuelo</option>
-                                </select>
-                            </div>
-
-                            <!-- Zone / Purok -->
-                            <div>
-                                <label for="zone" class="block text-sm font-medium text-gray-700 mb-2">Zone / Purok *</label>
-                                <input type="text" name="zone" id="zone" required placeholder="e.g., Zone 1, Purok 3"
-                                       class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
-                                       value="{{ user_obj.userprofile.zone|default:'' }}">
-                            </div>
-
-                            <!-- Additional Notes -->
-                            <div class="md:col-span-2">
-                                <label for="additional_notes" class="block text-sm font-medium text-gray-700 mb-2">Additional Notes / Nearest Landmark</label>
-                                <textarea name="additional_notes" id="additional_notes" rows="3" placeholder="e.g., Near church, beside barangay hall, yellow gate"
-                                          class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500">{{ user_obj.userprofile.additional_notes|default:'' }}</textarea>
-                                <p class="mt-1 text-xs text-gray-500">Optional: Provide landmarks or directions to help with delivery</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Account Statistics -->
-                    <div class="mt-6">
-                        <h3 class="text-lg font-medium text-gray-900 mb-4">Account Statistics</h3>
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                            <div class="bg-gray-50 p-4 rounded-lg">
-                                <p class="text-sm text-gray-600">Total Orders</p>
-                                <p class="text-2xl font-bold text-gray-900">{{ user_obj.order_set.count }}</p>
-                            </div>
-                            <div class="bg-gray-50 p-4 rounded-lg">
-                                <p class="text-sm text-gray-600">Date Joined</p>
-                                <p class="text-lg font-medium text-gray-900">{{ user_obj.date_joined|date:"M d, Y" }}</p>
-                            </div>
-                            <div class="bg-gray-50 p-4 rounded-lg">
-                                <p class="text-sm text-gray-600">Last Login</p>
-                                <p class="text-lg font-medium text-gray-900">
-                                    {% if user_obj.last_login %}
-                                        {{ user_obj.last_login|date:"M d, Y H:i" }}
-                                    {% else %}
-                                        Never
-                                    {% endif %}
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Form Actions -->
-                    <div class="mt-8 flex justify-end">
-                        <button type="submit" class="bg-green-600 hover:bg-green-700 text-white px-8 py-3 rounded-md font-semibold">
-                            Update Account
+                <!-- Password -->
+                <div>
+                    <label for="password1" class="field-label">New Password <span class="text-xs font-normal text-gray-400">(leave blank to keep current)</span></label>
+                    <div class="relative">
+                        <input type="password" name="password1" id="password1" minlength="8" maxlength="20"
+                               pattern="^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[^\s]{8,20}$"
+                               class="field pr-10"
+                               onfocus="document.getElementById('editPasswordRequirements').classList.remove('hidden')"
+                               onblur="document.getElementById('editPasswordRequirements').classList.add('hidden')">
+                        <button type="button" onclick="togglePassword('password1', 'editEyeIcon1')" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-tealsoft">
+                            <i id="editEyeIcon1" class="fas fa-eye"></i>
                         </button>
                     </div>
-                </form>
+                    <div id="editPasswordRequirements" class="hidden mt-2 text-xs text-gray-600 space-y-1 bg-sage/60 p-3 rounded-xl border border-teal-700/10">
+                        <p class="flex items-center gap-2 criteria-item" data-rule="length"><span class="indicator text-gray-400">○</span> 8-20 characters</p>
+                        <p class="flex items-center gap-2 criteria-item" data-rule="uppercase"><span class="indicator text-gray-400">○</span> At least one capital letter (A to Z)</p>
+                        <p class="flex items-center gap-2 criteria-item" data-rule="lowercase"><span class="indicator text-gray-400">○</span> At least one lowercase letter (a to z)</p>
+                        <p class="flex items-center gap-2 criteria-item" data-rule="digit"><span class="indicator text-gray-400">○</span> At least one number (0 to 9)</p>
+                        <p class="flex items-center gap-2 criteria-item" data-rule="nospace"><span class="indicator text-gray-400">○</span> No spaces</p>
+                    </div>
+                    {% if form.password1.errors %}<p class="mt-1 text-sm text-red-600">{{ form.password1.errors.0 }}</p>{% endif %}
+                </div>
+                <div>
+                    <label for="password2" class="field-label">Confirm New Password</label>
+                    <div class="relative">
+                        <input type="password" name="password2" id="password2" class="field pr-10">
+                        <button type="button" onclick="togglePassword('password2', 'editEyeIcon2')" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-tealsoft">
+                            <i id="editEyeIcon2" class="fas fa-eye"></i>
+                        </button>
+                    </div>
+                    {% if form.password2.errors %}<p class="mt-1 text-sm text-red-600">{{ form.password2.errors.0 }}</p>{% endif %}
+                </div>
             </div>
         </div>
-    </div>
+
+        <!-- Account Permissions -->
+        <div class="bg-white rounded-3xl shadow-sm p-6">
+            <div class="flex items-center gap-2 mb-5">
+                <span class="inline-flex h-9 w-9 items-center justify-center rounded-2xl bg-sage text-tealsoft"><i class="fas fa-shield-halved"></i></span>
+                <h3 class="text-base font-semibold text-ink">Account Permissions</h3>
+                <span class="ml-auto inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-sage text-tealsoft text-xs font-semibold"><i class="fas fa-user"></i> Customer</span>
+            </div>
+            <input type="hidden" name="user_type" id="user_type" value="customer">
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <label class="flex items-center gap-3 px-4 py-3 rounded-2xl border border-gray-200 hover:bg-sage/40 cursor-pointer transition">
+                    <input type="checkbox" name="is_active" id="is_active" {% if user_obj.is_active %}checked{% endif %} class="h-4 w-4 text-tealsoft focus:ring-tealsoft/40 border-gray-300 rounded">
+                    <span class="text-sm text-gray-800 font-medium">Active</span>
+                </label>
+                <label class="flex items-center gap-3 px-4 py-3 rounded-2xl border border-gray-200 hover:bg-sage/40 cursor-pointer transition">
+                    <input type="checkbox" name="is_staff" id="is_staff" {% if user_obj.is_staff %}checked{% endif %} class="h-4 w-4 text-tealsoft focus:ring-tealsoft/40 border-gray-300 rounded">
+                    <span class="text-sm text-gray-800 font-medium">Staff Status</span>
+                </label>
+                <label class="flex items-center gap-3 px-4 py-3 rounded-2xl border border-gray-200 hover:bg-sage/40 cursor-pointer transition">
+                    <input type="checkbox" name="is_superuser" id="is_superuser" {% if user_obj.is_superuser %}checked{% endif %} class="h-4 w-4 text-tealsoft focus:ring-tealsoft/40 border-gray-300 rounded">
+                    <span class="text-sm text-gray-800 font-medium">Superuser Status</span>
+                </label>
+            </div>
+        </div>
+
+        <!-- Profile Information -->
+        <div class="bg-white rounded-3xl shadow-sm p-6">
+            <div class="flex items-center gap-2 mb-5">
+                <span class="inline-flex h-9 w-9 items-center justify-center rounded-2xl bg-sage text-tealsoft"><i class="fas fa-phone"></i></span>
+                <h3 class="text-base font-semibold text-ink">Profile Information</h3>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                <div>
+                    <label for="phone" class="field-label">Phone Number <span class="text-red-500">*</span></label>
+                    <input type="text" name="phone" id="phone" required placeholder="e.g., 09123456789" class="field" value="{{ user_obj.userprofile.phone|default:'' }}">
+                </div>
+            </div>
+        </div>
+
+        <!-- Delivery Address -->
+        <div class="bg-white rounded-3xl shadow-sm p-6">
+            <div class="flex items-center gap-2 mb-4">
+                <span class="inline-flex h-9 w-9 items-center justify-center rounded-2xl bg-sage text-tealsoft"><i class="fas fa-map-marker-alt"></i></span>
+                <h3 class="text-base font-semibold text-ink">Delivery Address</h3>
+            </div>
+            <p class="text-sm text-tealsoft bg-sage/70 p-3 rounded-xl mb-5 flex items-center gap-2"><i class="fas fa-circle-info"></i> Delivery is available only within the Municipality of Naval, Biliran.</p>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                <div>
+                    <label for="barangay" class="field-label">Barangay <span class="text-red-500">*</span></label>
+                    <select name="barangay" id="barangay" required class="field">
+                        <option value="">-- Select Barangay --</option>
+                        <option value="agpangi" {% if user_obj.userprofile.barangay == 'agpangi' %}selected{% endif %}>Agpangi</option>
+                        <option value="anislagan" {% if user_obj.userprofile.barangay == 'anislagan' %}selected{% endif %}>Anislagan</option>
+                        <option value="atipolo" {% if user_obj.userprofile.barangay == 'atipolo' %}selected{% endif %}>Atipolo</option>
+                        <option value="borac" {% if user_obj.userprofile.barangay == 'borac' %}selected{% endif %}>Borac</option>
+                        <option value="cabungaan" {% if user_obj.userprofile.barangay == 'cabungaan' %}selected{% endif %}>Cabungaan</option>
+                        <option value="calumpang" {% if user_obj.userprofile.barangay == 'calumpang' %}selected{% endif %}>Calumpang</option>
+                        <option value="capiñahan" {% if user_obj.userprofile.barangay == 'capiñahan' %}selected{% endif %}>Capiñahan</option>
+                        <option value="caraycaray" {% if user_obj.userprofile.barangay == 'caraycaray' %}selected{% endif %}>Caraycaray</option>
+                        <option value="catmon" {% if user_obj.userprofile.barangay == 'catmon' %}selected{% endif %}>Catmon</option>
+                        <option value="haguikhikan" {% if user_obj.userprofile.barangay == 'haguikhikan' %}selected{% endif %}>Haguikhikan</option>
+                        <option value="imelda" {% if user_obj.userprofile.barangay == 'imelda' %}selected{% endif %}>Imelda</option>
+                        <option value="larrazabal" {% if user_obj.userprofile.barangay == 'larrazabal' %}selected{% endif %}>Larrazabal</option>
+                        <option value="libtong" {% if user_obj.userprofile.barangay == 'libtong' %}selected{% endif %}>Libtong</option>
+                        <option value="libertad" {% if user_obj.userprofile.barangay == 'libertad' %}selected{% endif %}>Libertad</option>
+                        <option value="lico" {% if user_obj.userprofile.barangay == 'lico' %}selected{% endif %}>Lico</option>
+                        <option value="lucsoon" {% if user_obj.userprofile.barangay == 'lucsoon' %}selected{% endif %}>Lucsoon</option>
+                        <option value="mabini" {% if user_obj.userprofile.barangay == 'mabini' %}selected{% endif %}>Mabini</option>
+                        <option value="padre_inocentes_garcia" {% if user_obj.userprofile.barangay == 'padre_inocentes_garcia' %}selected{% endif %}>Padre Inocentes Garcia (Pob.)</option>
+                        <option value="padre_sergio_eamiguel" {% if user_obj.userprofile.barangay == 'padre_sergio_eamiguel' %}selected{% endif %}>Padre Sergio Eamiguel</option>
+                        <option value="sabang" {% if user_obj.userprofile.barangay == 'sabang' %}selected{% endif %}>Sabang</option>
+                        <option value="san_pablo" {% if user_obj.userprofile.barangay == 'san_pablo' %}selected{% endif %}>San Pablo</option>
+                        <option value="santo_nino" {% if user_obj.userprofile.barangay == 'santo_nino' %}selected{% endif %}>Santo Niño</option>
+                        <option value="santissimo_rosario" {% if user_obj.userprofile.barangay == 'santissimo_rosario' %}selected{% endif %}>Santissimo Rosario Pob. (Santo Rosa)</option>
+                        <option value="talustusan" {% if user_obj.userprofile.barangay == 'talustusan' %}selected{% endif %}>Talustusan</option>
+                        <option value="villa_caneja" {% if user_obj.userprofile.barangay == 'villa_caneja' %}selected{% endif %}>Villa Caneja</option>
+                        <option value="villa_consuelo" {% if user_obj.userprofile.barangay == 'villa_consuelo' %}selected{% endif %}>Villa Consuelo</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="zone" class="field-label">Zone / Purok <span class="text-red-500">*</span></label>
+                    <input type="text" name="zone" id="zone" required placeholder="e.g., Zone 1, Purok 3" class="field" value="{{ user_obj.userprofile.zone|default:'' }}">
+                </div>
+                <div class="md:col-span-2">
+                    <label for="additional_notes" class="field-label">Additional Notes / Nearest Landmark</label>
+                    <textarea name="additional_notes" id="additional_notes" rows="3" placeholder="e.g., Near church, beside barangay hall, yellow gate" class="field">{{ user_obj.userprofile.additional_notes|default:'' }}</textarea>
+                    <p class="mt-1 text-xs text-gray-500">Optional: Provide landmarks or directions to help with delivery</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Account Statistics -->
+        <div class="bg-white rounded-3xl shadow-sm p-6">
+            <div class="flex items-center gap-2 mb-5">
+                <span class="inline-flex h-9 w-9 items-center justify-center rounded-2xl bg-sage text-tealsoft"><i class="fas fa-chart-simple"></i></span>
+                <h3 class="text-base font-semibold text-ink">Account Statistics</h3>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div class="bg-sage/50 p-4 rounded-2xl">
+                    <p class="text-sm text-gray-500">Total Orders</p>
+                    <p class="text-2xl font-bold text-ink">{{ user_obj.order_set.count }}</p>
+                </div>
+                <div class="bg-sage/50 p-4 rounded-2xl">
+                    <p class="text-sm text-gray-500">Date Joined</p>
+                    <p class="text-lg font-semibold text-ink">{{ user_obj.date_joined|date:"M d, Y" }}</p>
+                </div>
+                <div class="bg-sage/50 p-4 rounded-2xl">
+                    <p class="text-sm text-gray-500">Last Login</p>
+                    <p class="text-lg font-semibold text-ink">{% if user_obj.last_login %}{{ user_obj.last_login|date:"M d, Y H:i" }}{% else %}Never{% endif %}</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Form Actions -->
+        <div class="flex justify-end gap-3 pt-1">
+            <button type="submit" class="px-6 py-2.5 rounded-2xl bg-ink hover:bg-tealsoft text-white font-medium shadow transition flex items-center">
+                <i class="fas fa-check mr-2"></i>Update Account
+            </button>
+        </div>
+    </form>
 </div>
+
 <script>
   document.addEventListener('DOMContentLoaded', function() {
     const form = document.getElementById('editUserForm');
@@ -289,7 +254,7 @@
 
     const submitButton = form.querySelector('button[type="submit"]');
     const alertBox = document.getElementById('formAlert');
-    const alertBaseClasses = 'mb-4 px-4 py-3 rounded-md text-sm font-medium';
+    const alertBaseClasses = 'mb-4 px-4 py-3 rounded-2xl text-sm font-medium';
     const passwordInput = document.getElementById('password1');
     const confirmInput = document.getElementById('password2');
     const requirementsBox = document.getElementById('editPasswordRequirements');

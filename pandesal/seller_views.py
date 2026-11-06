@@ -1,12 +1,26 @@
+import calendar
+from datetime import date
+
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib import messages
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
+from django.utils import timezone
 from .models import Shop, UserProfile, Pandesal, Order, Reservation, Notification
 from django.contrib.auth.models import User
 from django.db.models import Sum
 from .forms import ShopForm, SellerProductForm
 from django.views.decorators.clickjacking import xframe_options_sameorigin
+
+
+def _modal_saved_response(message):
+    """Response rendered inside the iframe modal that notifies the parent page a save succeeded."""
+    safe = message.replace("'", "\\'")
+    return HttpResponse(
+        "<!DOCTYPE html><html><body><script>"
+        "window.parent.postMessage({type:'sellerProductSaved', message:'%s'}, '*');"
+        "</script></body></html>" % safe
+    )
 
 
 
@@ -29,7 +43,44 @@ def seller_dashboard(request):
     
     recent_orders = orders.order_by('-created_at')[:5]
     low_stock_products = Pandesal.objects.filter(seller=request.user, stock__lt=10).order_by('stock')
-    
+
+    # ---- Month calendar with order / reservation markers ----
+    today = timezone.localdate()
+    try:
+        cal_year = int(request.GET.get('year', today.year))
+        cal_month = int(request.GET.get('month', today.month))
+        date(cal_year, cal_month, 1)
+    except (ValueError, TypeError):
+        cal_year, cal_month = today.year, today.month
+
+    # Orders grouped by the day they were placed
+    order_counts = {}
+    for o in Order.objects.filter(seller=request.user, created_at__year=cal_year, created_at__month=cal_month):
+        day = timezone.localtime(o.created_at).date()
+        order_counts[day] = order_counts.get(day, 0) + 1
+
+    # Reservations grouped by their scheduled reservation_date
+    reservation_counts = {}
+    for r in Reservation.objects.filter(seller=request.user, reservation_date__year=cal_year, reservation_date__month=cal_month):
+        reservation_counts[r.reservation_date] = reservation_counts.get(r.reservation_date, 0) + 1
+
+    calendar_weeks = []
+    for week in calendar.Calendar().monthdatescalendar(cal_year, cal_month):
+        cells = []
+        for day in week:
+            cells.append({
+                'num': day.day,
+                'iso': day.isoformat(),
+                'in_month': day.month == cal_month,
+                'is_today': day == today,
+                'orders': order_counts.get(day, 0),
+                'reservations': reservation_counts.get(day, 0),
+            })
+        calendar_weeks.append(cells)
+
+    prev_month, prev_year = (cal_month - 1, cal_year - 1) if cal_month == 1 else (cal_month - 1, cal_year)
+    next_month, next_year = (cal_month + 1, cal_year + 1) if cal_month == 12 else (cal_month + 1, cal_year)
+
     context = {
         'shop': shop,
         'new_orders_count': new_orders_count,
@@ -38,6 +89,11 @@ def seller_dashboard(request):
         'total_sales': total_sales,
         'recent_orders': recent_orders,
         'low_stock_products': low_stock_products,
+        'calendar_weeks': calendar_weeks,
+        'cal_month_label': date(cal_year, cal_month, 1).strftime('%B %Y'),
+        'cal_prev_year': prev_year, 'cal_prev_month': prev_month,
+        'cal_next_year': next_year, 'cal_next_month': next_month,
+        'today': today,
     }
     return render(request, 'pandesal/seller/dashboard.html', context)
 
@@ -57,35 +113,45 @@ def seller_products(request):
     return render(request, 'pandesal/seller/products.html', {'products': products})
 
 @login_required
+@xframe_options_sameorigin
 def seller_product_create(request):
     profile = request.user.userprofile
     if profile.user_type != 'seller' or not profile.is_approved_seller:
         return redirect('home')
-        
+
+    modal = request.POST.get('modal') == '1' or request.GET.get('modal') == '1'
+
     if request.method == 'POST':
         form = SellerProductForm(request.POST, request.FILES)
         if form.is_valid():
             product = form.save(commit=False)
             product.seller = request.user
             product.save()
+            if modal:
+                return _modal_saved_response('Product created successfully!')
             messages.success(request, "Product created successfully!")
             return redirect('seller_products')
     else:
         form = SellerProductForm()
-    return render(request, 'pandesal/seller/product_form.html', {'form': form, 'is_edit': False})
+    template = 'pandesal/seller/product_form_modal.html' if modal else 'pandesal/seller/product_form.html'
+    return render(request, template, {'form': form, 'is_edit': False, 'modal': modal})
 
 @login_required
+@xframe_options_sameorigin
 def seller_product_edit(request, product_id):
     profile = request.user.userprofile
     if profile.user_type != 'seller' or not profile.is_approved_seller:
         return redirect('home')
         
     product = get_object_or_404(Pandesal, id=product_id, seller=request.user)
-    
+    modal = request.POST.get('modal') == '1' or request.GET.get('modal') == '1'
+
     if request.method == 'POST':
         form = SellerProductForm(request.POST, request.FILES, instance=product)
         if form.is_valid():
             form.save()
+            if modal:
+                return _modal_saved_response('Product updated successfully!')
             messages.success(request, "Product updated successfully!")
             return redirect('seller_products')
     else:
@@ -95,22 +161,28 @@ def seller_product_edit(request, product_id):
         if product.categories:
             form.initial['categories'] = product.categories
             
-    return render(request, 'pandesal/seller/product_form.html', {'form': form, 'product': product, 'is_edit': True})
+    template = 'pandesal/seller/product_form_modal.html' if modal else 'pandesal/seller/product_form.html'
+    return render(request, template, {'form': form, 'product': product, 'is_edit': True, 'modal': modal})
 
 @login_required
+@xframe_options_sameorigin
 def seller_product_delete(request, product_id):
     profile = request.user.userprofile
     if profile.user_type != 'seller' or not profile.is_approved_seller:
         return redirect('home')
         
     product = get_object_or_404(Pandesal, id=product_id, seller=request.user)
-    
+    modal = request.POST.get('modal') == '1' or request.GET.get('modal') == '1'
+
     if request.method == 'POST':
         product.delete()
+        if modal:
+            return _modal_saved_response('Product deleted successfully!')
         messages.success(request, "Product deleted successfully!")
         return redirect('seller_products')
-        
-    return render(request, 'pandesal/seller/product_confirm_delete.html', {'product': product})
+
+    template = 'pandesal/seller/product_confirm_delete_modal.html' if modal else 'pandesal/seller/product_confirm_delete.html'
+    return render(request, template, {'product': product, 'modal': modal})
 @login_required
 def seller_orders(request):
     profile = request.user.userprofile

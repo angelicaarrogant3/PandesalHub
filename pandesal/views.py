@@ -647,6 +647,7 @@ def admin_dashboard(request):
         'recent_orders': recent_orders,
         'total_revenue': total_revenue,
         'top_products': top_products,
+        'today': timezone.localdate(),
     }
     return render(request, "pandesal/admin_dashboard.html", context)
 
@@ -1203,7 +1204,15 @@ def messages_inbox(request):
         'all_users': User.objects.all().order_by('username') if request.user.is_superuser else None,
         'admin_user': admin_user,
     }
-    return render(request, 'pandesal/messages_inbox.html', context)
+    _profile = getattr(request.user, 'userprofile', None)
+    _is_seller = bool(_profile and _profile.user_type == 'seller' and _profile.is_approved_seller)
+    if request.user.is_superuser:
+        template = 'pandesal/admin_messages_inbox.html'
+    elif _is_seller:
+        template = 'pandesal/seller_messages_inbox.html'
+    else:
+        template = 'pandesal/messages_inbox.html'
+    return render(request, template, context)
 
 
 @login_required
@@ -1310,7 +1319,15 @@ def message_thread(request, user_id: int):
                 'unread_count': 0
             }]
 
-    return render(request, 'pandesal/messages_thread.html', {
+    _profile = getattr(request.user, 'userprofile', None)
+    _is_seller = bool(_profile and _profile.user_type == 'seller' and _profile.is_approved_seller)
+    if request.user.is_superuser:
+        thread_template = 'pandesal/admin_messages_thread.html'
+    elif _is_seller:
+        thread_template = 'pandesal/seller_messages_thread.html'
+    else:
+        thread_template = 'pandesal/messages_thread.html'
+    return render(request, thread_template, {
         'other_user': other_user,
         'messages_list': thread_messages,
         'all_threads': all_threads,

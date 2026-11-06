@@ -16,14 +16,6 @@ def update_file(filepath):
     with open(filepath, 'r', encoding='utf-8') as f:
         content = f.read()
 
-    # To avoid matching too much, let's process line by line or use a more specific regex.
-    # The notification link to remove looks like:
-    # <a href="{% url 'user_notifications' %}" class="flex items-center gap-4 px-4 py-3 rounded-xl {% if request.resolver_match.url_name == 'user_notifications' %}text-green-700 bg-green-50 hover:bg-green-100{% else %}text-gray-600 hover:text-green-700 hover:bg-green-50{% endif %} transition"><i class="fa-solid fa-bell text-lg min-w-[20px]"></i><span class="sidebar-text">Notifications</span></a>
-    
-    # Let's find the exact string that is the notifications link in the sidebar
-    # We will look for <a href="{% url 'user_notifications' %}" ... ><i class="fa-solid fa-bell text-lg min-w-[20px]"></i><span class="sidebar-text">Notifications</span></a>
-    
-    # Remove notifications link from sidebar specifically
     # By ensuring it has sidebar-text
     content = re.sub(r'<a href="\{% url \'user_notifications\' %\}"[^>]*><i class="fa-solid fa-bell text-lg min-w-\[20px\]"></i><span class="sidebar-text">Notifications</span></a>', '', content)
 

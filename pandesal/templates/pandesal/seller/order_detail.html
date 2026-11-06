@@ -2,12 +2,14 @@
 
 {% block title %}Order #{{ order.id }} - Seller Dashboard{% endblock %}
 
-{% block content %}
-<div class="flex justify-between items-center mb-6">
-        <h1 class="text-3xl font-bold text-gray-800">Order #{{ order.id }}</h1>
-        <a href="{% url 'seller_orders' %}" class="text-gray-500 hover:text-gray-800">Back to Orders</a>
-      </div>
+{% block page_title %}Order #{{ order.id }}{% endblock %}
+{% block page_subtitle %}Placed by {{ order.user.get_full_name|default:order.user.username }}{% endblock %}
 
+{% block header_actions %}
+<a href="{% url 'seller_orders' %}" class="px-4 py-2.5 bg-white text-pine rounded-2xl shadow-sm hover:bg-leaf transition text-sm font-semibold"><i class="fas fa-arrow-left mr-2"></i>Back to Orders</a>
+{% endblock %}
+
+{% block content %}
       {% if messages %}
         {% for message in messages %}
           <div class="mb-4 p-4 rounded bg-green-100 text-green-800">{{ message }}</div>

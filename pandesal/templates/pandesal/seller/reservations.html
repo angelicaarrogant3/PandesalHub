@@ -2,9 +2,10 @@
 
 {% block title %}Reservations - Seller Dashboard{% endblock %}
 
+{% block page_title %}Reservations{% endblock %}
+{% block page_subtitle %}Review and manage advance reservations{% endblock %}
+
 {% block content %}
-<h1 class="text-3xl font-bold text-gray-800 mb-6">Manage Reservations</h1>
-      
       <form method="GET" class="mb-6 flex gap-4">
         <select name="status" class="border border-gray-300 rounded px-4 py-2 bg-white" onchange="this.form.submit()">
           <option value="">All Statuses</option>

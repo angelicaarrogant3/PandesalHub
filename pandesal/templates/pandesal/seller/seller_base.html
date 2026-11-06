@@ -6,13 +6,11 @@
   <title>{% block title %}Seller Dashboard - PandesalHub{% endblock %}</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <!-- Tailwind CSS -->
   <script src="{% static 'pandesal/js/tailwind.js' %}"></script>
-  <!-- Font Awesome -->
   <link rel="stylesheet" href="{% static 'pandesal/css/fontawesome/all.min.css' %}" />
   <link rel="stylesheet" href="{% static 'pandesal/css/bootstrap-icons/bootstrap-icons.css' %}">
   <link rel="icon" href="{% static 'pandesal/img/pandesalhub_icon.png' %}" type="image/png">
-  
+
   <script>
     tailwind.config = {
       theme: {
@@ -20,352 +18,311 @@
           colors: {
             primary: '#16a34a',
             secondary: '#15803d',
+            leaf: '#E3F1E7',
+            pine: '#123322',
+            moss: '#1B7A43',
+            fern: '#2FB567',
           }
         }
       }
     }
   </script>
   <style>
-    /* Smooth transitions */
-    .transition-all {
-      transition: all 300ms ease-in-out;
-    }
-    
-    /* Mobile: Sidebar hidden by default, slides in from left */
-    #sidebar {
-      transform: translateX(-100%);
-    }
-    
-    #sidebar.show {
-      transform: translateX(0);
-    }
-    
-    /* Desktop: sidebar always visible in full width */
+    .transition-all { transition: all 300ms ease-in-out; }
+
+    #sidebar { transform: translateX(-100%); }
+    #sidebar.show { transform: translateX(0); }
+
     @media (min-width: 1024px) {
-      #sidebar {
-        transform: translateX(0);
-        width: 280px;
-      }
-      
-      /* Optional collapsed state for desktop */
-      #sidebar.collapsed {
-        width: 80px;
-      }
-      #sidebar.collapsed .sidebar-text {
-        display: none;
-      }
-      #sidebar.collapsed nav a {
-        justify-content: center;
-        padding-left: 0;
-        padding-right: 0;
-      }
+      #sidebar { transform: translateX(0); width: 280px; }
+      #sidebar.collapsed { width: 92px; }
+      #sidebar.collapsed .sidebar-text,
+      #sidebar.collapsed .sidebar-brand-text,
+      #sidebar.collapsed .account-meta { display: none; }
+      #sidebar.collapsed nav a { justify-content: center; padding-left: 0; padding-right: 0; }
     }
-    
-    /* Simple dropdown */
+
     .dropdown-menu { display: none; }
     .dropdown-menu.show { display: block; }
+
+    .grad-sidebar { background: linear-gradient(160deg, #0F3D24 0%, #1B7A43 48%, #34C777 100%); }
+    .grad-header { background: linear-gradient(120deg, #CDEBD6 0%, #E1F3E6 60%, #EAF7EE 100%); }
+
+    .nav-pill.active {
+      background: rgba(255, 255, 255, 0.16);
+      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.25);
+      color: #fff;
+    }
+    .nav-pill:not(.active):hover { background: rgba(255, 255, 255, 0.08); color: #fff; }
   </style>
   {% block extra_head %}{% endblock %}
 </head>
-<body class="bg-green-50 h-full overflow-x-hidden">
-
-  <!-- Top Navbar -->
-  <header class="fixed top-0 left-0 right-0 h-20 bg-white shadow-md z-50 flex items-center px-4 lg:px-6">
-    <div class="flex items-center gap-4">
-      <a href="{% url 'seller_dashboard' %}" class="flex items-center gap-3">
-        <img src="{% static 'pandesal/img/pandesalhub_icon.png' %}" alt="Logo" class="w-10 h-10 rounded-full">
-        <span class="hidden lg:block text-xl font-bold text-green-600">PandesalHub Seller</span>
-      </a>
-      <button id="sidebarToggle" class="p-2 hover:bg-gray-100 rounded-lg transition-colors">
-        <i class="fa-solid fa-bars text-2xl text-gray-700"></i>
-      </button>
-    </div>
-    
-    <!-- Search Bar (Desktop) -->
-    <div class="hidden md:flex flex-1 max-w-xl mx-8">
-      <div class="relative w-full">
-        <input type="text" 
-               id="pageSearchInput"
-               placeholder="Search on this page..." 
-               class="w-full px-4 py-2 pl-10 pr-20 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-sm">
-        <i class="fa-solid fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
-        <div class="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
-          <span id="searchCounter" class="text-xs text-gray-500 hidden"></span>
-          <button type="button" id="clearPageSearch" class="text-gray-400 hover:text-gray-600 p-1 hidden">
-            <i class="fas fa-times text-sm"></i>
-          </button>
-        </div>
-      </div>
-    </div>
-    
-    <!-- Right Icons -->
-    <div class="ml-auto flex items-center gap-2">
-      <!-- Search Icon (Mobile) -->
-      <button class="md:hidden p-2 hover:bg-gray-100 rounded-lg">
-        <i class="fa-solid fa-search text-xl text-gray-600"></i>
-      </button>
-      
-      <!-- Notifications -->
-      <div class="relative">
-        <button class="p-2 hover:bg-gray-100 rounded-lg relative" onclick="toggleDropdown('notifDropdown')">
-          <i class="fa-solid fa-bell text-xl text-gray-600"></i>
-          {% if unread_notifications_count > 0 %}
-            <span class="absolute top-1 right-1 w-5 h-5 bg-primary text-white text-xs rounded-full flex items-center justify-center font-semibold">{{ unread_notifications_count }}</span>
-          {% endif %}
-        </button>
-        
-        <!-- Notifications Dropdown -->
-        <div id="notifDropdown" class="dropdown-menu absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-xl border border-gray-200 py-2">
-          <div class="px-4 py-3 border-b border-gray-200">
-            <p class="text-sm font-semibold text-gray-700">{% if unread_notifications_count > 0 %}You have {{ unread_notifications_count }} new notification{{ unread_notifications_count|pluralize }}{% else %}No new notifications{% endif %}</p>
-          </div>
-          <div class="max-h-64 overflow-y-auto">
-            {% if recent_notifications %}
-              {% for notification in recent_notifications %}
-                <a href="{% url 'user_notifications' %}" class="flex items-start gap-3 px-4 py-3 hover:bg-gray-50 transition-colors border-b border-gray-100 last:border-0">
-                  <div class="text-xl mt-1 {% if 'Reservation' in notification.message %}text-green-600{% elif 'Order' in notification.message %}text-blue-600{% else %}text-yellow-500{% endif %}">
-                    {% if 'Reservation' in notification.message %}
-                      <i class="fas fa-calendar-check"></i>
-                    {% elif 'Order' in notification.message %}
-                      <i class="fas fa-shopping-cart"></i>
-                    {% else %}
-                      <i class="fas fa-info-circle"></i>
-                    {% endif %}
-                  </div>
-                  <div class="flex-1">
-                    <p class="text-sm text-gray-800">{{ notification.message|truncatewords:10 }}</p>
-                    <p class="text-xs text-gray-400 mt-1">{{ notification.created_at|timesince }} ago</p>
-                  </div>
-                </a>
-              {% endfor %}
-            {% else %}
-              <div class="px-4 py-6 text-center text-gray-500 text-sm">
-                <i class="fas fa-bell-slash text-2xl mb-2"></i>
-                <p>No new notifications</p>
-              </div>
-            {% endif %}
-          </div>
-          <div class="px-4 py-2 border-t border-gray-200">
-            <a href="{% url 'user_notifications' %}" class="text-sm text-primary hover:underline">Show all notifications</a>
-          </div>
-        </div>
-      </div>
-      
-      <!-- Profile Dropdown -->
-      <div class="relative">
-        <button class="flex items-center gap-2 p-2 hover:bg-gray-100 rounded-lg" onclick="toggleDropdown('profileDropdown')">
-          {% if user.userprofile.profile_picture %}
-            <img src="{{ user.userprofile.profile_picture.url }}" alt="Profile" class="w-9 h-9 rounded-full object-cover border border-gray-200">
-          {% else %}
-            <img src="{% static 'pandesal/img/pandesalhub_icon.png' %}" alt="Profile" class="w-9 h-9 rounded-full">
-          {% endif %}
-          <span class="hidden md:block text-sm font-medium text-secondary">{{ user.username }}</span>
-          <i class="bi bi-chevron-down text-xs text-gray-500"></i>
-        </button>
-        
-        <div id="profileDropdown" class="dropdown-menu absolute right-0 mt-2 w-64 bg-white rounded-lg shadow-xl border border-gray-200 py-2">
-          <div class="px-4 py-3 border-b border-gray-200">
-            <h6 class="text-sm font-semibold text-gray-800">{{ user.username }}</h6>
-            <span class="text-xs text-gray-500">{{ user.email }}</span>
-          </div>
-          
-
-          <a href="{% url 'user_profile' %}" class="flex items-center gap-3 px-4 py-2 hover:bg-gray-50 transition-colors">
-            <i class="bi bi-person text-lg text-gray-600"></i>
-            <span class="text-sm text-gray-700">My Profile</span>
-          </a>
-          
-          <div class="border-t border-gray-200 my-1"></div>
-          
-          <a href="{% url 'logout' %}" onclick="return confirm('Are you sure you want to log out?')" class="flex items-center gap-3 px-4 py-2 hover:bg-red-50 transition-colors">
-            <i class="bi bi-box-arrow-right text-lg text-red-600"></i>
-            <span class="text-sm text-red-600">Sign Out</span>
-          </a>
-        </div>
-      </div>
-    </div>
-  </header>
+<body class="bg-[#F1F8F3] h-full overflow-x-hidden font-sans">
 
   <!-- Sidebar -->
-  <aside id="sidebar" class="fixed top-20 left-0 bottom-0 w-[280px] bg-white shadow-lg z-40 flex flex-col transition-all">
-    <nav class="mt-8 px-4 space-y-2 text-base flex-1 overflow-y-auto">
-      
-      <a href="{% url 'seller_dashboard' %}" class="flex items-center gap-4 px-4 py-3 rounded-xl {% if request.resolver_match.url_name == 'seller_dashboard' %}text-green-700 bg-green-50{% else %}text-gray-600 hover:text-green-700 hover:bg-green-50{% endif %} transition">
-        <i class="fa-solid fa-house text-lg min-w-[20px]"></i>
-        <span class="sidebar-text">Dashboard</span>
-      </a>
+  <aside id="sidebar" class="fixed top-0 left-0 bottom-0 w-[280px] z-50 p-4 transition-all">
+    <div class="h-full rounded-[28px] grad-sidebar shadow-xl flex flex-col overflow-hidden">
+      <div class="flex items-center gap-3 px-6 pt-8 pb-6">
+        <div class="w-10 h-10 rounded-xl bg-white/95 flex items-center justify-center shrink-0">
+          <img src="{% static 'pandesal/img/pandesalhub_icon.png' %}" alt="Logo" class="w-8 h-8 rounded-full object-cover">
+        </div>
+        <div class="sidebar-brand-text leading-tight">
+          <span class="block text-lg font-bold text-white tracking-wide">PandesalHub</span>
+          <span class="block text-[11px] text-white/60 font-medium uppercase tracking-widest">Seller</span>
+        </div>
+      </div>
 
-
-
-      <a href="{% url 'seller_products' %}" class="flex items-center gap-4 px-4 py-3 rounded-xl {% if 'product' in request.resolver_match.url_name %}text-green-700 bg-green-50{% else %}text-gray-600 hover:text-green-700 hover:bg-green-50{% endif %} transition">
-        <i class="fa-solid fa-box text-lg min-w-[20px]"></i>
-        <span class="sidebar-text">Products</span>
-      </a>
-
-      <a href="{% url 'seller_orders' %}" class="flex items-center gap-4 px-4 py-3 rounded-xl {% if 'order' in request.resolver_match.url_name %}text-green-700 bg-green-50{% else %}text-gray-600 hover:text-green-700 hover:bg-green-50{% endif %} transition">
-        <i class="fa-solid fa-shopping-cart text-lg min-w-[20px]"></i>
-        <span class="sidebar-text">Orders</span>
-      </a>
-
-      <a href="{% url 'seller_reservations' %}" class="flex items-center gap-4 px-4 py-3 rounded-xl {% if 'reservation' in request.resolver_match.url_name %}text-green-700 bg-green-50{% else %}text-gray-600 hover:text-green-700 hover:bg-green-50{% endif %} transition">
-        <i class="fa-solid fa-calendar-check text-lg min-w-[20px]"></i>
-        <span class="sidebar-text">Reservations</span>
-      </a>
-
-      <a href="{% url 'messages_inbox' %}" class="flex items-center gap-4 px-4 py-3 rounded-xl text-gray-600 hover:text-green-700 hover:bg-green-50 transition relative">
-        <i class="fa-solid fa-message text-lg min-w-[20px]"></i>
-        <span class="sidebar-text">Messages</span>
-        {% if unread_messages_count > 0 %}
-          <span class="absolute right-3 top-1/2 -translate-y-1/2 bg-red-500 text-white text-xs font-bold rounded-full min-w-[20px] h-5 flex items-center justify-center px-1.5">{{ unread_messages_count }}</span>
-        {% endif %}
-      </a>
-
-
-      <a href="{% url 'user_profile' %}" class="flex items-center gap-4 px-4 py-3 rounded-xl {% if request.resolver_match.url_name == 'user_profile' %}text-green-700 bg-green-50{% else %}text-gray-600 hover:text-green-700 hover:bg-green-50{% endif %} transition">
-        <i class="fa-solid fa-user-circle text-lg min-w-[20px]"></i>
-        <span class="sidebar-text">Profile / Settings</span>
-      </a>
-      
-    </nav>
+      <nav class="flex-1 px-4 space-y-1.5 overflow-y-auto pb-4">
+        <a href="{% url 'seller_dashboard' %}" class="nav-pill {% if request.resolver_match.url_name == 'seller_dashboard' %}active{% endif %} flex items-center gap-3 px-4 py-3 rounded-2xl text-white/80 text-sm font-medium transition">
+          <i class="fa-solid fa-house text-base min-w-[18px]"></i><span class="sidebar-text">Dashboard</span>
+        </a>
+        <a href="{% url 'seller_products' %}" class="nav-pill {% if 'product' in request.resolver_match.url_name %}active{% endif %} flex items-center gap-3 px-4 py-3 rounded-2xl text-white/80 text-sm font-medium transition">
+          <i class="fa-solid fa-box text-base min-w-[18px]"></i><span class="sidebar-text">Products</span>
+        </a>
+        <a href="{% url 'seller_orders' %}" class="nav-pill {% if 'order' in request.resolver_match.url_name %}active{% endif %} flex items-center gap-3 px-4 py-3 rounded-2xl text-white/80 text-sm font-medium transition">
+          <i class="fa-solid fa-shopping-cart text-base min-w-[18px]"></i><span class="sidebar-text">Orders</span>
+        </a>
+        <a href="{% url 'seller_reservations' %}" class="nav-pill {% if 'reservation' in request.resolver_match.url_name %}active{% endif %} flex items-center gap-3 px-4 py-3 rounded-2xl text-white/80 text-sm font-medium transition">
+          <i class="fa-solid fa-calendar-check text-base min-w-[18px]"></i><span class="sidebar-text">Reservations</span>
+        </a>
+        <a href="{% url 'messages_inbox' %}" class="nav-pill {% if 'message' in request.resolver_match.url_name %}active{% endif %} flex items-center gap-3 px-4 py-3 rounded-2xl text-white/80 text-sm font-medium transition relative">
+          <i class="fa-solid fa-message text-base min-w-[18px]"></i><span class="sidebar-text">Messages</span>
+          {% if unread_messages_count > 0 %}<span class="ml-auto sidebar-text bg-white text-moss text-xs font-bold rounded-full min-w-[20px] h-5 flex items-center justify-center px-1.5">{{ unread_messages_count }}</span>{% endif %}
+        </a>
+        <a href="{% url 'user_profile' %}" class="nav-pill {% if request.resolver_match.url_name == 'user_profile' %}active{% endif %} flex items-center gap-3 px-4 py-3 rounded-2xl text-white/80 text-sm font-medium transition">
+          <i class="fa-solid fa-user-circle text-base min-w-[18px]"></i><span class="sidebar-text">Profile / Settings</span>
+        </a>
+      </nav>
+    </div>
   </aside>
 
   <!-- Overlay for mobile -->
-  <div id="overlay" class="fixed inset-0 bg-black/50 z-30 hidden lg:hidden"></div>
-    
+  <div id="overlay" class="fixed inset-0 bg-black/50 z-40 hidden lg:hidden"></div>
+
   <!-- Main Content -->
-  <div id="mainContent" class="lg:ml-[280px] flex-1 flex flex-col min-h-screen pt-20 transition-all">
-    <div class="p-6">
-      
+  <div id="mainContent" class="lg:ml-[280px] min-h-screen transition-all p-4 lg:p-6">
+    <!-- Outer rounded panel -->
+    <div class="rounded-[28px] bg-leaf p-4 lg:p-6 min-h-[calc(100vh-2rem)]">
+
+      <!-- Header card (mockup style) -->
+      <div class="rounded-3xl grad-header shadow-sm px-5 lg:px-6 py-5 flex flex-wrap items-center gap-4 mb-6">
+        <button id="sidebarToggle" class="lg:hidden w-11 h-11 rounded-2xl bg-white/70 shadow-sm flex items-center justify-center text-gray-600 hover:text-pine transition">
+          <i class="fa-solid fa-bars"></i>
+        </button>
+
+        <div class="mr-auto">
+          <h1 class="text-2xl lg:text-3xl font-bold text-pine leading-tight">{% block page_title %}Dashboard{% endblock %}</h1>
+          <p class="text-sm text-gray-500 mt-0.5">{% block page_subtitle %}Welcome, {{ shop.shop_name|default:user.username }}!{% endblock %}</p>
+        </div>
+
+        {% block header_actions %}{% endblock %}
+
+        <!-- Search -->
+        <div class="hidden md:block relative w-full lg:w-auto lg:flex-1 lg:max-w-md order-last lg:order-none">
+          <input type="text" id="pageSearchInput" placeholder="Search orders, products..."
+                 class="w-full px-4 py-3 pl-11 pr-20 bg-white border-0 rounded-2xl shadow-sm focus:outline-none focus:ring-2 focus:ring-fern/50 text-sm text-gray-700 placeholder-gray-400">
+          <i class="fa-solid fa-search absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-sm"></i>
+          <div class="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1">
+            <span id="searchCounter" class="text-xs text-gray-500 hidden"></span>
+            <button type="button" id="clearPageSearch" class="text-gray-400 hover:text-gray-600 p-1 hidden"><i class="fas fa-times text-sm"></i></button>
+          </div>
+        </div>
+
+        <!-- Notifications -->
+        <div class="relative">
+          <button class="w-11 h-11 rounded-2xl bg-white shadow-sm flex items-center justify-center relative hover:scale-105 transition" onclick="toggleDropdown('notifDropdown')">
+            <i class="fa-solid fa-bell text-lg text-gray-600"></i>
+            {% if unread_notifications_count > 0 %}
+              <span class="absolute -top-1 -right-1 w-5 h-5 bg-fern text-white text-xs rounded-full flex items-center justify-center font-semibold">{{ unread_notifications_count }}</span>
+            {% endif %}
+          </button>
+          <div id="notifDropdown" class="dropdown-menu absolute right-0 mt-2 w-80 bg-white rounded-2xl shadow-xl border border-gray-100 py-2 z-50">
+            <div class="px-4 py-3 border-b border-gray-100">
+              <p class="text-sm font-semibold text-gray-700">{% if unread_notifications_count > 0 %}You have {{ unread_notifications_count }} new notification{{ unread_notifications_count|pluralize }}{% else %}No new notifications{% endif %}</p>
+            </div>
+            <div class="max-h-64 overflow-y-auto">
+              {% if recent_notifications %}
+                {% for notification in recent_notifications %}
+                  <a href="{% url 'user_notifications' %}" class="flex items-start gap-3 px-4 py-3 hover:bg-gray-50 transition-colors border-b border-gray-100 last:border-0">
+                    <div class="text-xl mt-1 {% if 'Reservation' in notification.message %}text-fern{% elif 'Order' in notification.message %}text-blue-600{% else %}text-yellow-500{% endif %}">
+                      {% if 'Reservation' in notification.message %}<i class="fas fa-calendar-check"></i>{% elif 'Order' in notification.message %}<i class="fas fa-shopping-cart"></i>{% else %}<i class="fas fa-info-circle"></i>{% endif %}
+                    </div>
+                    <div class="flex-1">
+                      <p class="text-sm text-gray-800">{{ notification.message|truncatewords:10 }}</p>
+                      <p class="text-xs text-gray-400 mt-1">{{ notification.created_at|timesince }} ago</p>
+                    </div>
+                  </a>
+                {% endfor %}
+              {% else %}
+                <div class="px-4 py-6 text-center text-gray-500 text-sm"><i class="fas fa-bell-slash text-2xl mb-2"></i><p>No new notifications</p></div>
+              {% endif %}
+            </div>
+            <div class="px-4 py-2 border-t border-gray-100">
+              <a href="{% url 'user_notifications' %}" class="text-sm text-moss hover:underline">Show all notifications</a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Avatar dropdown -->
+        <div class="relative">
+          <button class="flex items-center gap-2 pl-1 pr-2 py-1 rounded-2xl bg-white shadow-sm hover:scale-[1.02] transition" onclick="toggleDropdown('profileDropdown')">
+            <div class="w-9 h-9 rounded-full bg-leaf flex items-center justify-center overflow-hidden">
+              {% if user.userprofile.profile_picture %}
+                <img src="{{ user.userprofile.profile_picture.url }}" alt="Profile" class="w-full h-full object-cover">
+              {% else %}
+                <img src="{% static 'pandesal/img/pandesalhub_icon.png' %}" alt="Profile" class="w-7 h-7 rounded-full">
+              {% endif %}
+            </div>
+            <i class="bi bi-chevron-down text-xs text-gray-500"></i>
+          </button>
+          <div id="profileDropdown" class="dropdown-menu absolute right-0 mt-2 w-60 bg-white rounded-2xl shadow-xl border border-gray-100 py-2 z-50">
+            <div class="px-4 py-3 border-b border-gray-100">
+              <h6 class="text-sm font-semibold text-pine">{{ user.username }}</h6>
+              <span class="text-xs text-gray-500">{{ user.email }}</span>
+            </div>
+            <a href="{% url 'user_profile' %}" class="flex items-center gap-3 px-4 py-2 hover:bg-gray-50 transition-colors"><i class="bi bi-person text-lg text-gray-600"></i><span class="text-sm text-gray-700">My Profile</span></a>
+            <div class="border-t border-gray-100 my-1"></div>
+            <a href="{% url 'logout' %}" onclick="return confirm('Are you sure you want to log out?')" class="flex items-center gap-3 px-4 py-2 hover:bg-red-50 transition-colors"><i class="bi bi-box-arrow-right text-lg text-red-600"></i><span class="text-sm text-red-600">Sign Out</span></a>
+          </div>
+        </div>
+      </div>
+
       <!-- Django Messages -->
       {% if messages %}
         <div class="mb-6 space-y-2">
           {% for message in messages %}
-            <div class="px-4 py-3 rounded-lg flex items-center shadow-sm {% if message.tags == 'error' %}bg-red-50 text-red-800 border border-red-200{% elif message.tags == 'success' %}bg-green-50 text-green-800 border border-green-200{% else %}bg-blue-50 text-blue-800 border border-blue-200{% endif %}">
-              {% if message.tags == 'error' %}<i class="fas fa-exclamation-circle mr-2"></i>
-              {% elif message.tags == 'success' %}<i class="fas fa-check-circle mr-2"></i>
-              {% else %}<i class="fas fa-info-circle mr-2"></i>{% endif %}
+            <div class="px-4 py-3 rounded-2xl flex items-center shadow-sm {% if message.tags == 'error' %}bg-red-50 text-red-800 border border-red-200{% elif message.tags == 'success' %}bg-green-50 text-green-800 border border-green-200{% else %}bg-blue-50 text-blue-800 border border-blue-200{% endif %}">
+              {% if message.tags == 'error' %}<i class="fas fa-exclamation-circle mr-2"></i>{% elif message.tags == 'success' %}<i class="fas fa-check-circle mr-2"></i>{% else %}<i class="fas fa-info-circle mr-2"></i>{% endif %}
               {{ message }}
             </div>
           {% endfor %}
         </div>
       {% endif %}
 
-      {% block content %}
-      {% endblock %}
-      
+      {% block content %}{% endblock %}
     </div>
   </div>
 
   <script>
-    // Search functionality
-    document.addEventListener('DOMContentLoaded', function() {
-      const searchInput = document.getElementById('pageSearchInput');
-      const clearBtn = document.getElementById('clearPageSearch');
-      const searchCounter = document.getElementById('searchCounter');
-      
-      if(searchInput) {
-        searchInput.addEventListener('input', function(e) {
-          const term = e.target.value.toLowerCase();
-          
-          if(term.length > 0) {
-            clearBtn.classList.remove('hidden');
+    // Sidebar toggle
+    (function() {
+      const sidebar = document.getElementById('sidebar');
+      const overlay = document.getElementById('overlay');
+      const sidebarToggle = document.getElementById('sidebarToggle');
+      const mainContent = document.getElementById('mainContent');
+      if (!(sidebar && overlay && mainContent)) return;
+
+      function applySidebarMargin() {
+        if (window.innerWidth >= 1024) {
+          mainContent.style.marginLeft = sidebar.classList.contains('collapsed') ? '92px' : '280px';
+        } else {
+          mainContent.style.marginLeft = '0';
+        }
+      }
+
+      if (sidebarToggle) {
+        sidebarToggle.addEventListener('click', function() {
+          if (window.innerWidth < 1024) {
+            sidebar.classList.toggle('show');
+            overlay.classList.toggle('hidden');
           } else {
-            clearBtn.classList.add('hidden');
-            searchCounter.classList.add('hidden');
+            sidebar.classList.toggle('collapsed');
+            applySidebarMargin();
           }
-          
-          // Implementation of page search
-          const searchableElements = document.querySelectorAll('h1, h2, h3, h4, h5, h6, p, td, th, li, span.searchable');
-          let matchCount = 0;
-          
-          if(term.length < 2) {
-            searchableElements.forEach(el => {
-              if(el.dataset.originalHtml) {
-                el.innerHTML = el.dataset.originalHtml;
-              }
-            });
-            return;
-          }
-          
-          searchableElements.forEach(el => {
-            // Save original HTML if not saved yet
-            if(!el.dataset.originalHtml) {
-              el.dataset.originalHtml = el.innerHTML;
-            }
-            
-            const text = el.textContent || el.innerText;
-            if(text.toLowerCase().includes(term) && !el.children.length) {
-              matchCount++;
-              const regex = new RegExp(`(${term})`, 'gi');
-              el.innerHTML = el.dataset.originalHtml.replace(regex, '<mark class="bg-yellow-200 text-gray-900 px-1 rounded">$1</mark>');
-            } else {
-              el.innerHTML = el.dataset.originalHtml;
-            }
-          });
-          
-          if(term.length >= 2) {
-            searchCounter.textContent = `${matchCount} found`;
-            searchCounter.classList.remove('hidden');
-          }
-        });
-        
-        clearBtn.addEventListener('click', function() {
-          searchInput.value = '';
-          searchInput.dispatchEvent(new Event('input'));
-          searchInput.focus();
         });
       }
-    });
+      overlay.addEventListener('click', function() {
+        sidebar.classList.remove('show');
+        overlay.classList.add('hidden');
+      });
+      window.addEventListener('resize', function() {
+        if (window.innerWidth >= 1024) {
+          overlay.classList.add('hidden');
+          sidebar.classList.remove('show');
+        } else {
+          sidebar.classList.remove('collapsed');
+        }
+        applySidebarMargin();
+      });
+    })();
 
-    // Dropdown toggle
     function toggleDropdown(id) {
       const dropdown = document.getElementById(id);
-      
-      // Close other dropdowns
-      document.querySelectorAll('.dropdown-menu').forEach(el => {
-        if (el.id !== id) el.classList.remove('show');
-      });
-      
+      if (!dropdown) return;
+      document.querySelectorAll('.dropdown-menu').forEach(d => { if (d.id !== id) d.classList.remove('show'); });
       dropdown.classList.toggle('show');
     }
 
-    // Close dropdowns when clicking outside
-    window.onclick = function(event) {
-      if (!event.target.closest('button')) {
-        document.querySelectorAll('.dropdown-menu').forEach(el => el.classList.remove('show'));
+    document.addEventListener('click', function(e) {
+      if (!e.target.closest('.relative')) {
+        document.querySelectorAll('.dropdown-menu').forEach(d => d.classList.remove('show'));
       }
-    }
+    });
 
-    // Sidebar toggle (Mobile & Desktop)
-    const sidebar = document.getElementById('sidebar');
-    const sidebarToggle = document.getElementById('sidebarToggle');
-    const overlay = document.getElementById('overlay');
-    const mainContent = document.getElementById('mainContent');
+    // In-page search + highlight (only active if the search box exists)
+    (function() {
+      const pageSearchInput = document.getElementById('pageSearchInput');
+      if (!pageSearchInput) return;
+      const clearPageSearch = document.getElementById('clearPageSearch');
+      const searchCounter = document.getElementById('searchCounter');
+      let currentHighlights = [];
+      let currentMatchIndex = 0;
 
-    sidebarToggle.addEventListener('click', () => {
-      // Mobile behavior
-      if (window.innerWidth < 1024) {
-        sidebar.classList.toggle('show');
-        overlay.classList.toggle('hidden');
-        document.body.classList.toggle('overflow-hidden');
-      } 
-      // Desktop behavior
-      else {
-        sidebar.classList.toggle('collapsed');
-        if(sidebar.classList.contains('collapsed')) {
-          mainContent.style.marginLeft = '80px';
-        } else {
-          mainContent.style.marginLeft = '280px';
+      function removeHighlights() {
+        currentHighlights.forEach(h => { const p = h.parentNode; p.replaceChild(document.createTextNode(h.textContent), h); p.normalize(); });
+        currentHighlights = []; currentMatchIndex = 0; searchCounter.classList.add('hidden');
+      }
+
+      function highlightText(searchTerm) {
+        removeHighlights();
+        if (!searchTerm || searchTerm.trim() === '') return;
+        const contentArea = document.getElementById('mainContent');
+        if (!contentArea) return;
+        const walker = document.createTreeWalker(contentArea, NodeFilter.SHOW_TEXT, {
+          acceptNode: function(node) {
+            if (node.parentElement.tagName === 'SCRIPT' || node.parentElement.tagName === 'STYLE' || node.parentElement.classList.contains('highlight-match')) return NodeFilter.FILTER_REJECT;
+            return NodeFilter.FILTER_ACCEPT;
+          }
+        });
+        const nodesToHighlight = []; let node;
+        while (node = walker.nextNode()) { if (node.textContent.toLowerCase().includes(searchTerm.toLowerCase())) nodesToHighlight.push(node); }
+        nodesToHighlight.forEach(textNode => {
+          const text = textNode.textContent; const lowerText = text.toLowerCase(); const lowerSearch = searchTerm.toLowerCase();
+          let lastIndex = 0; const fragment = document.createDocumentFragment(); let index = lowerText.indexOf(lowerSearch);
+          while (index !== -1) {
+            if (index > lastIndex) fragment.appendChild(document.createTextNode(text.substring(lastIndex, index)));
+            const mark = document.createElement('mark'); mark.className = 'highlight-match';
+            mark.style.backgroundColor = '#fef08a'; mark.style.padding = '2px 0'; mark.style.borderRadius = '2px';
+            mark.textContent = text.substring(index, index + searchTerm.length);
+            fragment.appendChild(mark); currentHighlights.push(mark);
+            lastIndex = index + searchTerm.length; index = lowerText.indexOf(lowerSearch, lastIndex);
+          }
+          if (lastIndex < text.length) fragment.appendChild(document.createTextNode(text.substring(lastIndex)));
+          textNode.parentNode.replaceChild(fragment, textNode);
+        });
+        if (currentHighlights.length > 0) {
+          searchCounter.textContent = `${currentHighlights.length} found`; searchCounter.classList.remove('hidden');
+          if (currentHighlights[0]) { currentHighlights[0].scrollIntoView({ behavior: 'smooth', block: 'center' }); currentHighlights[0].style.backgroundColor = '#fbbf24'; }
         }
       }
-    });
 
-    // Close sidebar on mobile overlay click
-    overlay.addEventListener('click', () => {
-      sidebar.classList.remove('show');
-      overlay.classList.add('hidden');
-      document.body.classList.remove('overflow-hidden');
-    });
+      pageSearchInput.addEventListener('input', function() {
+        const searchTerm = this.value.trim();
+        if (searchTerm) { clearPageSearch.classList.remove('hidden'); highlightText(searchTerm); }
+        else { clearPageSearch.classList.add('hidden'); removeHighlights(); }
+      });
+      clearPageSearch.addEventListener('click', function() { pageSearchInput.value = ''; clearPageSearch.classList.add('hidden'); removeHighlights(); pageSearchInput.focus(); });
+      pageSearchInput.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter' && currentHighlights.length > 0) {
+          e.preventDefault();
+          if (currentHighlights[currentMatchIndex]) currentHighlights[currentMatchIndex].style.backgroundColor = '#fef08a';
+          currentMatchIndex = (currentMatchIndex + 1) % currentHighlights.length;
+          if (currentHighlights[currentMatchIndex]) { currentHighlights[currentMatchIndex].style.backgroundColor = '#fbbf24'; currentHighlights[currentMatchIndex].scrollIntoView({ behavior: 'smooth', block: 'center' }); }
+          searchCounter.textContent = `${currentMatchIndex + 1} of ${currentHighlights.length}`;
+        }
+      });
+    })();
   </script>
+  {% block extra_js %}{% endblock %}
 </body>
 </html>

@@ -1,0 +1,45 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="{% static 'pandesal/js/tailwind.js' %}"></script>
+  <link rel="stylesheet" href="{% static 'pandesal/css/fontawesome/all.min.css' %}" />
+  <script>
+    tailwind.config = {
+      theme: { extend: { colors: {
+        primary: '#16a34a', secondary: '#15803d',
+        leaf: '#E3F1E7', pine: '#123322', moss: '#1B7A43', fern: '#2FB567',
+      } } }
+    }
+  </script>
+  <style> body { font-family: ui-sans-serif, system-ui, sans-serif; } </style>
+</head>
+<body class="bg-white text-pine">
+  <div class="min-h-[340px] flex flex-col items-center justify-center px-8 py-10 text-center">
+    <div class="mx-auto mb-5 h-16 w-16 rounded-full bg-red-100 flex items-center justify-center">
+      <i class="fas fa-triangle-exclamation text-red-600 text-2xl"></i>
+    </div>
+    <h2 class="text-xl font-bold text-pine mb-2">Delete Product</h2>
+    <p class="text-gray-600 mb-6">
+      Are you sure you want to delete
+      <strong class="text-pine">"{{ product.name }}"</strong>?
+      This action cannot be undone.
+    </p>
+
+    <form method="POST" class="flex justify-center gap-3">
+      {% csrf_token %}
+      <input type="hidden" name="modal" value="1">
+      <button type="button" onclick="if(window.parent.closeProductModal){window.parent.closeProductModal();}"
+              class="px-5 py-2.5 rounded-2xl bg-white border border-gray-200 text-gray-600 font-semibold hover:bg-gray-50 transition">
+        Cancel
+      </button>
+      <button type="submit"
+              class="px-6 py-2.5 rounded-2xl bg-red-600 hover:bg-red-700 text-white font-semibold shadow transition">
+        <i class="fas fa-trash mr-2"></i>Yes, Delete
+      </button>
+    </form>
+  </div>
+</body>
+</html>

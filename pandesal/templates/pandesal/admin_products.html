@@ -1,407 +1,202 @@
+{% extends "pandesal/includes/admin_base.html" %}
 {% load static %}
-<!DOCTYPE html>
-<html lang="en" class="h-full">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  {% include "pandesal/includes/seo_meta.html" %}
-  
 
-    <script src="{% static 'pandesal/js/tailwind.js' %}"></script>
-    <link rel="stylesheet" href="{% static 'pandesal/css/fontawesome/all.min.css' %}" />
-  <link rel="stylesheet" href="{% static 'pandesal/css/bootstrap-icons/bootstrap-icons.css' %}">
-    <link rel="icon" href="{% static 'pandesal/img/pandesalhub_icon.png' %}" type="image/png">
-    
-    <script>
-    tailwind.config = {
-      theme: {
-        extend: {
-          colors: {
-            primary: '#16a34a',
-            secondary: '#15803d',
-          }
-        }
-      }
-    }
-  </script>
-  <style>
-      .transition-all { transition: all 300ms ease-in-out; }
-      #sidebar { transform: translateX(-100%); }
-      #sidebar.show { transform: translateX(0); }
-      
-      @media (min-width: 1024px) {
-        #sidebar { transform: translateX(0); width: 280px; }
-        #sidebar.collapsed { width: 80px; }
-        #sidebar.collapsed .sidebar-text { display: none; }
-        #sidebar.collapsed nav a { justify-content: center; padding-left: 0; padding-right: 0; }
-      }
-      
-      .dropdown-menu { display: none; }
-      .dropdown-menu.show { display: block; }
-    </style>
-</head>
-<body class="bg-green-50 h-full overflow-x-hidden">
+{% block page_title %}Products View{% endblock %}
+{% block page_subtitle %}View all pandesal products{% endblock %}
 
-  <!-- Top Navbar -->
-  <header class="fixed top-0 left-0 right-0 h-20 bg-white shadow-md z-50 flex items-center px-4 lg:px-6">
-    <div class="flex items-center gap-4">
-      <a href="{% url 'admin_dashboard' %}" class="flex items-center gap-3">
-        <img src="{% static 'pandesal/img/pandesalhub_icon.png' %}" alt="Logo" class="w-10 h-10 rounded-full">
-        <span class="hidden lg:block text-xl font-bold text-green-600">PandesalHub</span>
-      </a>
-      <button id="sidebarToggle" class="p-2 hover:bg-gray-100 rounded-lg transition-colors">
-        <i class="fa-solid fa-bars text-2xl text-gray-700"></i>
-      </button>
+{% block header_actions %}
+<form method="GET" action="{% url 'admin_products' %}" class="relative w-full lg:w-80 order-last lg:order-none">
+  <input type="text" name="search" value="{{ search_query|default:'' }}" placeholder="Search products..."
+         class="w-full px-4 py-3 pl-11 pr-4 bg-white border-0 rounded-2xl shadow-sm focus:outline-none focus:ring-2 focus:ring-teal-600/40 text-sm text-gray-700 placeholder-gray-400">
+  <i class="fa-solid fa-search absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-sm"></i>
+</form>
+{% endblock %}
+
+{% block content %}
+<!-- Messages -->
+{% if messages %}
+  {% for message in messages %}
+    <div class="mb-4 p-4 rounded-2xl {% if message.tags == 'success' %}bg-green-100 text-green-700{% elif message.tags == 'error' %}bg-red-100 text-red-700{% else %}bg-blue-100 text-blue-700{% endif %}">
+      {{ message }}
     </div>
-    <div class="hidden md:flex flex-1 max-w-xl mx-8">
-      <form method="GET" action="{% url 'admin_products' %}" class="relative w-full">
-        <input type="text" name="search" value="{{ search_query|default:'' }}" placeholder="Search products..." class="w-full px-4 py-2 pl-10 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-sm">
-        <i class="fa-solid fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
-      </form>
+  {% endfor %}
+{% endif %}
+
+<!-- Products by Shop -->
+<div class="products-container">
+  {% regroup page_obj by seller as shop_list %}
+  {% for shop in shop_list %}
+  <div class="mb-12 shop-section">
+    <div class="flex items-center gap-4 mb-6 border-b border-gray-200 pb-4">
+      <div class="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center text-green-700 text-xl font-bold shadow-sm">
+        <i class="fas fa-store"></i>
+      </div>
+      <div>
+        <h2 class="text-2xl font-bold text-gray-800">
+          {% if shop.grouper %}{{ shop.grouper.shop_name|default:shop.grouper.username }}{% else %}Official PandesalHub{% endif %}
+        </h2>
+        <p class="text-gray-500 text-sm flex items-center gap-1">
+          <i class="fas {% if shop.grouper %}fa-user-tag{% else %}fa-check-circle text-green-600{% endif %}"></i>
+          {% if shop.grouper %}Independent Vendor{% else %}Main Bakery{% endif %}
+        </p>
+      </div>
     </div>
-    <div class="ml-auto flex items-center gap-2">
-      <button class="md:hidden p-2 hover:bg-gray-100 rounded-lg"><i class="fa-solid fa-search text-xl text-gray-600"></i></button>
-      <div class="relative">
-        <button class="p-2 hover:bg-gray-100 rounded-lg relative" onclick="toggleDropdown('notifDropdown')">
-          <i class="fa-solid fa-bell text-xl text-gray-600"></i>
-          {% if admin_unread_notifications_count > 0 %}
-            <span class="absolute top-1 right-1 w-5 h-5 bg-primary text-white text-xs rounded-full flex items-center justify-center font-semibold">{{ admin_unread_notifications_count }}</span>
-          {% endif %}
-        </button>
-        <div id="notifDropdown" class="dropdown-menu absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-xl border border-gray-200 py-2">
-          <div class="px-4 py-3 border-b border-gray-200">
-            <p class="text-sm font-semibold text-gray-700">
-              {% if admin_unread_notifications_count > 0 %}
-                You have {{ admin_unread_notifications_count }} new notification{{ admin_unread_notifications_count|pluralize }}
-              {% else %}
-                No new notifications
-              {% endif %}
-            </p>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 shop-grid">
+      {% for product in shop.list %}
+      <div class="product-card bg-white rounded-2xl shadow overflow-hidden" data-type="{% if product.allow_reservation %}reservation{% else %}order{% endif %}">
+        {% if product.image %}
+          <img src="{{ product.image.url }}" alt="{{ product.name }}" class="w-full h-64 object-cover">
+        {% else %}
+          <div class="w-full h-64 bg-gray-200 flex items-center justify-center">
+            <i class="fas fa-image text-gray-400 text-4xl"></i>
           </div>
-          <div class="max-h-64 overflow-y-auto">
-            {% if admin_recent_notifications %}
-              {% for notif in admin_recent_notifications %}
-                <a href="{% url 'admin_mark_notification_read' notif.id %}" class="flex items-start gap-3 px-4 py-3 hover:bg-gray-50 transition-colors border-b border-gray-100 last:border-0">
-                  <i class="{% if 'Order' in notif.message %}fas fa-shopping-cart{% elif 'Reservation' in notif.message %}fas fa-calendar-check{% elif 'stock' in notif.message %}fas fa-box{% else %}fas fa-info-circle{% endif %} text-2xl text-green-600 mt-1"></i>
-                  <div class="flex-1">
-                    <p class="text-sm text-gray-800">{{ notif.message|truncatewords:10 }}</p>
-                    <p class="text-xs text-gray-400 mt-1">{{ notif.created_at|timesince }} ago</p>
-                  </div>
-                </a>
-              {% endfor %}
+        {% endif %}
+        <div class="p-4">
+          <div class="flex items-center justify-between mb-2">
+            <h3 class="text-lg font-semibold text-gray-800">{{ product.name }}</h3>
+            {% if product.is_available and product.is_available_now %}
+              <span class="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full whitespace-nowrap">
+                <i class="fas fa-check-circle"></i> Available
+              </span>
+            {% elif product.is_available and not product.is_available_now %}
+              <span class="bg-gray-100 text-gray-800 text-xs px-2 py-1 rounded-full whitespace-nowrap">
+                <i class="fas fa-clock"></i> Closed
+              </span>
             {% else %}
-              <div class="px-4 py-6 text-center text-gray-500 text-sm">
-                <i class="fas fa-bell-slash text-2xl mb-2"></i>
-                <p>No notifications</p>
-              </div>
+              <span class="bg-red-100 text-red-800 text-xs px-2 py-1 rounded-full whitespace-nowrap">
+                <i class="fas fa-times-circle"></i> Unavail
+              </span>
             {% endif %}
           </div>
-          <div class="px-4 py-2 border-t border-gray-200">
-            <a href="{% url 'admin_notifications' %}" class="text-sm text-primary hover:underline">Show all notifications</a>
+
+          <p class="text-green-600 font-bold text-xl mb-2">₱{{ product.price }}</p>
+
+          <!-- Description with Read More -->
+          <div class="mb-2">
+            <p class="text-gray-600 text-sm description-text" id="desc-{{ product.id }}">
+              <span class="description-short">{{ product.description|truncatewords:15 }}</span>
+              <span class="description-full hidden">{{ product.description }}</span>
+            </p>
+            {% if product.description|wordcount > 15 %}
+              <button onclick="toggleDescription({{ product.id }})" class="text-green-600 hover:text-green-700 text-xs font-medium mt-1">
+                <span class="read-more-btn">Read More</span>
+                <span class="read-less-btn hidden">Read Less</span>
+              </button>
+            {% endif %}
+          </div>
+
+          <!-- Stock Info (Order Products Only) -->
+          {% if 'order_now' in product.categories %}
+          <div class="mb-2">
+            <span class="inline-block {% if product.stock <= 5 %}bg-red-100 text-red-800{% else %}bg-gray-100 text-gray-800{% endif %} text-xs px-2 py-1 rounded-full">
+              Stock: {{ product.stock }} pcs
+            </span>
+          </div>
+          {% endif %}
+
+          <!-- Minimum Order Quantity (Reservation Products Only) -->
+          {% if 'reservation' in product.categories %}
+          <div class="mb-2">
+            <span class="inline-block bg-purple-100 text-purple-800 text-xs px-2 py-1 rounded-full">
+              Min Order: {{ product.min_order_quantity|default:10 }} pcs
+            </span>
+          </div>
+          {% endif %}
+
+          <!-- Availability Info -->
+          <div class="mb-4">
+            <p class="text-xs text-gray-500">{{ product.get_availability_display }}</p>
           </div>
         </div>
       </div>
-      
+      {% endfor %}
+    </div>
+  </div>
+  {% empty %}
+    <div class="col-span-full text-center py-16 bg-white/80 rounded-2xl border w-full">
+      <div class="w-24 h-24 bg-green-50 rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner">
+        <i class="fas fa-bread-slice text-green-300 text-4xl"></i>
       </div>
-      <div class="relative">
-        <button class="flex items-center gap-2 p-2 hover:bg-gray-100 rounded-lg" onclick="toggleDropdown('profileDropdown')">
-          <img src="{% static 'pandesal/img/pandesalhub_icon.png' %}" alt="Profile" class="w-9 h-9 rounded-full">
-          <span class="hidden md:block text-sm font-medium text-secondary">{{ user.username }}</span>
-          <i class="bi bi-chevron-down text-xs text-gray-500"></i>
-        </button>
-        <div id="profileDropdown" class="dropdown-menu absolute right-0 mt-2 w-64 bg-white rounded-lg shadow-xl border border-gray-200 py-2">
-          <div class="px-4 py-3 border-b border-gray-200"><h6 class="text-sm font-semibold text-gray-800">{{ user.username }}</h6><span class="text-xs text-gray-500">{{ user.email }}</span></div>
-          <a href="/admin/" class="flex items-center gap-3 px-4 py-2 hover:bg-gray-50 transition-colors"><i class="bi bi-gear text-lg text-gray-600"></i><span class="text-sm text-gray-700">Django Admin</span></a>
-          <div class="border-t border-gray-200 my-1"></div>
-          <a href="{% url 'logout' %}" onclick="return confirm('Are you sure you want to log out?')" class="flex items-center gap-3 px-4 py-2 hover:bg-red-50 transition-colors"><i class="bi bi-box-arrow-right text-lg text-red-600"></i><span class="text-sm text-red-600">Sign Out</span></a>
-        </div>
+      <h3 class="text-2xl font-bold text-gray-800 mb-2">No products found</h3>
+      <p class="text-gray-500 mb-6 max-w-md mx-auto">There are currently no products available in the marketplace.</p>
+    </div>
+  {% endfor %}
+</div>
+
+<!-- Pagination -->
+{% if page_obj.has_other_pages %}
+  <div class="mt-8 flex items-center justify-between">
+    <div class="flex-1 flex justify-between sm:hidden">
+      {% if page_obj.has_previous %}
+        <a href="?page={{ page_obj.previous_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}"
+           class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+          Previous
+        </a>
+      {% endif %}
+      {% if page_obj.has_next %}
+        <a href="?page={{ page_obj.next_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}"
+           class="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+          Next
+        </a>
+      {% endif %}
+    </div>
+    <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+      <div>
+        <p class="text-sm text-gray-700">
+          Showing <span class="font-medium">{{ page_obj.start_index }}</span> to <span class="font-medium">{{ page_obj.end_index }}</span> of <span class="font-medium">{{ page_obj.paginator.count }}</span> results
+        </p>
+      </div>
+      <div>
+        <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px">
+          {% if page_obj.has_previous %}
+            <a href="?page={{ page_obj.previous_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}"
+               class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+              <i class="fas fa-chevron-left"></i>
+            </a>
+          {% endif %}
+          {% for num in page_obj.paginator.page_range %}
+            {% if page_obj.number == num %}
+              <span class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-green-50 text-sm font-medium text-green-600">{{ num }}</span>
+            {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+              <a href="?page={{ num }}{% if search_query %}&search={{ search_query }}{% endif %}"
+                 class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50">{{ num }}</a>
+            {% endif %}
+          {% endfor %}
+          {% if page_obj.has_next %}
+            <a href="?page={{ page_obj.next_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}"
+               class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+              <i class="fas fa-chevron-right"></i>
+            </a>
+          {% endif %}
+        </nav>
       </div>
     </div>
-  </header>
+  </div>
+{% endif %}
+{% endblock %}
 
-  <!-- Sidebar -->
-  <aside id="sidebar" class="fixed top-20 left-0 bottom-0 w-[280px] bg-white shadow-lg z-40 flex flex-col transition-all">
-      
-    <nav class="mt-8 px-4 space-y-2 text-base flex-1 overflow-y-auto">
-      <a href="{% url 'admin_dashboard' %}" class="flex items-center gap-4 px-4 py-3 rounded-xl {% if request.resolver_match.url_name == 'admin_dashboard' %}text-green-700 bg-green-50{% else %}text-gray-600 hover:text-green-700 hover:bg-green-50{% endif %} transition"><i class="fa-solid fa-house text-lg min-w-[20px]"></i><span class="sidebar-text">Home</span></a>
-      <a href="{% url 'admin_products' %}" class="flex items-center gap-4 px-4 py-3 rounded-xl {% if request.resolver_match.url_name == 'admin_products' %}text-green-700 bg-green-50{% else %}text-gray-600 hover:text-green-700 hover:bg-green-50{% endif %} transition"><i class="fa-solid fa-box text-lg min-w-[20px]"></i><span class="sidebar-text">Products</span></a>
-      <a href="{% url 'admin_content' %}" class="flex items-center gap-4 px-4 py-3 rounded-xl {% if request.resolver_match.url_name == 'admin_content' %}text-green-700 bg-green-50{% else %}text-gray-600 hover:text-green-700 hover:bg-green-50{% endif %} transition"><i class="fa-solid fa-edit text-lg min-w-[20px]"></i><span class="sidebar-text">Content</span></a>
-      
-      
-      <a href="{% url 'admin_users' %}" class="flex items-center gap-4 px-4 py-3 rounded-xl {% if 'user' in request.resolver_match.url_name or 'customer' in request.resolver_match.url_name %}text-green-700 bg-green-50{% else %}text-gray-600 hover:text-green-700 hover:bg-green-50{% endif %} transition"><i class="fa-solid fa-users text-lg min-w-[20px]"></i><span class="sidebar-text">Customers</span></a>
-      <a href="{% url 'admin_sellers' %}" class="flex items-center gap-4 px-4 py-3 rounded-xl {% if 'seller' in request.resolver_match.url_name %}text-green-700 bg-green-50{% else %}text-gray-600 hover:text-green-700 hover:bg-green-50{% endif %} transition"><i class="fa-solid fa-store text-lg min-w-[20px]"></i><span class="sidebar-text">Sellers</span></a>
-      <a href="{% url 'messages_inbox' %}" class="flex items-center gap-4 px-4 py-3 rounded-xl text-gray-600 hover:text-green-700 hover:bg-green-50 transition relative"><i class="fa-solid fa-message text-lg min-w-[20px]"></i><span class="sidebar-text">Messages</span>{% if unread_messages_count > 0 %}<span class="absolute right-3 top-1/2 -translate-y-1/2 bg-red-500 text-white text-xs font-bold rounded-full min-w-[20px] h-5 flex items-center justify-center px-1.5">{{ unread_messages_count }}</span>{% endif %}</a>
-      <a href="/admin/" class="flex items-center gap-4 px-4 py-3 rounded-xl text-gray-600 hover:text-green-700 hover:bg-green-50 transition"><i class="fa-solid fa-cog text-lg min-w-[20px]"></i><span class="sidebar-text">Django Admin</span></a>
-    </nav>
-  </aside>
-
-  <!-- Overlay for mobile -->
-  <div id="overlay" class="fixed inset-0 bg-black/50 z-30 hidden lg:hidden"></div>
-        
-  <!-- Main Content -->
-  <div id="mainContent" class="lg:ml-[280px] flex-1 flex flex-col min-h-screen pt-20 transition-all">
-            <div class="p-6">
-                <div class="mb-6 flex items-center justify-between">
-                    <div>
-                        <h1 class="text-3xl font-bold text-gray-800">Products View</h1>
-                        <p class="text-gray-600">View all pandesal products</p>
-                    </div>
-                </div>
-
-                <!-- Messages -->
-                {% if messages %}
-                    {% for message in messages %}
-                        <div class="mb-4 p-4 rounded-md {% if message.tags == 'success' %}bg-green-100 text-green-700{% elif message.tags == 'error' %}bg-red-100 text-red-700{% else %}bg-blue-100 text-blue-700{% endif %}">
-                            {{ message }}
-                        </div>
-                    {% endfor %}
-                {% endif %}
-
-
-
-                <!-- Products by Shop -->
-                <div class="products-container">
-                    {% regroup page_obj by seller as shop_list %}
-                    {% for shop in shop_list %}
-                    <div class="mb-12 shop-section">
-                        <div class="flex items-center gap-4 mb-6 border-b border-gray-200 pb-4">
-                            <div class="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center text-green-700 text-xl font-bold shadow-sm">
-                                <i class="fas fa-store"></i>
-                            </div>
-                            <div>
-                                <h2 class="text-2xl font-bold text-gray-800">
-                                    {% if shop.grouper %}{{ shop.grouper.shop_name|default:shop.grouper.username }}{% else %}Official PandesalHub{% endif %}
-                                </h2>
-                                <p class="text-gray-500 text-sm flex items-center gap-1">
-                                    <i class="fas {% if shop.grouper %}fa-user-tag{% else %}fa-check-circle text-green-600{% endif %}"></i>
-                                    {% if shop.grouper %}Independent Vendor{% else %}Main Bakery{% endif %}
-                                </p>
-                            </div>
-                        </div>
-                        
-                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 shop-grid">
-                            {% for product in shop.list %}
-                            <div class="product-card bg-white rounded-lg shadow overflow-hidden" data-type="{% if product.allow_reservation %}reservation{% else %}order{% endif %}">
-                                    {% if product.image %}
-                                        <img src="{{ product.image.url }}" alt="{{ product.name }}" class="w-full h-64 object-cover">
-                                    {% else %}
-                                        <div class="w-full h-64 bg-gray-200 flex items-center justify-center">
-                                            <i class="fas fa-image text-gray-400 text-4xl"></i>
-                                        </div>
-                                    {% endif %}
-                                    <div class="p-4">
-                                        <div class="flex items-center justify-between mb-2">
-                                            <h3 class="text-lg font-semibold text-gray-800">{{ product.name }}</h3>
-                                            {% if product.is_available and product.is_available_now %}
-                                                <span class="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full whitespace-nowrap">
-                                                    <i class="fas fa-check-circle"></i> Available
-                                                </span>
-                                            {% elif product.is_available and not product.is_available_now %}
-                                                <span class="bg-gray-100 text-gray-800 text-xs px-2 py-1 rounded-full whitespace-nowrap">
-                                                    <i class="fas fa-clock"></i> Closed
-                                                </span>
-                                            {% else %}
-                                                <span class="bg-red-100 text-red-800 text-xs px-2 py-1 rounded-full whitespace-nowrap">
-                                                    <i class="fas fa-times-circle"></i> Unavail
-                                                </span>
-                                            {% endif %}
-                                        </div>
-                                        
-                                        <p class="text-green-600 font-bold text-xl mb-2">₱{{ product.price }}</p>
-                                        
-                                        <!-- Description with Read More -->
-                                        <div class="mb-2">
-                                            <p class="text-gray-600 text-sm description-text" id="desc-{{ product.id }}">
-                                                <span class="description-short">{{ product.description|truncatewords:15 }}</span>
-                                                <span class="description-full hidden">{{ product.description }}</span>
-                                            </p>
-                                            {% if product.description|wordcount > 15 %}
-                                                <button onclick="toggleDescription({{ product.id }})" class="text-green-600 hover:text-green-700 text-xs font-medium mt-1">
-                                                    <span class="read-more-btn">Read More</span>
-                                                    <span class="read-less-btn hidden">Read Less</span>
-                                                </button>
-                                            {% endif %}
-                                        </div>
-                                        
-                                        <!-- Stock Info (Order Products Only) -->
-                                        {% if 'order_now' in product.categories %}
-                                        <div class="mb-2">
-                                            <span class="inline-block {% if product.stock <= 5 %}bg-red-100 text-red-800{% else %}bg-gray-100 text-gray-800{% endif %} text-xs px-2 py-1 rounded-full">
-                                                Stock: {{ product.stock }} pcs
-                                            </span>
-                                        </div>
-                                        {% endif %}
-                                        
-                                        <!-- Minimum Order Quantity (Reservation Products Only) -->
-                                        {% if 'reservation' in product.categories %}
-                                        <div class="mb-2">
-                                            <span class="inline-block bg-purple-100 text-purple-800 text-xs px-2 py-1 rounded-full">
-                                                Min Order: {{ product.min_order_quantity|default:10 }} pcs
-                                            </span>
-                                        </div>
-                                        {% endif %}
-                                        
-                                        <!-- Availability Info -->
-                                        <div class="mb-4">
-                                            <p class="text-xs text-gray-500">{{ product.get_availability_display }}</p>
-                                        </div>
-                                    </div>
-                            </div>
-                            {% endfor %}
-                        </div>
-                    </div>
-                    {% empty %}
-                        <div class="col-span-full text-center py-16 bg-white/80 rounded-2xl border w-full">
-                            <div class="w-24 h-24 bg-green-50 rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner">
-                                <i class="fas fa-bread-slice text-green-300 text-4xl"></i>
-                            </div>
-                            <h3 class="text-2xl font-bold text-gray-800 mb-2">No products found</h3>
-                            <p class="text-gray-500 mb-6 max-w-md mx-auto">There are currently no products available in the marketplace.</p>
-                        </div>
-                    {% endfor %}
-                </div>
-
-                <!-- Pagination -->
-                {% if page_obj.has_other_pages %}
-                    <div class="mt-8 flex items-center justify-between">
-                        <div class="flex-1 flex justify-between sm:hidden">
-                            {% if page_obj.has_previous %}
-                                <a href="?page={{ page_obj.previous_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}" 
-                                   class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
-                                    Previous
-                                </a>
-                            {% endif %}
-                            {% if page_obj.has_next %}
-                                <a href="?page={{ page_obj.next_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}" 
-                                   class="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
-                                    Next
-                                </a>
-                            {% endif %}
-                        </div>
-                        <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
-                            <div>
-                                <p class="text-sm text-gray-700">
-                                    Showing <span class="font-medium">{{ page_obj.start_index }}</span> to <span class="font-medium">{{ page_obj.end_index }}</span> of <span class="font-medium">{{ page_obj.paginator.count }}</span> results
-                                </p>
-                            </div>
-                            <div>
-                                <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px">
-                                    {% if page_obj.has_previous %}
-                                        <a href="?page={{ page_obj.previous_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}" 
-                                           class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
-                                            <i class="fas fa-chevron-left"></i>
-                                        </a>
-                                    {% endif %}
-                                    
-                                    {% for num in page_obj.paginator.page_range %}
-                                        {% if page_obj.number == num %}
-                                            <span class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-green-50 text-sm font-medium text-green-600">{{ num }}</span>
-                                        {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
-                                            <a href="?page={{ num }}{% if search_query %}&search={{ search_query }}{% endif %}" 
-                                               class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50">{{ num }}</a>
-                                        {% endif %}
-                                    {% endfor %}
-                                    
-                                    {% if page_obj.has_next %}
-                                        <a href="?page={{ page_obj.next_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}" 
-                                           class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
-                                            <i class="fas fa-chevron-right"></i>
-                                        </a>
-                                    {% endif %}
-                                </nav>
-                            </div>
-                        </div>
-                    </div>
-                {% endif %}
-            </div>
-        </div>
-    </div>
-
-
-  <script>
-    // Sidebar toggle
-    const sidebar = document.getElementById('sidebar');
-    const overlay = document.getElementById('overlay');
-    const sidebarToggle = document.getElementById('sidebarToggle');
-    const mainContent = document.getElementById('mainContent');
-    
-    if (sidebarToggle && sidebar && overlay && mainContent) {
-      sidebarToggle.addEventListener('click', function() {
-        if (window.innerWidth < 1024) {
-          sidebar.classList.toggle('show');
-          overlay.classList.toggle('hidden');
-        } else {
-          sidebar.classList.toggle('collapsed');
-          if (sidebar.classList.contains('collapsed')) {
-            mainContent.style.marginLeft = '80px';
-          } else {
-            mainContent.style.marginLeft = '280px';
-          }
-        }
-      });
-      
-      overlay.addEventListener('click', function() {
-        sidebar.classList.remove('show');
-        overlay.classList.add('hidden');
-      });
-      
-      window.addEventListener('resize', function() {
-        if (window.innerWidth >= 1024) {
-          overlay.classList.add('hidden');
-          sidebar.classList.remove('show');
-          if (sidebar.classList.contains('collapsed')) {
-            mainContent.style.marginLeft = '80px';
-          } else {
-            mainContent.style.marginLeft = '280px';
-          }
-        } else {
-          sidebar.classList.remove('collapsed');
-          mainContent.style.marginLeft = '0';
-        }
-      });
+{% block extra_js %}
+<script>
+  // Toggle description Read More/Less
+  function toggleDescription(productId) {
+    const descElement = document.getElementById('desc-' + productId);
+    const shortText = descElement.querySelector('.description-short');
+    const fullText = descElement.querySelector('.description-full');
+    const button = descElement.parentElement.querySelector('button');
+    const readMoreBtn = button.querySelector('.read-more-btn');
+    const readLessBtn = button.querySelector('.read-less-btn');
+    if (shortText.classList.contains('hidden')) {
+      shortText.classList.remove('hidden');
+      fullText.classList.add('hidden');
+      readMoreBtn.classList.remove('hidden');
+      readLessBtn.classList.add('hidden');
+    } else {
+      shortText.classList.add('hidden');
+      fullText.classList.remove('hidden');
+      readMoreBtn.classList.add('hidden');
+      readLessBtn.classList.remove('hidden');
     }
-
-    function toggleDropdown(id) {
-      const dropdown = document.getElementById(id);
-      const allDropdowns = document.querySelectorAll('.dropdown-menu');
-      allDropdowns.forEach(d => {
-        if (d.id !== id) d.classList.remove('show');
-      });
-      dropdown.classList.toggle('show');
-    }
-
-    document.addEventListener('click', function(e) {
-      if (!e.target.closest('.relative')) {
-        document.querySelectorAll('.dropdown-menu').forEach(d => {
-          d.classList.remove('show');
-        });
-      }
-    });
-
-
-    // Toggle description Read More/Less
-    function toggleDescription(productId) {
-      const descElement = document.getElementById('desc-' + productId);
-      const shortText = descElement.querySelector('.description-short');
-      const fullText = descElement.querySelector('.description-full');
-      const button = descElement.parentElement.querySelector('button');
-      const readMoreBtn = button.querySelector('.read-more-btn');
-      const readLessBtn = button.querySelector('.read-less-btn');
-      
-      if (shortText.classList.contains('hidden')) {
-        // Show short, hide full
-        shortText.classList.remove('hidden');
-        fullText.classList.add('hidden');
-        readMoreBtn.classList.remove('hidden');
-        readLessBtn.classList.add('hidden');
-      } else {
-        // Show full, hide short
-        shortText.classList.add('hidden');
-        fullText.classList.remove('hidden');
-        readMoreBtn.classList.add('hidden');
-        readLessBtn.classList.remove('hidden');
-      }
-    }
-  </script>
-</body>
-</html>
+  }
+</script>
+{% endblock %}

@@ -2,14 +2,16 @@
 
 {% block title %}My Products - Seller Dashboard{% endblock %}
 
-{% block content %}
-<div class="flex justify-between items-center mb-6">
-        <h1 class="text-3xl font-bold text-gray-800">My Products</h1>
-        <a href="{% url 'seller_product_create' %}" class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white font-semibold rounded shadow transition">
-          <i class="fas fa-plus mr-2"></i> Add Product
-        </a>
-      </div>
+{% block page_title %}My Products{% endblock %}
+{% block page_subtitle %}Manage your catalog and inventory{% endblock %}
 
+{% block header_actions %}
+<button type="button" onclick="openProductModal('{% url 'seller_product_create' %}?modal=1','Add Product')" class="px-4 py-2.5 bg-moss hover:bg-fern text-white font-semibold rounded-2xl shadow transition">
+  <i class="fas fa-plus mr-2"></i> Add Product
+</button>
+{% endblock %}
+
+{% block content %}
       {% if messages %}
         {% for message in messages %}
           <div class="mb-4 p-4 rounded bg-green-100 text-green-800">{{ message }}</div>
@@ -50,8 +52,8 @@
                 {% endif %}
               </td>
               <td class="p-4">
-                <a href="{% url 'seller_product_edit' product.id %}" class="text-blue-600 hover:text-blue-800 font-medium text-sm border border-blue-200 px-3 py-1 rounded hover:bg-blue-50 transition mr-2">Edit</a>
-                <a href="{% url 'seller_product_delete' product.id %}" class="text-red-600 hover:text-red-800 font-medium text-sm border border-red-200 px-3 py-1 rounded hover:bg-red-50 transition">Delete</a>
+                <button type="button" onclick="openProductModal('{% url 'seller_product_edit' product.id %}?modal=1','Edit Product')" class="text-blue-600 hover:text-blue-800 font-medium text-sm border border-blue-200 px-3 py-1 rounded hover:bg-blue-50 transition mr-2">Edit</button>
+                <a href="{% url 'seller_product_delete' product.id %}" onclick="event.preventDefault();openProductModal('{% url 'seller_product_delete' product.id %}?modal=1','Delete Product','sm')" class="text-red-600 hover:text-red-800 font-medium text-sm border border-red-200 px-3 py-1 rounded hover:bg-red-50 transition">Delete</a>
               </td>
             </tr>
             {% empty %}
@@ -60,4 +62,52 @@
           </tbody>
         </table>
       </div>
+
+      <!-- Add / Edit / Delete Product modal -->
+      <div id="productModal" class="fixed inset-0 z-[60] hidden items-center justify-center p-4">
+        <div class="absolute inset-0 bg-pine/40 backdrop-blur-sm" onclick="closeProductModal()"></div>
+        <div id="productModalPanel" class="relative w-full max-w-2xl bg-white rounded-3xl shadow-2xl overflow-hidden" style="height:88vh;">
+          <iframe id="productModalFrame" src="" title="Product form" class="w-full h-full" style="border:0; display:block;"></iframe>
+        </div>
+      </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  function openProductModal(url, title, size) {
+    var m = document.getElementById('productModal');
+    var panel = document.getElementById('productModalPanel');
+    var frame = document.getElementById('productModalFrame');
+    if (size === 'sm') {
+      panel.classList.remove('max-w-2xl'); panel.classList.add('max-w-md');
+      panel.style.height = 'auto';
+      frame.style.height = '340px';
+    } else {
+      panel.classList.remove('max-w-md'); panel.classList.add('max-w-2xl');
+      panel.style.height = '88vh';
+      frame.style.height = '100%';
+    }
+    frame.src = url;
+    m.classList.remove('hidden'); m.classList.add('flex');
+    document.body.classList.add('overflow-hidden');
+  }
+  function closeProductModal() {
+    var m = document.getElementById('productModal');
+    m.classList.add('hidden'); m.classList.remove('flex');
+    document.getElementById('productModalFrame').src = '';
+    document.body.classList.remove('overflow-hidden');
+  }
+  window.addEventListener('message', function (e) {
+    if (e.data && e.data.type === 'sellerProductSaved') {
+      closeProductModal();
+      window.location.reload();
+    }
+  });
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape') {
+      var m = document.getElementById('productModal');
+      if (m && !m.classList.contains('hidden')) closeProductModal();
+    }
+  });
+</script>
 {% endblock %}
