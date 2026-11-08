@@ -1,0 +1,426 @@
+{% extends 'pandesal/seller/seller_base.html' %}
+{% load static %}
+
+{% block title %}Profile & Settings - Seller Dashboard{% endblock %}
+
+{% block page_title %}Profile / Settings{% endblock %}
+{% block page_subtitle %}Manage your seller profile and account details{% endblock %}
+
+{% block header_actions %}
+<a href="{% url 'seller_shop_settings' %}" class="px-4 py-2.5 bg-white hover:bg-leaf text-pine font-semibold rounded-2xl shadow-sm border border-moss/20 transition flex items-center gap-2 text-sm">
+  <i class="bi bi-shop text-moss"></i>
+  <span>Shop Settings</span>
+</a>
+{% endblock %}
+
+{% block content %}
+<form method="post" enctype="multipart/form-data" action="{% url 'user_profile' %}" class="max-w-7xl mx-auto">
+  {% csrf_token %}
+
+  <div class="flex flex-col lg:flex-row gap-6 items-start">
+
+    <!-- Left Navigation Card (Desktop Only: hidden on mobile) -->
+    <aside class="hidden lg:block w-64 xl:w-72 shrink-0 sticky top-6">
+      <div class="bg-white rounded-3xl shadow-sm border border-gray-100 p-3 space-y-1">
+        <!-- Personal Information -->
+        <a href="#section-personal" onclick="scrollToSection('section-personal', this); return false;" id="nav-personal"
+           class="section-nav-link active flex items-start gap-3.5 p-3.5 rounded-2xl transition bg-leaf/90 text-pine">
+          <div class="nav-icon-box w-10 h-10 rounded-2xl flex items-center justify-center shrink-0 transition bg-moss text-white shadow-xs">
+            <i class="fa-solid fa-user text-sm"></i>
+          </div>
+          <div class="min-w-0">
+            <div class="font-bold text-sm text-pine leading-tight">Personal Information</div>
+            <div class="text-[11px] text-gray-500 leading-tight mt-1">Update your profile details</div>
+          </div>
+        </a>
+
+        <!-- Address & Location -->
+        <a href="#section-address" onclick="scrollToSection('section-address', this); return false;" id="nav-address"
+           class="section-nav-link flex items-start gap-3.5 p-3.5 rounded-2xl transition hover:bg-gray-50 text-gray-700">
+          <div class="nav-icon-box w-10 h-10 rounded-2xl flex items-center justify-center shrink-0 transition bg-gray-100 text-gray-600">
+            <i class="fa-solid fa-location-dot text-sm"></i>
+          </div>
+          <div class="min-w-0">
+            <div class="font-bold text-sm text-gray-800 leading-tight">Address & Location</div>
+            <div class="text-[11px] text-gray-500 leading-tight mt-1">Your delivery and pickup reference</div>
+          </div>
+        </a>
+
+        <!-- Security & Password -->
+        <a href="#section-security" onclick="scrollToSection('section-security', this); return false;" id="nav-security"
+           class="section-nav-link flex items-start gap-3.5 p-3.5 rounded-2xl transition hover:bg-gray-50 text-gray-700">
+          <div class="nav-icon-box w-10 h-10 rounded-2xl flex items-center justify-center shrink-0 transition bg-gray-100 text-gray-600">
+            <i class="fa-solid fa-shield-halved text-sm"></i>
+          </div>
+          <div class="min-w-0">
+            <div class="font-bold text-sm text-gray-800 leading-tight">Security & Password</div>
+            <div class="text-[11px] text-gray-500 leading-tight mt-1">Change your password</div>
+          </div>
+        </a>
+      </div>
+    </aside>
+
+    <!-- Right Content Column -->
+    <div class="flex-1 w-full min-w-0 space-y-6">
+
+      <!-- Section 1: Personal Information Card -->
+      <section id="section-personal" class="bg-white rounded-3xl shadow-sm border border-gray-100 p-6 lg:p-8 scroll-mt-6">
+        <!-- Card Header -->
+        <div class="flex flex-wrap items-center justify-between gap-3 pb-6 mb-6 border-b border-gray-100">
+          <div class="flex items-center gap-3">
+            <span class="w-10 h-10 rounded-2xl bg-leaf text-moss flex items-center justify-center text-lg">
+              <i class="fa-solid fa-user-circle"></i>
+            </span>
+            <div>
+              <h2 class="text-xl font-bold text-pine">Personal Information</h2>
+              <p class="text-xs text-gray-500">Update your photo and personal profile details</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Avatar & Cloud Upload Box -->
+        <div class="flex flex-col sm:flex-row items-center gap-6 mb-8 p-5 rounded-2xl bg-[#F8FCF9] border border-moss/10">
+          <div class="relative group shrink-0">
+            <div class="w-24 h-24 rounded-full overflow-hidden ring-4 ring-moss/20 bg-leaf flex items-center justify-center shadow-inner">
+              {% if profile.profile_picture %}
+                <img id="avatarPreview" src="{{ profile.profile_picture.url }}" alt="Profile Photo" class="w-full h-full object-cover">
+              {% else %}
+                <img id="avatarPreview" src="{% static 'pandesal/img/pandesalhub_icon.png' %}" alt="Profile Photo" class="w-full h-full object-cover">
+              {% endif %}
+            </div>
+            <label for="sellerProfilePicInput" class="absolute bottom-0 right-0 w-8 h-8 rounded-full bg-moss text-white flex items-center justify-center shadow-md cursor-pointer hover:bg-fern transition" title="Change Photo">
+              <i class="fa-solid fa-camera text-xs"></i>
+            </label>
+          </div>
+
+          <div class="flex-1 text-center sm:text-left min-w-0">
+            <div class="flex items-center gap-2.5 justify-center sm:justify-start mb-1">
+              <span class="text-moss text-lg"><i class="fa-solid fa-cloud-arrow-up"></i></span>
+              <h3 class="font-semibold text-pine text-base">Profile Photo</h3>
+            </div>
+            <p class="text-xs text-gray-500 mb-3">Upload a clean square image (JPG, PNG or GIF). Recommended 300x300.</p>
+            <input type="file" id="sellerProfilePicInput" name="profile_picture" accept="image/*"
+                   onchange="previewProfileImage(event)"
+                   class="block text-xs text-gray-500 file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-leaf file:text-moss hover:file:bg-moss/20 cursor-pointer">
+          </div>
+        </div>
+
+        <!-- Personal Info Inputs -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+          <div>
+            <label class="block text-xs font-semibold text-pine uppercase tracking-wider mb-2">First Name <span class="text-red-500">*</span></label>
+            <div class="relative">
+              <i class="fa-solid fa-user absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-sm"></i>
+              <input type="text" name="first_name" value="{{ user.first_name }}" placeholder="First name"
+                     class="w-full pl-11 pr-4 py-2.5 bg-white border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-fern/40 focus:border-moss text-sm text-gray-800 transition shadow-xs">
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold text-pine uppercase tracking-wider mb-2">Last Name <span class="text-red-500">*</span></label>
+            <div class="relative">
+              <i class="fa-solid fa-user absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-sm"></i>
+              <input type="text" name="last_name" value="{{ user.last_name }}" placeholder="Last name"
+                     class="w-full pl-11 pr-4 py-2.5 bg-white border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-fern/40 focus:border-moss text-sm text-gray-800 transition shadow-xs">
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold text-pine uppercase tracking-wider mb-2">Email Address <span class="text-red-500">*</span></label>
+            <div class="relative">
+              <i class="fa-solid fa-envelope absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-sm"></i>
+              <input type="email" name="email" value="{{ user.email }}" required placeholder="email@example.com"
+                     class="w-full pl-11 pr-4 py-2.5 bg-white border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-fern/40 focus:border-moss text-sm text-gray-800 transition shadow-xs">
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold text-pine uppercase tracking-wider mb-2">Phone Number <span class="text-red-500">*</span></label>
+            <div class="relative">
+              <i class="fa-solid fa-phone absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-sm"></i>
+              <input type="text" name="phone" value="{{ profile.phone }}" required placeholder="e.g. 09123456789"
+                     class="w-full pl-11 pr-4 py-2.5 bg-white border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-fern/40 focus:border-moss text-sm text-gray-800 transition shadow-xs">
+            </div>
+          </div>
+
+          <div class="md:col-span-2">
+            <label class="block text-xs font-semibold text-pine uppercase tracking-wider mb-2">Birth Date</label>
+            <div class="relative">
+              <i class="fa-solid fa-calendar-days absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-sm pointer-events-none"></i>
+              <input type="date" name="birth_date" value="{{ profile.birth_date|date:'Y-m-d' }}"
+                     class="w-full pl-11 pr-4 py-2.5 bg-white border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-fern/40 focus:border-moss text-sm text-gray-800 transition shadow-xs">
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Section 2: Address & Location Card -->
+      <section id="section-address" class="bg-white rounded-3xl shadow-sm border border-gray-100 p-6 lg:p-8 scroll-mt-6">
+        <!-- Card Header with Edit button -->
+        <div class="flex flex-wrap items-center justify-between gap-3 pb-6 mb-6 border-b border-gray-100">
+          <div class="flex items-center gap-3">
+            <span class="w-10 h-10 rounded-2xl bg-leaf text-moss flex items-center justify-center text-lg">
+              <i class="fa-solid fa-location-dot"></i>
+            </span>
+            <div>
+              <h2 class="text-xl font-bold text-pine">Address & Location</h2>
+              <p class="text-xs text-gray-500">Your registered base and pickup/delivery reference</p>
+            </div>
+          </div>
+          <button type="button" onclick="document.getElementById('barangaySelect').focus()" class="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-2xl border border-gray-200 bg-white hover:bg-gray-50 text-xs font-semibold text-gray-700 transition shadow-xs">
+            <i class="fa-solid fa-pen text-xs text-moss"></i>
+            <span>Edit</span>
+          </button>
+        </div>
+
+        <div class="mb-5 p-3.5 rounded-2xl bg-blue-50/70 border border-blue-100 text-blue-900 text-xs flex items-center gap-2.5">
+          <i class="fa-solid fa-location-dot text-blue-600 text-sm shrink-0"></i>
+          <span>Delivery and local operations are centered within the <strong>Municipality of Naval, Biliran</strong>.</span>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+          <div>
+            <label class="block text-xs font-semibold text-pine uppercase tracking-wider mb-2">Barangay <span class="text-red-500">*</span></label>
+            <select name="barangay" id="barangaySelect" required
+                    class="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-fern/40 focus:border-moss text-sm text-gray-800 transition shadow-xs">
+              <option value="">-- Select Barangay --</option>
+              <option value="agpangi" {% if profile.barangay == 'agpangi' %}selected{% endif %}>Agpangi</option>
+              <option value="anislagan" {% if profile.barangay == 'anislagan' %}selected{% endif %}>Anislagan</option>
+              <option value="atipolo" {% if profile.barangay == 'atipolo' %}selected{% endif %}>Atipolo</option>
+              <option value="borac" {% if profile.barangay == 'borac' %}selected{% endif %}>Borac</option>
+              <option value="cabungaan" {% if profile.barangay == 'cabungaan' %}selected{% endif %}>Cabungaan</option>
+              <option value="calumpang" {% if profile.barangay == 'calumpang' %}selected{% endif %}>Calumpang</option>
+              <option value="capiñahan" {% if profile.barangay == 'capiñahan' %}selected{% endif %}>Capiñahan</option>
+              <option value="caraycaray" {% if profile.barangay == 'caraycaray' %}selected{% endif %}>Caraycaray</option>
+              <option value="catmon" {% if profile.barangay == 'catmon' %}selected{% endif %}>Catmon</option>
+              <option value="haguikhikan" {% if profile.barangay == 'haguikhikan' %}selected{% endif %}>Haguikhikan</option>
+              <option value="imelda" {% if profile.barangay == 'imelda' %}selected{% endif %}>Imelda</option>
+              <option value="larrazabal" {% if profile.barangay == 'larrazabal' %}selected{% endif %}>Larrazabal</option>
+              <option value="libtong" {% if profile.barangay == 'libtong' %}selected{% endif %}>Libtong</option>
+              <option value="libertad" {% if profile.barangay == 'libertad' %}selected{% endif %}>Libertad</option>
+              <option value="lico" {% if profile.barangay == 'lico' %}selected{% endif %}>Lico</option>
+              <option value="lucsoon" {% if profile.barangay == 'lucsoon' %}selected{% endif %}>Lucsoon</option>
+              <option value="mabini" {% if profile.barangay == 'mabini' %}selected{% endif %}>Mabini</option>
+              <option value="padre_inocentes_garcia" {% if profile.barangay == 'padre_inocentes_garcia' %}selected{% endif %}>Padre Inocentes Garcia (Pob.)</option>
+              <option value="padre_sergio_eamiguel" {% if profile.barangay == 'padre_sergio_eamiguel' %}selected{% endif %}>Padre Sergio Eamiguel</option>
+              <option value="sabang" {% if profile.barangay == 'sabang' %}selected{% endif %}>Sabang</option>
+              <option value="san_pablo" {% if profile.barangay == 'san_pablo' %}selected{% endif %}>San Pablo</option>
+              <option value="santo_nino" {% if profile.barangay == 'santo_nino' %}selected{% endif %}>Santo Niño</option>
+              <option value="santissimo_rosario" {% if profile.barangay == 'santissimo_rosario' %}selected{% endif %}>Santissimo Rosario Pob. (Santo Rosa)</option>
+              <option value="talustusan" {% if profile.barangay == 'talustusan' %}selected{% endif %}>Talustusan</option>
+              <option value="villa_caneja" {% if profile.barangay == 'villa_caneja' %}selected{% endif %}>Villa Caneja</option>
+              <option value="villa_consuelo" {% if profile.barangay == 'villa_consuelo' %}selected{% endif %}>Villa Consuelo</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold text-pine uppercase tracking-wider mb-2">Zone / Purok <span class="text-red-500">*</span></label>
+            <div class="relative">
+              <i class="fa-solid fa-map-pin absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-sm"></i>
+              <input type="text" name="zone" value="{{ profile.zone }}" required placeholder="e.g. Zone 1, Purok 3"
+                     class="w-full pl-11 pr-4 py-2.5 bg-white border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-fern/40 focus:border-moss text-sm text-gray-800 transition shadow-xs">
+            </div>
+          </div>
+
+          <div class="md:col-span-2">
+            <label class="block text-xs font-semibold text-pine uppercase tracking-wider mb-2">Additional Notes / Landmark</label>
+            <textarea name="additional_notes" rows="2" placeholder="e.g. Near public market, behind barangay hall, green gate"
+                      class="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-fern/40 focus:border-moss text-sm text-gray-800 transition shadow-xs">{{ profile.additional_notes }}</textarea>
+          </div>
+        </div>
+      </section>
+
+      <!-- Section 3: Security & Password Card -->
+      <section id="section-security" class="bg-white rounded-3xl shadow-sm border border-gray-100 p-6 lg:p-8 scroll-mt-6">
+        <div class="flex items-center gap-3 pb-6 mb-6 border-b border-gray-100">
+          <span class="w-10 h-10 rounded-2xl bg-leaf text-moss flex items-center justify-center text-lg">
+            <i class="fa-solid fa-shield-halved"></i>
+          </span>
+          <div>
+            <h2 class="text-xl font-bold text-pine">Security & Password</h2>
+            <p class="text-xs text-gray-500">Leave password fields blank if keeping your current password</p>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+          <div>
+            <label class="block text-xs font-semibold text-pine uppercase tracking-wider mb-2">Current Password</label>
+            <div class="relative">
+              <input type="password" name="current_password" id="sellerCurrentPassword" placeholder="Current password"
+                     class="w-full px-4 py-2.5 pr-10 bg-white border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-fern/40 focus:border-moss text-sm text-gray-800 transition shadow-xs">
+              <button type="button" onclick="togglePassword('sellerCurrentPassword', 'sellerEye0')" class="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                <i id="sellerEye0" class="fas fa-eye text-sm"></i>
+              </button>
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold text-pine uppercase tracking-wider mb-2">New Password</label>
+            <div class="relative">
+              <input type="password" name="new_password" id="sellerNewPassword" placeholder="New password"
+                     minlength="8" maxlength="20"
+                     class="w-full px-4 py-2.5 pr-10 bg-white border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-fern/40 focus:border-moss text-sm text-gray-800 transition shadow-xs"
+                     oninput="checkPasswordRequirements(this.value)"
+                     onfocus="document.getElementById('pwdReqsBox').classList.remove('hidden')"
+                     onblur="document.getElementById('pwdReqsBox').classList.add('hidden')">
+              <button type="button" onclick="togglePassword('sellerNewPassword', 'sellerEye1')" class="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                <i id="sellerEye1" class="fas fa-eye text-sm"></i>
+              </button>
+            </div>
+            <!-- Live Password Requirements Box -->
+            <div id="pwdReqsBox" class="hidden mt-2 p-3 bg-[#F8FCF9] border border-moss/20 rounded-2xl text-[11px] text-gray-600 space-y-1">
+              <div id="req-length" class="flex items-center gap-2"><span class="text-gray-400">○</span> 8-20 characters</div>
+              <div id="req-upper" class="flex items-center gap-2"><span class="text-gray-400">○</span> At least 1 capital letter</div>
+              <div id="req-lower" class="flex items-center gap-2"><span class="text-gray-400">○</span> At least 1 lowercase letter</div>
+              <div id="req-num" class="flex items-center gap-2"><span class="text-gray-400">○</span> At least 1 number</div>
+              <div id="req-space" class="flex items-center gap-2"><span class="text-gray-400">○</span> No spaces</div>
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold text-pine uppercase tracking-wider mb-2">Confirm New Password</label>
+            <div class="relative">
+              <input type="password" name="confirm_password" id="sellerConfirmPassword" placeholder="Confirm new password"
+                     class="w-full px-4 py-2.5 pr-10 bg-white border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-fern/40 focus:border-moss text-sm text-gray-800 transition shadow-xs">
+              <button type="button" onclick="togglePassword('sellerConfirmPassword', 'sellerEye2')" class="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                <i id="sellerEye2" class="fas fa-eye text-sm"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Action Buttons Footer -->
+      <div class="flex flex-wrap items-center justify-between gap-4 pt-2 pb-8">
+        <a href="{% url 'seller_dashboard' %}" class="px-5 py-2.5 rounded-2xl border border-gray-200 bg-white hover:bg-gray-50 text-pine text-sm font-medium transition shadow-sm">
+          <i class="fa-solid fa-arrow-left mr-1.5"></i> Back to Dashboard
+        </a>
+        <button type="submit" class="px-8 py-3 bg-moss hover:bg-fern text-white font-semibold rounded-2xl shadow-md hover:shadow-lg transition flex items-center gap-2 text-sm">
+          <i class="fa-solid fa-check"></i>
+          <span>Save Profile Changes</span>
+        </button>
+      </div>
+
+    </div>
+  </div>
+</form>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  function previewProfileImage(event) {
+    const file = event.target.files && event.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const preview = document.getElementById('avatarPreview');
+        if (preview) {
+          preview.src = e.target.result;
+        }
+      };
+      reader.readAsDataURL(file);
+    }
+  }
+
+  function togglePassword(inputId, iconId) {
+    const input = document.getElementById(inputId);
+    const icon = document.getElementById(iconId);
+    if (!input || !icon) return;
+    if (input.type === 'password') {
+      input.type = 'text';
+      icon.classList.remove('fa-eye');
+      icon.classList.add('fa-eye-slash');
+    } else {
+      input.type = 'password';
+      icon.classList.remove('fa-eye-slash');
+      icon.classList.add('fa-eye');
+    }
+  }
+
+  function checkPasswordRequirements(pwd) {
+    const setReq = (id, valid) => {
+      const el = document.getElementById(id);
+      if (!el) return;
+      const label = el.innerText.replace(/^[○✔]\s*/, '');
+      if (valid) {
+        el.className = 'flex items-center gap-2 text-moss font-semibold';
+        el.innerHTML = '<i class="fa-solid fa-check text-moss text-xs"></i> ' + label;
+      } else {
+        el.className = 'flex items-center gap-2 text-gray-500';
+        el.innerHTML = '<span class="text-gray-400">○</span> ' + label;
+      }
+    };
+    setReq('req-length', pwd.length >= 8 && pwd.length <= 20);
+    setReq('req-upper', /[A-Z]/.test(pwd));
+    setReq('req-lower', /[a-z]/.test(pwd));
+    setReq('req-num', /[0-9]/.test(pwd));
+    setReq('req-space', !/\s/.test(pwd) && pwd.length > 0);
+  }
+
+  function scrollToSection(sectionId, linkEl) {
+    const section = document.getElementById(sectionId);
+    if (section) {
+      section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+    document.querySelectorAll('.section-nav-link').forEach(el => {
+      el.classList.remove('active', 'bg-leaf/90', 'text-pine');
+      el.classList.add('hover:bg-gray-50', 'text-gray-700');
+      const iconBox = el.querySelector('.nav-icon-box');
+      if (iconBox) {
+        iconBox.classList.remove('bg-moss', 'text-white', 'shadow-xs');
+        iconBox.classList.add('bg-gray-100', 'text-gray-600');
+      }
+    });
+    if (linkEl) {
+      linkEl.classList.add('active', 'bg-leaf/90', 'text-pine');
+      linkEl.classList.remove('hover:bg-gray-50', 'text-gray-700');
+      const iconBox = linkEl.querySelector('.nav-icon-box');
+      if (iconBox) {
+        iconBox.classList.remove('bg-gray-100', 'text-gray-600');
+        iconBox.classList.add('bg-moss', 'text-white', 'shadow-xs');
+      }
+    }
+  }
+
+  // ScrollSpy to highlight side navigation item based on scroll position
+  document.addEventListener('DOMContentLoaded', function() {
+    const sections = ['section-personal', 'section-address', 'section-security'];
+    const navMap = {
+      'section-personal': document.getElementById('nav-personal'),
+      'section-address': document.getElementById('nav-address'),
+      'section-security': document.getElementById('nav-security')
+    };
+
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          const navEl = navMap[entry.target.id];
+          if (navEl) {
+            document.querySelectorAll('.section-nav-link').forEach(el => {
+              el.classList.remove('active', 'bg-leaf/90', 'text-pine');
+              el.classList.add('hover:bg-gray-50', 'text-gray-700');
+              const iconBox = el.querySelector('.nav-icon-box');
+              if (iconBox) {
+                iconBox.classList.remove('bg-moss', 'text-white', 'shadow-xs');
+                iconBox.classList.add('bg-gray-100', 'text-gray-600');
+              }
+            });
+            navEl.classList.add('active', 'bg-leaf/90', 'text-pine');
+            navEl.classList.remove('hover:bg-gray-50', 'text-gray-700');
+            const iconBox = navEl.querySelector('.nav-icon-box');
+            if (iconBox) {
+              iconBox.classList.remove('bg-gray-100', 'text-gray-600');
+              iconBox.classList.add('bg-moss', 'text-white', 'shadow-xs');
+            }
+          }
+        }
+      });
+    }, { rootMargin: '-20% 0px -70% 0px', threshold: 0 });
+
+    sections.forEach(id => {
+      const el = document.getElementById(id);
+      if (el) observer.observe(el);
+    });
+  });
+</script>
+{% endblock %}

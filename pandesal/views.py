@@ -461,9 +461,13 @@ def user_profile(request):
     # Get unread message count
     unread_messages_count = Message.objects.filter(recipient=request.user, is_read=False).count()
 
+    _profile = profile
+    _is_seller = bool(_profile and _profile.user_type == 'seller' and (_profile.is_approved_seller or hasattr(request.user, 'shop')))
+
     context = {
         'user': request.user,
         'profile': profile,
+        'shop': getattr(request.user, 'shop', None),
         'orders': orders,
         'reservations': reservations,
         'notifications': notifications,
@@ -477,6 +481,8 @@ def user_profile(request):
         'unread_notifications_count': unread_notifications_count,
         'unread_messages_count': unread_messages_count,
     }
+    if _is_seller:
+        return render(request, "pandesal/seller/profile.html", context)
     return render(request, "pandesal/user_profile.html", context)
 
 

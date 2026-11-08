@@ -46,6 +46,7 @@ urlpatterns = [
     # Seller Portal
     path("seller/dashboard/", seller_views.seller_dashboard, name="seller_dashboard"),
     path("seller/settings/", seller_views.seller_shop_settings, name="seller_shop_settings"),
+    path("seller/profile/", views.user_profile, name="seller_profile"),
     path("seller/products/", seller_views.seller_products, name="seller_products"),
     path("seller/products/create/", seller_views.seller_product_create, name="seller_product_create"),
     path("seller/products/<int:product_id>/edit/", seller_views.seller_product_edit, name="seller_product_edit"),

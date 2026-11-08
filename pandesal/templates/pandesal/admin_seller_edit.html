@@ -88,7 +88,12 @@
             </div>
             <div>
                 <label for="password1" class="field-label">New Password <span class="text-xs font-normal text-gray-400">(leave blank to keep current)</span></label>
-                <input type="password" name="password1" id="password1" minlength="8" class="field" placeholder="Optional — enter only to change">
+                <div class="relative">
+                    <input type="password" name="password1" id="password1" minlength="8" class="field pr-10" placeholder="Optional — enter only to change">
+                    <button type="button" onclick="togglePassword('password1', 'editSellerEye')" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-tealsoft">
+                        <i id="editSellerEye" class="fas fa-eye"></i>
+                    </button>
+                </div>
             </div>
         </div>
 
@@ -139,6 +144,21 @@
       .catch(() => showAlert('An error occurred while updating.', 'error'));
     });
   });
+
+  function togglePassword(inputId, iconId) {
+    const input = document.getElementById(inputId);
+    const icon = document.getElementById(iconId);
+    if (!input || !icon) return;
+    if (input.type === 'password') {
+      input.type = 'text';
+      icon.classList.remove('fa-eye');
+      icon.classList.add('fa-eye-slash');
+    } else {
+      input.type = 'password';
+      icon.classList.remove('fa-eye-slash');
+      icon.classList.add('fa-eye');
+    }
+  }
 </script>
 </body>
 </html>
