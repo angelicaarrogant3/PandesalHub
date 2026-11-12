@@ -1,14 +1,9 @@
 from django.contrib import admin
 from django.utils.html import format_html
 from django.db.models import Sum
-from .models import Product, Pandesal, AboutPage, ContactInfo, UserProfile, Order, OrderItem, Payment
+from .models import Pandesal, AboutPage, ContactInfo, UserProfile, Order, OrderItem, Payment
 
 
-@admin.register(Product)
-class ProductAdmin(admin.ModelAdmin):
-    list_display = ['name', 'price', 'preparation_days', 'stock', 'image']
-    fields = ['name', 'price', 'preparation_days', 'stock', 'image', 'description']
-    readonly_fields = []
 @admin.register(Pandesal)
 class PandesalAdmin(admin.ModelAdmin):
     list_display = ('name', 'price', 'preparation_days', 'stock', 'image_preview', 'description_preview')
