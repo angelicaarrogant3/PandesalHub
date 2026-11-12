@@ -1,0 +1,191 @@
+{% extends 'pandesal/customer/customer_base.html' %}
+{% load static %}
+
+{% block title %}About PandesalHub - Customer Portal{% endblock %}
+
+{% block page_title %}About PandesalHub{% endblock %}
+{% block page_subtitle %}Learn more about our mission, vision, and local bakeries in Naval, Biliran.{% endblock %}
+
+{% block header_actions %}
+<button type="button" onclick="openFeedbackModal()" 
+        class="hidden sm:inline-flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-[#168A61] hover:bg-[#124D3B] text-white text-xs font-bold transition shadow-xs">
+  <i class="fa-solid fa-comment-dots text-xs"></i>
+  <span>Send Feedback</span>
+</button>
+{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto space-y-6">
+
+  <!-- Main Story Card -->
+  {% if about %}
+    <div class="bg-white rounded-3xl shadow-sm border border-gray-100 p-6 lg:p-8 space-y-6">
+      <!-- Heading & Optional Photo -->
+      <div>
+        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#DDF1E6] text-[#168A61] text-xs font-bold uppercase tracking-wider mb-3">
+          <i class="fa-solid fa-bread-slice"></i>
+          <span>Our Story</span>
+        </div>
+        <h2 class="text-2xl lg:text-3xl font-extrabold text-[#12382D]">{{ about.title|default:"About PandesalHub" }}</h2>
+      </div>
+
+      {% if about.photo %}
+        <div class="rounded-2xl overflow-hidden max-h-80 w-full shadow-inner bg-gray-100">
+          <img src="{{ about.photo.url }}" alt="About PandesalHub" class="w-full h-full object-cover">
+        </div>
+      {% endif %}
+
+      <div class="text-sm text-gray-700 leading-relaxed space-y-4">
+        {{ about.body|linebreaks }}
+      </div>
+
+      <!-- Feature Highlight Badges -->
+      <div class="pt-6 border-t border-gray-100 grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div class="p-4 rounded-2xl bg-[#F8FCF9] border border-[#C7E5D5]/60 text-center space-y-2">
+          <div class="w-12 h-12 rounded-2xl bg-[#DDF1E6] text-[#168A61] flex items-center justify-center mx-auto text-lg shadow-xs">
+            <i class="fa-solid fa-heart"></i>
+          </div>
+          <h3 class="font-bold text-sm text-[#12382D]">Baked Fresh Daily</h3>
+          <p class="text-xs text-gray-500">Every pandesal is baked with authentic Filipino love and care.</p>
+        </div>
+
+        <div class="p-4 rounded-2xl bg-[#F8FCF9] border border-[#C7E5D5]/60 text-center space-y-2">
+          <div class="w-12 h-12 rounded-2xl bg-[#DDF1E6] text-[#168A61] flex items-center justify-center mx-auto text-lg shadow-xs">
+            <i class="fa-solid fa-certificate"></i>
+          </div>
+          <h3 class="font-bold text-sm text-[#12382D]">Traditional Taste</h3>
+          <p class="text-xs text-gray-500">Time-tested recipes passed down through generations of local bakers.</p>
+        </div>
+
+        <div class="p-4 rounded-2xl bg-[#F8FCF9] border border-[#C7E5D5]/60 text-center space-y-2">
+          <div class="w-12 h-12 rounded-2xl bg-[#DDF1E6] text-[#168A61] flex items-center justify-center mx-auto text-lg shadow-xs">
+            <i class="fa-solid fa-leaf"></i>
+          </div>
+          <h3 class="font-bold text-sm text-[#12382D]">Healthy Malunggay</h3>
+          <p class="text-xs text-gray-500">Enriched with fresh nutrients for a healthy morning routine.</p>
+        </div>
+      </div>
+
+      <!-- Mission & Vision Cards -->
+      {% if about.mission and about.mission != 'None' or about.vision and about.vision != 'None' %}
+        <div class="pt-6 border-t border-gray-100 grid grid-cols-1 md:grid-cols-2 gap-5">
+          {% if about.mission and about.mission != 'None' %}
+            <div class="p-5 rounded-2xl bg-white border border-[#C7E5D5] shadow-xs space-y-2">
+              <div class="flex items-center gap-2 text-[#168A61] font-bold text-sm">
+                <i class="fa-solid fa-bullseye"></i>
+                <span>Our Mission</span>
+              </div>
+              <div class="text-xs text-gray-600 leading-relaxed">
+                {{ about.mission|linebreaks }}
+              </div>
+            </div>
+          {% endif %}
+
+          {% if about.vision and about.vision != 'None' %}
+            <div class="p-5 rounded-2xl bg-white border border-[#C7E5D5] shadow-xs space-y-2">
+              <div class="flex items-center gap-2 text-[#25A879] font-bold text-sm">
+                <i class="fa-solid fa-eye"></i>
+                <span>Our Vision</span>
+              </div>
+              <div class="text-xs text-gray-600 leading-relaxed">
+                {{ about.vision|linebreaks }}
+              </div>
+            </div>
+          {% endif %}
+        </div>
+      {% endif %}
+
+      <!-- Send Feedback Banner -->
+      <div class="pt-6 border-t border-gray-100 flex flex-col sm:flex-row items-center justify-between gap-4 p-5 rounded-2xl bg-[#DDF1E6]/50 border border-[#C7E5D5]">
+        <div>
+          <h4 class="font-bold text-sm text-[#12382D]">Have questions or suggestions?</h4>
+          <p class="text-xs text-gray-600">We appreciate your feedback to keep improving PandesalHub.</p>
+        </div>
+        <button type="button" onclick="openFeedbackModal()" 
+                class="px-5 py-2.5 bg-[#168A61] hover:bg-[#124D3B] text-white rounded-2xl font-bold text-xs transition shadow-xs flex items-center gap-1.5 shrink-0">
+          <i class="fa-solid fa-comment-dots text-xs"></i>
+          <span>Send Us Feedback</span>
+        </button>
+      </div>
+
+    </div>
+  {% else %}
+    <!-- Customer-Friendly Empty State -->
+    <div class="bg-white rounded-3xl p-12 text-center border border-gray-100 shadow-sm max-w-lg mx-auto space-y-4">
+      <div class="w-16 h-16 rounded-3xl bg-[#DDF1E6] text-[#168A61] flex items-center justify-center mx-auto text-2xl">
+        <i class="fa-solid fa-circle-info"></i>
+      </div>
+      <div>
+        <h3 class="text-lg font-bold text-[#12382D]">Information about PandesalHub will be available soon.</h3>
+        <p class="text-xs text-gray-500 mt-1">We are updating our community story and local bakery details.</p>
+      </div>
+      <a href="{% url 'shop_user' %}" class="inline-flex items-center gap-2 px-5 py-2.5 bg-[#168A61] hover:bg-[#124D3B] text-white rounded-2xl font-semibold text-xs transition shadow-sm">
+        <i class="fa-solid fa-shop text-xs"></i>
+        <span>Explore Our Pandesal</span>
+      </a>
+    </div>
+  {% endif %}
+
+</div>
+
+<!-- Feedback Modal -->
+<div id="feedbackModal" class="hidden fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 backdrop-blur-xs">
+  <div class="bg-white rounded-3xl max-w-md w-full shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+    <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+      <div class="flex items-center gap-2.5">
+        <span class="w-8 h-8 rounded-xl bg-[#DDF1E6] text-[#168A61] flex items-center justify-center text-sm font-bold">
+          <i class="fa-solid fa-comment-dots"></i>
+        </span>
+        <h3 class="text-base font-bold text-[#12382D]">Send Feedback</h3>
+      </div>
+      <button type="button" onclick="closeFeedbackModal()" class="w-8 h-8 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-500 flex items-center justify-center transition" aria-label="Close">
+        <i class="fa-solid fa-xmark text-sm"></i>
+      </button>
+    </div>
+
+    <form method="post" action="{% url 'submit_feedback' %}" class="p-6 space-y-4">
+      {% csrf_token %}
+      <div>
+        <label class="block text-xs font-bold text-[#12382D] uppercase tracking-wider mb-1.5">Topic / Category (Optional)</label>
+        <input type="text" name="category" placeholder="e.g. Website suggestion, bakery question" 
+               class="w-full border border-gray-200 rounded-2xl p-3 text-xs focus:ring-2 focus:ring-[#168A61]/30 focus:outline-none">
+      </div>
+
+      <div>
+        <label class="block text-xs font-bold text-[#12382D] uppercase tracking-wider mb-1.5">Your Message <span class="text-red-500">*</span></label>
+        <textarea name="message" rows="4" placeholder="Tell us what you love or how we can improve..." required
+                  class="w-full border border-gray-200 rounded-2xl p-3 text-xs focus:ring-2 focus:ring-[#168A61]/30 focus:outline-none"></textarea>
+      </div>
+
+      <div class="flex gap-2.5 pt-2">
+        <button type="button" onclick="closeFeedbackModal()" 
+                class="flex-1 py-3 px-4 border border-gray-200 text-gray-600 rounded-2xl text-xs font-bold hover:bg-gray-50 transition">
+          Cancel
+        </button>
+        <button type="submit" 
+                class="flex-1 py-3 px-4 bg-[#168A61] hover:bg-[#124D3B] text-white rounded-2xl text-xs font-bold transition shadow-md">
+          Submit
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  function openFeedbackModal() {
+    document.getElementById('feedbackModal').classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+  }
+  function closeFeedbackModal() {
+    document.getElementById('feedbackModal').classList.add('hidden');
+    document.body.style.overflow = '';
+  }
+  window.addEventListener('click', function(e) {
+    const modal = document.getElementById('feedbackModal');
+    if (e.target === modal) closeFeedbackModal();
+  });
+</script>
+{% endblock %}
+

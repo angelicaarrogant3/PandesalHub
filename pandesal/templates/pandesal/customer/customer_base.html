@@ -1,0 +1,376 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+  <meta charset="UTF-8">
+  <title>{% block title %}Customer Dashboard - PandesalHub{% endblock %}</title>
+  {% include "pandesal/includes/seo_meta.html" %}
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- Tailwind CSS -->
+  <script src="{% static 'pandesal/js/tailwind.js' %}"></script>
+  <!-- Icons -->
+  <link rel="stylesheet" href="{% static 'pandesal/css/fontawesome/all.min.css' %}" />
+  <link rel="stylesheet" href="{% static 'pandesal/css/bootstrap-icons/bootstrap-icons.css' %}">
+  <link rel="icon" href="{% static 'pandesal/img/pandesalhub_icon.png' %}" type="image/png">
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: '#168A61',
+            secondary: '#124D3B',
+            emerald: {
+              dark: '#124D3B',
+              primary: '#168A61',
+              medium: '#25A879',
+              light: '#35B98A',
+            },
+            sage: {
+              light: '#DDF1E6',
+              bg: '#EAF5EE',
+              border: '#C7E5D5',
+            },
+            ink: {
+              primary: '#12382D',
+              muted: '#64748B',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    .transition-all { transition: all 300ms ease-in-out; }
+
+    #sidebar { transform: translateX(-100%); }
+    #sidebar.show { transform: translateX(0); }
+
+    @media (min-width: 1024px) {
+      #sidebar { transform: translateX(0); width: 280px; }
+      #sidebar.collapsed { width: 92px; }
+      #sidebar.collapsed .sidebar-text,
+      #sidebar.collapsed .sidebar-brand-text,
+      #sidebar.collapsed .account-meta { display: none; }
+      #sidebar.collapsed nav a { justify-content: center; padding-left: 0; padding-right: 0; }
+    }
+
+    .dropdown-menu { display: none; }
+    .dropdown-menu.show { display: block; }
+
+    /* Customer Specific Emerald/Sage Gradients */
+    .grad-sidebar {
+      background: linear-gradient(180deg, #124D3B 0%, #168A61 55%, #35B98A 100%);
+    }
+    .grad-header {
+      background: linear-gradient(120deg, #D3EFDF 0%, #E3F4E9 55%, #EFF8F1 100%);
+    }
+
+    .nav-pill.active {
+      background: rgba(255, 255, 255, 0.18);
+      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.28);
+      color: #fff;
+    }
+    .nav-pill:not(.active):hover {
+      background: rgba(255, 255, 255, 0.10);
+      color: #fff;
+    }
+
+    /* Custom smooth scrollbar */
+    .nice-scroll::-webkit-scrollbar { width: 6px; height: 6px; }
+    .nice-scroll::-webkit-scrollbar-track { background: transparent; }
+    .nice-scroll::-webkit-scrollbar-thumb { background: #bfe3cc; border-radius: 9999px; }
+  </style>
+  {% block extra_head %}{% endblock %}
+</head>
+<body class="bg-[#EAF5EE] h-full overflow-x-hidden font-sans text-[#12382D]">
+
+  <!-- Sidebar -->
+  <aside id="sidebar" class="fixed top-0 left-0 bottom-0 w-[280px] z-50 p-4 transition-all">
+    <div class="h-full rounded-[28px] grad-sidebar shadow-xl flex flex-col overflow-hidden">
+      <!-- Brand Header -->
+      <div class="flex items-center gap-3 px-6 pt-8 pb-6">
+        <div class="w-10 h-10 rounded-xl bg-white/95 flex items-center justify-center shrink-0 shadow-sm">
+          <img src="{% static 'pandesal/img/pandesalhub_icon.png' %}" alt="Logo" class="w-8 h-8 rounded-full object-cover">
+        </div>
+        <div class="sidebar-brand-text leading-tight">
+          <span class="block text-lg font-bold text-white tracking-wide">PandesalHub</span>
+          <span class="block text-[11px] text-white/70 font-semibold uppercase tracking-widest">Customer</span>
+        </div>
+      </div>
+
+      <!-- Navigation Links -->
+      <nav class="flex-1 px-4 space-y-1.5 overflow-y-auto pb-4 nice-scroll">
+        <!-- 1. Home -->
+        <a href="{% url 'index_user' %}" 
+           class="nav-pill {% if request.resolver_match.url_name == 'index_user' %}active{% endif %} flex items-center gap-3 px-4 py-3 rounded-2xl text-white/85 text-sm font-medium transition">
+          <i class="fa-solid fa-house text-base min-w-[18px]"></i>
+          <span class="sidebar-text">Home</span>
+        </a>
+
+        <!-- 2. Shop -->
+        <a href="{% url 'shop_user' %}" 
+           class="nav-pill {% if request.resolver_match.url_name == 'shop_user' %}active{% endif %} flex items-center gap-3 px-4 py-3 rounded-2xl text-white/85 text-sm font-medium transition">
+          <i class="fa-solid fa-shop text-base min-w-[18px]"></i>
+          <span class="sidebar-text">Shop</span>
+        </a>
+
+        <!-- 3. Cart -->
+        <a href="{% url 'view_cart' %}" 
+           class="nav-pill {% if request.resolver_match.url_name == 'cart' or request.resolver_match.url_name == 'view_cart' %}active{% endif %} flex items-center gap-3 px-4 py-3 rounded-2xl text-white/85 text-sm font-medium transition relative">
+          <i class="fa-solid fa-shopping-cart text-base min-w-[18px]"></i>
+          <span class="sidebar-text">Cart</span>
+          {% if total_cart_count > 0 %}
+            <span class="ml-auto sidebar-text bg-white text-[#168A61] text-xs font-bold rounded-full min-w-[20px] h-5 flex items-center justify-center px-1.5 shadow-xs">{{ total_cart_count }}</span>
+          {% endif %}
+        </a>
+
+        <!-- 4. About -->
+        <a href="{% url 'about' %}" 
+           class="nav-pill {% if request.resolver_match.url_name == 'about' %}active{% endif %} flex items-center gap-3 px-4 py-3 rounded-2xl text-white/85 text-sm font-medium transition">
+          <i class="fa-solid fa-circle-info text-base min-w-[18px]"></i>
+          <span class="sidebar-text">About</span>
+        </a>
+
+        <!-- 5. Messages -->
+        <a href="{% url 'messages_inbox' %}" 
+           class="nav-pill {% if 'message' in request.resolver_match.url_name %}active{% endif %} flex items-center gap-3 px-4 py-3 rounded-2xl text-white/85 text-sm font-medium transition relative">
+          <i class="fa-solid fa-message text-base min-w-[18px]"></i>
+          <span class="sidebar-text">Messages</span>
+          {% if unread_messages_count > 0 %}
+            <span class="ml-auto sidebar-text bg-white text-[#168A61] text-xs font-bold rounded-full min-w-[20px] h-5 flex items-center justify-center px-1.5 shadow-xs">{{ unread_messages_count }}</span>
+          {% endif %}
+        </a>
+
+        <!-- 6. Profile -->
+        <a href="{% url 'user_profile' %}" 
+           class="nav-pill {% if request.resolver_match.url_name == 'user_profile' %}active{% endif %} flex items-center gap-3 px-4 py-3 rounded-2xl text-white/85 text-sm font-medium transition">
+          <i class="fa-solid fa-user text-base min-w-[18px]"></i>
+          <span class="sidebar-text">Profile</span>
+        </a>
+      </nav>
+
+      <!-- Sign Out at bottom -->
+      <div class="px-4 pb-6 pt-2 border-t border-white/10">
+        <a href="{% url 'logout' %}" onclick="return confirm('Are you sure you want to log out?')" 
+           class="flex items-center gap-3 px-4 py-3 rounded-2xl text-white/75 hover:text-white hover:bg-white/10 text-sm font-medium transition">
+          <i class="fa-solid fa-right-from-bracket text-base min-w-[18px]"></i>
+          <span class="sidebar-text">Sign Out</span>
+        </a>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Overlay for mobile -->
+  <div id="overlay" class="fixed inset-0 bg-black/50 z-40 hidden lg:hidden"></div>
+
+  <!-- Main Content Area -->
+  <div id="mainContent" class="lg:ml-[280px] min-h-screen transition-all p-4 lg:p-6">
+    <!-- Outer Rounded Panel (Soft Pale-Green Background) -->
+    <div class="rounded-[28px] bg-[#DDF1E6] p-4 lg:p-6 min-h-[calc(100vh-2rem)]">
+
+      <!-- Header Card with Modern Light-Green Gradient -->
+      <div class="rounded-3xl grad-header shadow-sm px-5 lg:px-6 py-5 flex flex-wrap items-center gap-4 mb-6">
+        <!-- Mobile Sidebar Toggle -->
+        <button id="sidebarToggle" class="lg:hidden w-11 h-11 rounded-2xl bg-white/80 shadow-sm flex items-center justify-center text-[#12382D] hover:text-[#168A61] transition" aria-label="Toggle Sidebar">
+          <i class="fa-solid fa-bars text-lg"></i>
+        </button>
+
+        <!-- Title & Subtitle -->
+        <div class="mr-auto min-w-[200px]">
+          <h1 class="text-2xl lg:text-3xl font-bold text-[#12382D] leading-tight">{% block page_title %}Home{% endblock %}</h1>
+          <p class="text-sm text-gray-600 mt-0.5">{% block page_subtitle %}Discover freshly baked pandesal, explore local bakeries, and manage your orders and reservations.{% endblock %}</p>
+        </div>
+
+        <!-- Custom Header Actions -->
+        {% block header_actions %}{% endblock %}
+
+        <!-- In-page Search Bar -->
+        <div class="hidden md:block relative w-full lg:w-auto lg:flex-1 lg:max-w-md order-last lg:order-none">
+          <input type="text" id="pageSearchInput" placeholder="{% block search_placeholder %}Search orders, products...{% endblock %}"
+                 class="w-full px-4 py-3 pl-11 pr-20 bg-white border-0 rounded-2xl shadow-sm focus:outline-none focus:ring-2 focus:ring-[#168A61]/40 text-sm text-gray-700 placeholder-gray-400">
+          <i class="fa-solid fa-search absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-sm"></i>
+          <div class="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1">
+            <span id="searchCounter" class="text-xs text-gray-500 hidden"></span>
+            <button type="button" id="clearPageSearch" class="text-gray-400 hover:text-gray-600 p-1 hidden">
+              <i class="fas fa-times text-sm"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- Notification Bell -->
+        <div class="relative">
+          <button class="w-11 h-11 rounded-2xl bg-white shadow-sm flex items-center justify-center relative hover:scale-105 transition" onclick="toggleDropdown('notifDropdown')" aria-label="Notifications">
+            <i class="fa-solid fa-bell text-lg text-gray-600"></i>
+            {% if unread_notifications_count > 0 %}
+              <span class="absolute -top-1 -right-1 w-5 h-5 bg-[#168A61] text-white text-xs rounded-full flex items-center justify-center font-semibold">{{ unread_notifications_count }}</span>
+            {% endif %}
+          </button>
+          <div id="notifDropdown" class="dropdown-menu absolute right-0 mt-2 w-80 bg-white rounded-2xl shadow-xl border border-gray-100 py-2 z-50">
+            <div class="px-4 py-3 border-b border-gray-100">
+              <p class="text-sm font-semibold text-[#12382D]">
+                {% if unread_notifications_count > 0 %}
+                  You have {{ unread_notifications_count }} new notification{{ unread_notifications_count|pluralize }}
+                {% else %}
+                  No new notifications
+                {% endif %}
+              </p>
+            </div>
+            <div class="max-h-64 overflow-y-auto nice-scroll">
+              {% if recent_notifications %}
+                {% for notification in recent_notifications %}
+                  <a href="{% url 'user_notifications' %}" class="flex items-start gap-3 px-4 py-3 hover:bg-[#EAF5EE]/50 transition-colors border-b border-gray-100 last:border-0">
+                    <div class="text-xl mt-1 text-[#168A61]">
+                      {% if 'Reservation' in notification.message %}
+                        <i class="fas fa-calendar-check"></i>
+                      {% elif 'Order' in notification.message %}
+                        <i class="fas fa-shopping-cart"></i>
+                      {% else %}
+                        <i class="fas fa-info-circle"></i>
+                      {% endif %}
+                    </div>
+                    <div class="flex-1 min-w-0">
+                      <h4 class="text-sm font-semibold text-gray-800">{{ notification.get_type_display }}</h4>
+                      <p class="text-xs text-gray-500 truncate">{{ notification.message }}</p>
+                      <p class="text-[10px] text-gray-400 mt-1"><i class="fas fa-clock"></i> {{ notification.created_at|timesince }} ago</p>
+                    </div>
+                  </a>
+                {% endfor %}
+              {% else %}
+                <div class="px-4 py-6 text-center text-gray-500 text-sm">
+                  <i class="fas fa-bell-slash text-2xl mb-2 text-gray-300"></i>
+                  <p>No new notifications</p>
+                </div>
+              {% endif %}
+            </div>
+            <div class="px-4 py-2 border-t border-gray-100">
+              <a href="{% url 'user_notifications' %}" class="text-xs font-semibold text-[#168A61] hover:underline">Show all notifications</a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Django Messages / Alerts -->
+      {% if messages %}
+        <div class="mb-6 space-y-2">
+          {% for message in messages %}
+            <div class="px-4 py-3 rounded-2xl flex items-center shadow-xs {% if message.tags == 'error' %}bg-red-50 text-red-800 border border-red-200{% elif message.tags == 'success' %}bg-green-50 text-green-800 border border-green-200{% else %}bg-blue-50 text-blue-800 border border-blue-200{% endif %}">
+              <span class="text-sm font-medium">{{ message }}</span>
+            </div>
+          {% endfor %}
+        </div>
+      {% endif %}
+
+      <!-- Page Content Block -->
+      {% block content %}{% endblock %}
+
+    </div>
+  </div>
+
+  <!-- Shared Javascript -->
+  <script>
+    // Sidebar toggle (desktop collapse + mobile slide)
+    (function () {
+      const sidebar = document.getElementById('sidebar');
+      const overlay = document.getElementById('overlay');
+      const sidebarToggle = document.getElementById('sidebarToggle');
+      const mainContent = document.getElementById('mainContent');
+      if (!(sidebarToggle && sidebar && overlay && mainContent)) return;
+
+      function applySidebarMargin() {
+        if (window.innerWidth >= 1024) {
+          mainContent.style.marginLeft = sidebar.classList.contains('collapsed') ? '92px' : '280px';
+        } else {
+          mainContent.style.marginLeft = '0';
+        }
+      }
+
+      sidebarToggle.addEventListener('click', function () {
+        if (window.innerWidth < 1024) {
+          sidebar.classList.toggle('show');
+          overlay.classList.toggle('hidden');
+        } else {
+          sidebar.classList.toggle('collapsed');
+          applySidebarMargin();
+        }
+      });
+
+      overlay.addEventListener('click', function () {
+        sidebar.classList.remove('show');
+        overlay.classList.add('hidden');
+      });
+
+      window.addEventListener('resize', function () {
+        if (window.innerWidth >= 1024) {
+          overlay.classList.add('hidden');
+          sidebar.classList.remove('show');
+        } else {
+          sidebar.classList.remove('collapsed');
+        }
+        applySidebarMargin();
+      });
+    })();
+
+    // Dropdowns
+    function toggleDropdown(id) {
+      const dropdown = document.getElementById(id);
+      if (!dropdown) return;
+      document.querySelectorAll('.dropdown-menu').forEach(d => {
+        if (d.id !== id) d.classList.remove('show');
+      });
+      dropdown.classList.toggle('show');
+    }
+
+    document.addEventListener('click', function (e) {
+      if (!e.target.closest('.relative')) {
+        document.querySelectorAll('.dropdown-menu').forEach(d => d.classList.remove('show'));
+      }
+    });
+
+    // In-page search filter helper
+    (function () {
+      const input = document.getElementById('pageSearchInput');
+      if (!input) return;
+      const clearBtn = document.getElementById('clearPageSearch');
+      const counter = document.getElementById('searchCounter');
+
+      input.addEventListener('input', function () {
+        const q = input.value.trim().toLowerCase();
+        if (clearBtn) clearBtn.classList.toggle('hidden', q.length === 0);
+
+        // Find searchable items across common grid/list patterns
+        const items = document.querySelectorAll('[data-searchable]');
+        if (!items.length) return;
+
+        let visibleCount = 0;
+        items.forEach(el => {
+          const text = (el.getAttribute('data-searchable') || el.textContent).toLowerCase();
+          const match = q === '' || text.includes(q);
+          el.style.display = match ? '' : 'none';
+          if (match) visibleCount++;
+        });
+
+        if (counter) {
+          if (q.length > 0) {
+            counter.textContent = `${visibleCount} found`;
+            counter.classList.remove('hidden');
+          } else {
+            counter.classList.add('hidden');
+          }
+        }
+      });
+
+      if (clearBtn) {
+        clearBtn.addEventListener('click', function () {
+          input.value = '';
+          input.dispatchEvent(new Event('input'));
+          input.focus();
+        });
+      }
+    })();
+  </script>
+  {% block extra_js %}{% endblock %}
+</body>
+</html>
+

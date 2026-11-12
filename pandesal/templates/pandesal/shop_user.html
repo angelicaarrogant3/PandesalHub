@@ -1,1219 +1,726 @@
+{% extends 'pandesal/customer/customer_base.html' %}
 {% load static %}
-<!DOCTYPE html>
-<html lang="en" class="h-full">
-<head>
-  <meta charset="UTF-8">
-  {% include "pandesal/includes/seo_meta.html" %}
-  
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  
-  <!-- Tailwind CSS -->
-  <script src="{% static 'pandesal/js/tailwind.js' %}"></script>
-  <!-- Font Awesome -->
-  <link rel="stylesheet" href="{% static 'pandesal/css/fontawesome/all.min.css' %}" />
-  <!-- Bootstrap Icons -->
-  <link rel="stylesheet" href="{% static 'pandesal/css/bootstrap-icons/bootstrap-icons.css' %}">
-  <!-- Bootstrap Icons CDN Fallback -->
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
-  <link rel="icon" href="{% static 'pandesal/img/pandesalhub_icon.png' %}" type="image/png">
-  
-  <script>
-    tailwind.config = {
-      theme: {
-        extend: {
-          colors: {
-            primary: '#16a34a',
-            secondary: '#15803d',
-          }
-        }
-      }
-    }
-  </script>
-  <style>
-    /* Smooth transitions */
-    .transition-all {
-      transition: all 300ms ease-in-out;
-    }
-    
-    /* Mobile: Sidebar hidden by default, slides in from left */
-    #sidebar {
-      transform: translateX(-100%);
-    }
-    
-    #sidebar.show {
-      transform: translateX(0);
-    }
-    
-    /* Desktop: sidebar always visible in full width */
-    @media (min-width: 1024px) {
-      #sidebar {
-        transform: translateX(0);
-        width: 280px;
-      }
-      
-      /* When collapsed on desktop, show icon-only */
-      #sidebar.collapsed {
-        width: 80px;
-      }
-      
-      /* Hide text labels when collapsed */
-      #sidebar.collapsed .sidebar-text {
-        display: none;
-      }
-      
-      /* Center icons when collapsed */
-      #sidebar.collapsed nav a {
-        justify-content: center;
-        padding-left: 0;
-        padding-right: 0;
-      }
-    }
-    
-    /* Dropdown animations */
-    .dropdown-menu {
-      display: none;
-    }
-    
-    .dropdown-menu.show {
-      display: block;
-    }
-  </style>
-</head>
+{% block title %}Our Pandesal - PandesalHub{% endblock %}
 
-<body class="bg-gray-50 h-full" style="background-image: url('{% static "pandesal/img/homebg.png" %}'); background-size: cover; background-position: center; background-repeat: no-repeat; background-attachment: fixed;">
+{% block page_title %}Our Pandesal{% endblock %}
+{% block page_subtitle %}Explore freshly baked products from our local bakery sellers.{% endblock %}
 
-  <!-- Top Navbar -->
-  <header class="fixed top-0 left-0 right-0 h-20 bg-white shadow-md z-50 flex items-center px-4 lg:px-6">
-    <div class="flex items-center gap-4">
-      <!-- Logo -->
-      <a href="{% url 'index_user' %}" class="flex items-center gap-3">
-        <img src="{% static 'pandesal/img/pandesalhub_icon.png' %}" alt="Logo" class="w-10 h-10 rounded-full">
-        <span class="hidden lg:block text-xl font-bold text-green-600">PandesalHub</span>
-      </a>
-      
-      <!-- Hamburger Toggle -->
-      <button id="sidebarToggle" class="p-2 hover:bg-gray-100 rounded-lg transition-colors">
-        <i class="fa-solid fa-bars text-2xl text-gray-700"></i>
+{% block search_placeholder %}Search for your favorite pandesal...{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+
+  <!-- Category & Shop Filter Bar -->
+  <div class="bg-white rounded-3xl shadow-sm border border-gray-100 p-4 lg:p-5 space-y-4">
+    <!-- Category Filter Pills -->
+    <div class="flex flex-wrap items-center gap-2.5">
+      <button type="button" 
+              class="category-filter active inline-flex items-center gap-2 px-5 py-2.5 rounded-2xl text-xs font-bold transition shadow-xs bg-[#168A61] text-white" 
+              data-category="all">
+        <i class="fa-solid fa-layer-group text-sm"></i>
+        <span>All Products</span>
+      </button>
+      <button type="button" 
+              class="category-filter inline-flex items-center gap-2 px-5 py-2.5 rounded-2xl text-xs font-bold transition shadow-xs bg-white text-[#12382D] border border-gray-200 hover:bg-[#EAF5EE]" 
+              data-category="order_now">
+        <i class="fa-solid fa-bag-shopping text-sm text-[#168A61]"></i>
+        <span>Order Now</span>
+      </button>
+      <button type="button" 
+              class="category-filter inline-flex items-center gap-2 px-5 py-2.5 rounded-2xl text-xs font-bold transition shadow-xs bg-white text-[#12382D] border border-gray-200 hover:bg-[#EAF5EE]" 
+              data-category="reservation">
+        <i class="fa-solid fa-calendar-check text-sm text-[#25A879]"></i>
+        <span>For Reservation</span>
       </button>
     </div>
-    
-    <!-- Search Bar (Desktop) -->
-    <div class="hidden md:flex flex-1 max-w-xl mx-8">
-      <div class="relative w-full">
-        <input type="text" id="searchInput" placeholder="Search product..." 
-               class="w-full px-4 py-2 pl-10 pr-20 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-sm">
-        <i class="fa-solid fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
-        <div class="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
-          <button id="clearSearch" class="text-gray-400 hover:text-gray-600 p-1 hidden">
-            <i class="fas fa-times text-sm"></i>
-          </button>
-        </div>
-      </div>
-    </div>
-    
-    <!-- Right Icons -->
-    <div class="ml-auto flex items-center gap-2">
-      <!-- Search Icon (Mobile) -->
-      <button class="md:hidden p-2 hover:bg-gray-100 rounded-lg">
-        <i class="fa-solid fa-search text-xl text-gray-600"></i>
-      </button>
-      
-      <!-- Notifications -->
-      <div class="relative">
-        <button class="p-2 hover:bg-gray-100 rounded-lg relative" onclick="toggleDropdown('notifDropdown')">
-          <i class="fa-solid fa-bell text-xl text-gray-600"></i>
-          {% if unread_notifications_count > 0 %}
-            <span class="absolute top-1 right-1 w-5 h-5 bg-primary text-white text-xs rounded-full flex items-center justify-center font-semibold">{{ unread_notifications_count }}</span>
-          {% endif %}
-        </button>
-        
-        <!-- Notifications Dropdown -->
-        <div id="notifDropdown" class="dropdown-menu absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-xl border border-gray-200 py-2">
-          <div class="px-4 py-3 border-b border-gray-200">
-            <p class="text-sm font-semibold text-gray-700">{% if unread_notifications_count > 0 %}You have {{ unread_notifications_count }} new notification{{ unread_notifications_count|pluralize }}{% else %}No new notifications{% endif %}</p>
-          </div>
-          <div class="max-h-64 overflow-y-auto">
-            {% if recent_notifications %}
-              {% for notification in recent_notifications %}
-                <a href="{% url 'user_notifications' %}" class="flex items-start gap-3 px-4 py-3 hover:bg-gray-50 transition-colors border-b border-gray-100 last:border-0">
-                  <div class="text-xl mt-1 {% if 'Reservation' in notification.message %}text-green-600{% elif 'Order' in notification.message %}text-blue-600{% else %}text-yellow-500{% endif %}">
-                    {% if 'Reservation' in notification.message %}
-                      <i class="fas fa-calendar-check"></i>
-                    {% elif 'Order' in notification.message %}
-                      <i class="fas fa-shopping-cart"></i>
-                    {% else %}
-                      <i class="fas fa-info-circle"></i>
-                    {% endif %}
-                  </div>
-                  <div class="flex-1">
-                    <h4 class="text-sm font-semibold text-gray-800">{{ notification.get_type_display }}</h4>
-                    <p class="text-xs text-gray-500">{{ notification.message|truncatewords:10 }}</p>
-                    <p class="text-xs text-gray-400 mt-1"><i class="fas fa-clock"></i> {{ notification.created_at|timesince }} ago</p>
-                  </div>
-                </a>
-              {% endfor %}
-            {% else %}
-              <div class="px-4 py-6 text-center text-gray-500 text-sm">
-                <i class="fas fa-bell-slash text-2xl mb-2"></i>
-                <p>No new notifications</p>
-              </div>
-            {% endif %}
-          </div>
-          <div class="px-4 py-2 border-t border-gray-200">
-            <a href="{% url 'user_notifications' %}" class="text-sm text-primary hover:underline">Show all notifications</a>
-          </div>
-        </div>
-      </div>
-      
-      <!-- Profile -->
-      <div class="relative">
-        <button class="flex items-center gap-2 p-2 hover:bg-gray-100 rounded-lg" onclick="toggleDropdown('profileDropdown')">
-          {% if user.userprofile.profile_picture %}
-          <img src="{{ user.userprofile.profile_picture.url }}" alt="Profile" class="w-9 h-9 rounded-full">
-          {% else %}
-          <img src="{% static 'pandesal/img/pandesalhub_icon.png' %}" alt="Profile" class="w-9 h-9 rounded-full">
-          {% endif %}
-          <span class="hidden md:block text-sm font-medium text-secondary">{{ user.get_full_name|default:user.username }}</span>
-          <i class="bi bi-chevron-down text-xs text-gray-500"></i>
-        </button>
-        
-        <!-- Profile Dropdown -->
-        <div id="profileDropdown" class="dropdown-menu absolute right-0 mt-2 w-64 bg-white rounded-lg shadow-xl border border-gray-200 py-2">
-          <div class="px-4 py-3 border-b border-gray-200">
-            <h6 class="text-sm font-semibold text-gray-800">{{ user.get_full_name|default:user.username }}</h6>
-            <span class="text-xs text-gray-500">{{ user.email }}</span>
-          </div>
-          <div class="px-4 py-2">
-            <div class="flex items-start gap-3 py-2">
-              <i class="fas fa-envelope text-lg text-gray-600 mt-0.5"></i>
-              <div class="flex-1">
-                <p class="text-xs text-gray-500">Email</p>
-                <p class="text-sm text-gray-700">{{ user.email }}</p>
-              </div>
-            </div>
-            <div class="flex items-start gap-3 py-2">
-              <i class="fas fa-phone text-lg text-gray-600 mt-0.5"></i>
-              <div class="flex-1">
-                <p class="text-xs text-gray-500">Phone</p>
-                <p class="text-sm text-gray-700">{{ user.userprofile.phone|default:'Not provided' }}</p>
-              </div>
-            </div>
-            <div class="flex items-start gap-3 py-2">
-              <i class="fas fa-map-marker-alt text-lg text-gray-600 mt-0.5"></i>
-              <div class="flex-1">
-                <p class="text-xs text-gray-500">Address</p>
-                <p class="text-sm text-gray-700">{{ user.userprofile.get_full_address|default:'Not provided' }}</p>
-              </div>
-            </div>
-          </div>
-          <div class="border-t border-gray-200 my-1"></div>
-          <a href="{% url 'logout' %}" onclick="return confirm('Are you sure you want to log out?')" class="flex items-center gap-3 px-4 py-2 hover:bg-red-50 transition-colors">
-            <i class="fas fa-sign-out-alt text-lg text-red-600"></i>
-            <span class="text-sm text-red-600">Sign Out</span>
-          </a>
-        </div>
-      </div>
-    </div>
-  </header>
 
-  <!-- Sidebar -->
-  <aside id="sidebar" class="fixed top-20 left-0 bottom-0 w-[280px] bg-white shadow-lg z-40 flex flex-col transition-all">
-    <!-- Navigation -->
-    <nav class="mt-8 px-4 space-y-2 text-base flex-1 overflow-y-auto">
-      <a href="{% url 'index_user' %}" 
-         class="flex items-center gap-4 px-4 py-3 rounded-xl text-gray-600 hover:text-green-700 hover:bg-green-50 transition">
-        <i class="fa-solid fa-house text-lg min-w-[20px]"></i>
-        <span class="sidebar-text">Home</span>
-      </a>
-      <a href="{% url 'shop_user' %}" 
-         class="flex items-center gap-4 px-4 py-3 rounded-xl text-green-700 bg-green-50 hover:bg-green-100 transition">
-        <i class="fa-solid fa-shop text-lg min-w-[20px]"></i>
-        <span class="sidebar-text">Shop</span>
-      </a>
-      <a href="{% url 'view_cart' %}" 
-         class="flex items-center gap-4 px-4 py-3 rounded-xl text-gray-600 hover:text-green-700 hover:bg-green-50 transition">
-        <i class="fa-solid fa-shopping-cart text-lg min-w-[20px]"></i>
-        <span class="sidebar-text flex items-center gap-2">
-          Cart
-          {% if total_cart_count > 0 %}
-            <span class="bg-green-600 text-white text-xs px-2 py-0.5 rounded-full font-semibold">{{ total_cart_count }}</span>
-          {% endif %}
-        </span>
-      </a>
-      <a href="{% url 'about' %}" 
-         class="flex items-center gap-4 px-4 py-3 rounded-xl text-gray-600 hover:text-green-700 hover:bg-green-50 transition">
-        <i class="fa-solid fa-circle-info text-lg min-w-[20px]"></i>
-        <span class="sidebar-text">About</span>
-      </a>
-      <a href="{% url 'messages_inbox' %}" 
-         class="flex items-center gap-4 px-4 py-3 rounded-xl text-gray-600 hover:text-green-700 hover:bg-green-50 transition relative">
-        <i class="fa-solid fa-message text-lg min-w-[20px]"></i>
-        <span class="sidebar-text">Messages</span>
-        {% if unread_messages_count > 0 %}
-          <span class="absolute right-3 top-1/2 -translate-y-1/2 bg-red-500 text-white text-xs font-bold rounded-full min-w-[20px] h-5 flex items-center justify-center px-1.5">{{ unread_messages_count }}</span>
-        {% endif %}
-      </a>
-      <a href="{% url 'user_profile' %}" 
-         class="flex items-center gap-4 px-4 py-3 rounded-xl text-gray-600 hover:text-green-700 hover:bg-green-50 transition">
-        <i class="fa-solid fa-user text-lg min-w-[20px]"></i>
-        <span class="sidebar-text">Profile</span>
-      </a>
-    </nav>
-  </aside>
-
-  <!-- Overlay for mobile -->
-  <div id="overlay" class="fixed inset-0 bg-black/50 z-30 hidden lg:hidden"></div>
-
-  <!-- Main Content Area -->
-  <div id="mainContent" class="min-h-screen lg:ml-[280px] transition-all pt-20 overflow-x-hidden">
-    <!-- Content Header / Shop Title Banner -->
-    <div class="px-6 py-8 border-b border-gray-200/60 bg-white/60 backdrop-blur-sm">
-      <div class="flex flex-col md:flex-row md:items-end justify-between gap-6">
-        <div>
-          <div class="flex items-center space-x-2 mb-2">
-            <span class="text-xs font-bold text-[#1c7446] uppercase tracking-[0.2em]">P A N D E S A L H U B</span>
-            <div class="w-8 h-[2px] bg-[#1c7446]/40"></div>
-          </div>
-          <h1 class="text-3xl md:text-5xl font-extrabold text-[#1c7446] tracking-tight">Our Pandesal</h1>
-          <p class="text-gray-600 text-base mt-2 font-normal">Freshly baked malunggay pandesal, made for every day.</p>
-        </div>
-
-        <!-- Search input for desktop & mobile -->
-        <div class="relative w-full md:w-96">
-          <i class="fa-solid fa-search absolute left-4 top-1/2 transform -translate-y-1/2 text-[#1c7446] text-base pointer-events-none"></i>
-          <input type="text" id="searchInput" placeholder="Search for your favorite pandesal..." 
-                 class="w-full px-5 py-3.5 pl-12 pr-12 bg-white border border-gray-300/80 rounded-full focus:outline-none focus:ring-2 focus:ring-[#1c7446] focus:border-transparent transition-all shadow-sm hover:shadow-md text-sm">
-          <button id="clearSearch" class="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-[#1c7446] transition-colors hidden">
-            <i class="fa-solid fa-circle-xmark text-lg"></i>
-          </button>
-        </div>
-      </div>
-    
-    <!-- Shop Filters -->
+    <!-- Shop Filter Tabs (if multiple shops exist) -->
     {% if shops %}
-    <div class="px-6 py-4 bg-gray-50 border-b border-gray-200 overflow-x-auto">
-      <div class="flex items-center gap-3 whitespace-nowrap">
-        <span class="text-sm font-semibold text-gray-600 mr-2"><i class="fas fa-filter mr-1"></i> Shop:</span>
+      <div class="pt-3 border-t border-gray-100 flex items-center gap-2 overflow-x-auto nice-scroll pb-1">
+        <span class="text-xs font-bold uppercase tracking-wider text-gray-400 shrink-0 mr-1">
+          <i class="fa-solid fa-store mr-1 text-[#168A61]"></i> Shop:
+        </span>
         <a href="?{% if search_query %}search={{ search_query }}{% endif %}" 
-           class="px-4 py-1.5 rounded-full text-sm font-medium transition-colors border {% if not selected_shop %}bg-green-600 text-white border-green-600 shadow-sm{% else %}bg-white text-gray-700 border-gray-300 hover:bg-gray-50{% endif %}">
-          All Shops
+           class="px-4 py-1.5 rounded-xl text-xs font-semibold transition shrink-0 {% if not selected_shop %}bg-[#168A61] text-white shadow-xs{% else %}bg-gray-100 text-gray-700 hover:bg-gray-200{% endif %}">
+          All Bakeries
         </a>
         {% for shop in shops %}
-        <a href="?shop={{ shop.id }}{% if search_query %}&search={{ search_query }}{% endif %}" 
-           class="flex items-center gap-2 px-4 py-1.5 rounded-full text-sm font-medium transition-colors border {% if selected_shop == shop.id %}bg-green-600 text-white border-green-600 shadow-sm{% else %}bg-white text-gray-700 border-gray-300 hover:bg-gray-50{% endif %}">
-          {% if shop.logo %}
-            <img src="{{ shop.logo.url }}" alt="{{ shop.shop_name }}" class="w-5 h-5 rounded-full object-cover">
-          {% else %}
-            <div class="w-5 h-5 rounded-full bg-gray-200 flex items-center justify-center text-[10px] text-gray-500"><i class="fas fa-store"></i></div>
-          {% endif %}
-          {{ shop.shop_name }}
-        </a>
-        {% endfor %}
-      </div>
-    </div>
-    {% endif %}
-</div>
-
-    <!-- Django Messages -->
-    {% if messages %}
-      <div class="px-6 mt-4">
-        {% for message in messages %}
-          <div class="mb-3 px-4 py-3 rounded-xl shadow-sm text-sm font-medium
-                      {% if message.tags == 'success' %} bg-green-100 text-green-800 border border-green-200
-                      {% elif message.tags == 'error' %} bg-red-100 text-red-800 border border-red-200
-                      {% else %} bg-blue-100 text-blue-800 border border-blue-200 {% endif %}">
-            {{ message }}
-          </div>
-        {% endfor %}
-      </div>
-    {% endif %}
-
-    <!-- Products Grid Section -->
-    <main class="flex-1 p-6 lg:p-8">
-      <!-- Category Filter Badges -->
-      <div class="mb-8 flex flex-wrap gap-3">
-        <button class="category-filter active flex items-center gap-2 px-6 py-2.5 rounded-full font-semibold text-sm transition-all shadow-sm bg-[#1c7446] text-white" 
-                data-category="all">
-          <i class="fas fa-list"></i>
-          <span>All Products</span>
-        </button>
-        <button class="category-filter flex items-center gap-2 px-6 py-2.5 rounded-full font-semibold text-sm transition-all shadow-sm bg-white text-[#1c7446] border border-[#1c7446]/20" 
-                data-category="order_now">
-          <i class="fas fa-shopping-bag"></i>
-          <span>Order Now</span>
-        </button>
-        <button class="category-filter flex items-center gap-2 px-6 py-2.5 rounded-full font-semibold text-sm transition-all shadow-sm bg-white text-[#1c7446] border border-[#1c7446]/20" 
-                data-category="reservation">
-          <i class="fas fa-calendar"></i>
-          <span>For Reservation</span>
-        </button>
-      </div>
-
-      <!-- 3-Column Responsive Grid on Desktop -->
-      <div id="productsGrid">
-        {% regroup pandesals by seller.shop as shop_list %}
-        {% for shop in shop_list %}
-          <div class="shop-section mb-10">
-            <!-- Shop Header -->
-            <div class="flex items-center gap-4 mb-6 pb-2 border-b-2 border-green-600/20">
-              {% if shop.grouper %}
-                {% if shop.grouper.logo %}
-                  <img src="{{ shop.grouper.logo.url }}" alt="{{ shop.grouper.shop_name }}" class="w-10 h-10 rounded-full object-cover shadow-sm">
-                {% else %}
-                  <div class="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center text-green-600 shadow-sm"><i class="fas fa-store"></i></div>
-                {% endif %}
-                <h2 class="text-2xl font-bold text-gray-800">{{ shop.grouper.shop_name }}</h2>
-                <a href="?shop={{ shop.grouper.id }}" class="ml-auto text-sm font-semibold text-green-600 hover:text-green-700 hover:underline flex items-center gap-1">Visit Shop <i class="fas fa-chevron-right text-xs"></i></a>
-              {% else %}
-                <div class="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center text-gray-500 shadow-sm"><i class="fas fa-store-slash"></i></div>
-                <h2 class="text-2xl font-bold text-gray-800">Uncategorized</h2>
-              {% endif %}
-            </div>
-            
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {% for pandesal in shop.list %}
-        <div class="product-card bg-white rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 border border-[#1c7446]/10 overflow-hidden flex flex-col h-full" 
-             data-name="{{ pandesal.name|lower }}" 
-             data-description="{{ pandesal.description|lower }} {{ pandesal.location|lower }}"
-             data-categories="{% if pandesal.categories and pandesal.categories|length > 0 %}{{ pandesal.categories|join:',' }}{% else %}{% if pandesal.allow_order_now %}order_now{% elif pandesal.allow_reservation %}reservation{% elif pandesal.is_available_now %}available_now{% endif %}{% endif %}"
-             data-id="{{ pandesal.id }}"
-             data-name-display="{{ pandesal.name }}"
-             data-price="{{ pandesal.price }}"
-             {% if pandesal.image %}
-             data-image="{{ pandesal.image.url }}"
-             {% else %}
-             data-image="{% static 'pandesal/img/pandesalhub_icon.png' %}"
-             {% endif %}>
-          
-          <!-- Image Container -->
-          <div class="relative h-56 w-full overflow-hidden bg-gray-100">
-            {% if pandesal.image %}
-              <img src="{{ pandesal.image.url }}" alt="{{ pandesal.name }}" class="w-full h-full object-cover transition-transform duration-500 hover:scale-105">
+          <a href="?shop={{ shop.id }}{% if search_query %}&search={{ search_query }}{% endif %}" 
+             class="flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs font-semibold transition shrink-0 {% if selected_shop == shop.id %}bg-[#168A61] text-white shadow-xs{% else %}bg-gray-100 text-gray-700 hover:bg-gray-200{% endif %}">
+            {% if shop.logo %}
+              <img src="{{ shop.logo.url }}" alt="{{ shop.shop_name }}" class="w-4 h-4 rounded-full object-cover">
             {% else %}
-              <div class="w-full h-full bg-gray-100 flex items-center justify-center">
-                <i class="fas fa-image text-gray-300 text-4xl"></i>
+              <i class="fa-solid fa-store text-[11px] text-[#168A61]"></i>
+            {% endif %}
+            <span>{{ shop.shop_name }}</span>
+          </a>
+        {% endfor %}
+      </div>
+    {% endif %}
+  </div>
+
+  <!-- Products Grid Section grouped by shop -->
+  <div id="productsContainer" class="space-y-8">
+    {% regroup pandesals by seller.shop as shop_list %}
+    {% for shop in shop_list %}
+      <div class="shop-section space-y-4">
+        <!-- Bakery Group Header -->
+        <div class="flex items-center justify-between pb-3 border-b border-[#C7E5D5]/80">
+          <div class="flex items-center gap-3">
+            {% if shop.grouper %}
+              {% if shop.grouper.logo %}
+                <img src="{{ shop.grouper.logo.url }}" alt="{{ shop.grouper.shop_name }}" class="w-10 h-10 rounded-2xl object-cover ring-2 ring-[#168A61]/20 shadow-xs">
+              {% else %}
+                <div class="w-10 h-10 rounded-2xl bg-[#DDF1E6] text-[#168A61] flex items-center justify-center font-bold text-sm shadow-xs">
+                  <i class="fa-solid fa-store"></i>
+                </div>
+              {% endif %}
+              <div>
+                <h2 class="text-lg lg:text-xl font-bold text-[#12382D] leading-tight">{{ shop.grouper.shop_name }}</h2>
+                <span class="text-xs text-gray-500">{{ shop.list|length }} item{{ shop.list|length|pluralize }} available</span>
+              </div>
+            {% else %}
+              <div class="w-10 h-10 rounded-2xl bg-gray-100 text-gray-500 flex items-center justify-center font-bold text-sm">
+                <i class="fa-solid fa-bread-slice"></i>
+              </div>
+              <div>
+                <h2 class="text-lg font-bold text-[#12382D]">Fresh Pandesal</h2>
+                <span class="text-xs text-gray-500">{{ shop.list|length }} item{{ shop.list|length|pluralize }}</span>
               </div>
             {% endif %}
-
-            <!-- Availability & Status Badge -->
-            <div class="absolute top-3 right-3 flex gap-2">
-              {% if 'order_now' in pandesal.categories %}
-                {% if pandesal.stock > 0 %}
-                  <span class="bg-[#1c7446] text-white text-xs font-semibold px-3 py-1 rounded-full shadow-md backdrop-blur-sm">
-                    In Stock ({{ pandesal.stock }})
-                  </span>
-                {% else %}
-                  <span class="bg-red-600 text-white text-xs font-semibold px-3 py-1 rounded-full shadow-md">
-                    Out of Stock
-                  </span>
-                {% endif %}
-              {% elif 'reservation' in pandesal.categories %}
-                <span class="bg-blue-600 text-white text-xs font-semibold px-3 py-1 rounded-full shadow-md">
-                  Min: {{ pandesal.min_order_quantity|default:10 }} pcs
-                </span>
-              {% else %}
-                <span class="bg-[#1c7446] text-white text-xs font-semibold px-3 py-1 rounded-full shadow-md">
-                  In Stock
-                </span>
-              {% endif %}
-            </div>
           </div>
 
-          <!-- Card Content Body -->
-          <div class="p-6 flex-1 flex flex-col justify-between">
-            <div>
-              <div class="flex items-start justify-between gap-2 mb-2">
-                <div>
-                  <h3 class="font-bold text-xl text-[#1c7446] leading-tight">{{ pandesal.name }}</h3>
-                  {% if pandesal.seller and pandesal.seller.shop %}
-                    <p class="text-xs text-gray-500 mt-1"><i class="fas fa-store"></i> {{ pandesal.seller.shop.shop_name }}</p>
-                  {% endif %}
-                  {% if pandesal.location %}
-                    <a href="https://www.google.com/maps/search/?api=1&query={{ pandesal.location|urlencode }}" target="_blank" rel="noopener"
-                       class="inline-flex items-start gap-1 text-xs text-[#1c7446] mt-1 hover:underline" title="Open in Google Maps">
-                      <i class="fas fa-map-marker-alt mt-0.5"></i>
-                      <span>{{ pandesal.location }}</span>
-                    </a>
+          {% if shop.grouper %}
+            <a href="?shop={{ shop.grouper.id }}" class="text-xs font-bold text-[#168A61] hover:text-[#124D3B] hover:underline flex items-center gap-1.5 transition">
+              <span>View Bakery</span>
+              <i class="fa-solid fa-chevron-right text-[10px]"></i>
+            </a>
+          {% endif %}
+        </div>
+
+        <!-- 3-Column Responsive Grid -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+          {% for pandesal in shop.list %}
+            <div class="product-card bg-white rounded-3xl shadow-sm hover:shadow-md transition-all duration-300 border border-gray-100 overflow-hidden flex flex-col h-full group"
+                 data-searchable="{{ pandesal.name }} {{ pandesal.description }} {{ pandesal.location|default:'' }} {{ shop.grouper.shop_name|default:'' }}"
+                 data-name="{{ pandesal.name|lower }}"
+                 data-description="{{ pandesal.description|lower }} {{ pandesal.location|lower }}"
+                 data-categories="{% if pandesal.categories and pandesal.categories|length > 0 %}{{ pandesal.categories|join:',' }}{% else %}{% if pandesal.allow_order_now %}order_now{% elif pandesal.allow_reservation %}reservation{% elif pandesal.is_available_now %}available_now{% endif %}{% endif %}"
+                 data-id="{{ pandesal.id }}">
+              
+              <!-- Product Image Container -->
+              <div class="relative h-52 w-full overflow-hidden bg-[#EAF5EE]">
+                {% if pandesal.image %}
+                  <img src="{{ pandesal.image.url }}" alt="{{ pandesal.name }}" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105">
+                {% else %}
+                  <div class="w-full h-full flex flex-col items-center justify-center text-[#168A61]/40">
+                    <i class="fa-solid fa-bread-slice text-4xl mb-2"></i>
+                    <span class="text-xs font-medium">Fresh Pandesal</span>
+                  </div>
+                {% endif %}
+
+                <!-- Status Badges -->
+                <div class="absolute top-3 right-3 flex flex-col items-end gap-1.5">
+                  {% if 'order_now' in pandesal.categories %}
+                    {% if pandesal.stock > 0 and pandesal.can_order %}
+                      <span class="bg-[#168A61] text-white text-[11px] font-bold px-3 py-1 rounded-full shadow-sm backdrop-blur-xs flex items-center gap-1">
+                        <i class="fa-solid fa-circle-check text-[10px]"></i>
+                        <span>Stock: {{ pandesal.stock }}</span>
+                      </span>
+                    {% elif not pandesal.can_order %}
+                      <span class="bg-amber-600 text-white text-[11px] font-bold px-3 py-1 rounded-full shadow-sm">
+                        Closed
+                      </span>
+                    {% else %}
+                      <span class="bg-red-500 text-white text-[11px] font-bold px-3 py-1 rounded-full shadow-sm">
+                        Out of Stock
+                      </span>
+                    {% endif %}
+                  {% elif 'reservation' in pandesal.categories %}
+                    <span class="bg-[#25A879] text-white text-[11px] font-bold px-3 py-1 rounded-full shadow-sm flex items-center gap-1">
+                      <i class="fa-solid fa-calendar text-[10px]"></i>
+                      <span>Min: {{ pandesal.min_order_quantity|default:10 }} pcs</span>
+                    </span>
+                  {% else %}
+                    <span class="bg-[#168A61] text-white text-[11px] font-bold px-3 py-1 rounded-full shadow-sm">
+                      Available
+                    </span>
                   {% endif %}
                 </div>
-                <span class="text-xl font-extrabold text-[#1c7446] whitespace-nowrap">₱{{ pandesal.price }}</span>
+
+                <!-- Price Tag Ribbon -->
+                <div class="absolute bottom-3 left-3">
+                  <span class="bg-white/95 text-[#12382D] text-sm font-extrabold px-3 py-1 rounded-xl shadow-sm backdrop-blur-xs">
+                    ₱{{ pandesal.price }}
+                  </span>
+                </div>
               </div>
 
-              {% if pandesal.description %}
-                <div class="mt-1 mb-4">
-                  <p class="text-sm text-gray-600 leading-relaxed" id="desc-shop-{{ pandesal.id }}">
-                    <span class="description-short">{{ pandesal.description|truncatewords:14 }}</span>
-                    <span class="description-full hidden">{{ pandesal.description }}</span>
-                  </p>
-                  {% if pandesal.description|wordcount > 14 %}
-                    <button onclick="toggleShopDescription('{{ pandesal.id }}')" class="text-[#1c7446] hover:underline text-xs font-semibold mt-1">
-                      <span class="read-more-btn">Read more</span>
-                      <span class="read-less-btn hidden">Show less</span>
+              <!-- Product Info Body -->
+              <div class="p-5 flex-1 flex flex-col justify-between space-y-4">
+                <div>
+                  <h3 class="font-bold text-lg text-[#12382D] leading-snug group-hover:text-[#168A61] transition">{{ pandesal.name }}</h3>
+
+                  <!-- Seller & Location Metadata -->
+                  <div class="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-gray-500">
+                    {% if pandesal.seller and pandesal.seller.shop %}
+                      <span class="flex items-center gap-1 text-gray-600 font-medium">
+                        <i class="fa-solid fa-store text-[#168A61]"></i>
+                        <span>{{ pandesal.seller.shop.shop_name }}</span>
+                      </span>
+                    {% endif %}
+                    {% if pandesal.seller %}
+                      <a href="{% url 'message_thread' user_id=pandesal.seller.id %}" 
+                         class="inline-flex items-center gap-1 text-[#168A61] hover:text-[#124D3B] hover:underline font-semibold" 
+                         title="Message {{ pandesal.seller.get_full_name|default:pandesal.seller.username }}">
+                        <i class="fa-solid fa-comment-dots text-xs"></i>
+                        <span>Message Seller</span>
+                      </a>
+                    {% endif %}
+                    {% if pandesal.location %}
+                      <a href="https://www.google.com/maps/search/?api=1&query={{ pandesal.location|urlencode }}" target="_blank" rel="noopener"
+                         class="inline-flex items-center gap-1 text-[#168A61] hover:underline" title="View Location">
+                        <i class="fa-solid fa-location-dot"></i>
+                        <span>{{ pandesal.location }}</span>
+                      </a>
+                    {% endif %}
+                  </div>
+
+                  <!-- Product Description -->
+                  <div class="mt-3">
+                    {% if pandesal.description %}
+                      <div class="text-xs text-gray-600 leading-relaxed" id="desc-shop-{{ pandesal.id }}">
+                        <span class="description-short">{{ pandesal.description|truncatewords:14 }}</span>
+                        <span class="description-full hidden">{{ pandesal.description }}</span>
+                      </div>
+                      {% if pandesal.description|wordcount > 14 %}
+                        <button type="button" onclick="toggleShopDescription('{{ pandesal.id }}')" class="text-[#168A61] hover:underline text-[11px] font-bold mt-1">
+                          <span class="read-more-btn">Read more</span>
+                          <span class="read-less-btn hidden">Show less</span>
+                        </button>
+                      {% endif %}
+                    {% else %}
+                      <p class="text-xs text-gray-400 italic">Freshly baked hot pandesal, baked with care daily.</p>
+                    {% endif %}
+                  </div>
+                </div>
+
+                <!-- Footer & Action Buttons -->
+                <div class="pt-3 border-t border-gray-100 flex items-center justify-between gap-3 mt-auto">
+                  <span class="text-[11px] font-medium text-gray-400">
+                    Min: {{ pandesal.min_order_quantity|default:1 }} pc
+                  </span>
+
+                  {% if 'order_now' in pandesal.categories %}
+                    {% if pandesal.can_order and pandesal.stock > 0 %}
+                      <button type="button" onclick="openProductModal('{{ pandesal.id }}', '{{ pandesal.name|escapejs }}', '{{ pandesal.price }}', '{{ pandesal.stock }}', '{% if pandesal.image %}{{ pandesal.image.url|escapejs }}{% endif %}', '{{ pandesal.min_order_quantity|default:1 }}', '{{ pandesal.delivery_min_quantity|default:10 }}')" 
+                              class="px-4 py-2 bg-[#168A61] hover:bg-[#124D3B] text-white rounded-2xl font-bold text-xs transition flex items-center gap-1.5 shadow-sm hover:scale-[1.02]">
+                        <i class="fa-solid fa-cart-plus text-xs"></i>
+                        <span>Add to Cart</span>
+                      </button>
+                    {% elif not pandesal.can_order %}
+                      <button disabled class="px-4 py-2 bg-gray-200 text-gray-500 rounded-2xl font-semibold text-xs cursor-not-allowed">
+                        Closed
+                      </button>
+                    {% else %}
+                      <button disabled class="px-4 py-2 bg-gray-200 text-gray-500 rounded-2xl font-semibold text-xs cursor-not-allowed">
+                        Sold Out
+                      </button>
+                    {% endif %}
+                  {% elif 'reservation' in pandesal.categories %}
+                    <button type="button" onclick="openReservationModal('{{ pandesal.id }}', '{{ pandesal.name|escapejs }}', '{{ pandesal.price }}', '{{ pandesal.min_order_quantity|default:1 }}')" 
+                            class="px-4 py-2 bg-[#25A879] hover:bg-[#168A61] text-white rounded-2xl font-bold text-xs transition flex items-center gap-1.5 shadow-sm hover:scale-[1.02]">
+                      <i class="fa-solid fa-calendar-plus text-xs"></i>
+                      <span>Reserve Now</span>
+                    </button>
+                  {% else %}
+                    <button type="button" onclick="openProductModal('{{ pandesal.id }}', '{{ pandesal.name|escapejs }}', '{{ pandesal.price }}', '{{ pandesal.stock }}', '{% if pandesal.image %}{{ pandesal.image.url|escapejs }}{% endif %}', '{{ pandesal.min_order_quantity|default:1 }}', '{{ pandesal.delivery_min_quantity|default:10 }}')" 
+                            class="px-4 py-2 bg-[#168A61] hover:bg-[#124D3B] text-white rounded-2xl font-bold text-xs transition flex items-center gap-1.5 shadow-sm hover:scale-[1.02]">
+                      <i class="fa-solid fa-cart-plus text-xs"></i>
+                      <span>Add to Cart</span>
                     </button>
                   {% endif %}
                 </div>
-              {% else %}
-                <p class="text-sm text-gray-500 italic mb-4">Freshly baked malunggay pandesal, made daily.</p>
-              {% endif %}
-            </div>
 
-            <!-- Footer & Actions -->
-            <div class="pt-4 border-t border-gray-100 mt-auto flex items-center justify-between gap-3">
-              <span class="text-xs font-medium text-gray-500">
-                Min order: {{ pandesal.min_order_quantity|default:1 }} pc
-              </span>
-
-              {% if 'order_now' in pandesal.categories %}
-                {% if pandesal.can_order and pandesal.stock > 0 %}
-                  <button onclick="openProductModal('{{ pandesal.id }}', '{{ pandesal.name|escapejs }}', '{{ pandesal.price }}', '{{ pandesal.stock }}', '{% if pandesal.image %}{{ pandesal.image.url|escapejs }}{% endif %}', '{{ pandesal.min_order_quantity|default:1 }}', '{{ pandesal.delivery_min_quantity|default:10 }}')" 
-                     class="px-5 py-2.5 bg-[#1c7446] hover:bg-[#145a35] text-white rounded-full font-semibold text-sm transition-all flex items-center gap-2 shadow-sm hover:shadow-md">
-                    <i class="fas fa-shopping-cart text-xs"></i>
-                    <span>Add to Cart</span>
-                  </button>
-                {% elif not pandesal.can_order %}
-                  <button disabled class="px-5 py-2.5 bg-gray-200 text-gray-500 rounded-full font-semibold text-sm cursor-not-allowed">
-                    Closed
-                  </button>
-                {% else %}
-                  <button disabled class="px-5 py-2.5 bg-gray-200 text-gray-500 rounded-full font-semibold text-sm cursor-not-allowed">
-                    Sold Out
-                  </button>
-                {% endif %}
-              {% elif 'reservation' in pandesal.categories %}
-                <button onclick="openReservationModal('{{ pandesal.id }}', '{{ pandesal.name|escapejs }}', '{{ pandesal.price }}', '{{ pandesal.min_order_quantity|default:1 }}')" 
-                        class="px-5 py-2.5 bg-[#1c7446] hover:bg-[#145a35] text-white rounded-full font-semibold text-sm transition-all flex items-center gap-2 shadow-sm hover:shadow-md">
-                  <i class="fas fa-calendar-plus text-xs"></i>
-                  <span>Reserve Now</span>
-                </button>
-              {% else %}
-                <button onclick="openProductModal('{{ pandesal.id }}', '{{ pandesal.name|escapejs }}', '{{ pandesal.price }}', '{{ pandesal.stock }}', '{% if pandesal.image %}{{ pandesal.image.url|escapejs }}{% endif %}', '{{ pandesal.min_order_quantity|default:1 }}', '{{ pandesal.delivery_min_quantity|default:10 }}')" 
-                   class="px-5 py-2.5 bg-[#1c7446] hover:bg-[#145a35] text-white rounded-full font-semibold text-sm transition-all flex items-center gap-2 shadow-sm hover:shadow-md">
-                  <i class="fas fa-shopping-cart text-xs"></i>
-                  <span>Add to Cart</span>
-                </button>
-              {% endif %}
-            </div>
-
-          </div>
-        </div>
-              {% endfor %}
-            </div>
-          </div>
-        {% empty %}
-          <div class="text-center py-16 bg-white/80 rounded-2xl border border-gray-200 w-full">
-            <i class="fas fa-store text-4xl text-gray-300 mb-4"></i>
-            <p class="text-gray-600 font-medium">No pandesal products available at the moment.</p>
-          </div>
-        {% endfor %}
-      </div>
-
-      <!-- Product Detail Modal (Enhanced) -->
-      <div id="productModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-end md:items-center justify-center">
-        <div class="bg-white w-full md:max-w-2xl md:rounded-2xl rounded-t-3xl shadow-2xl transform transition-all max-h-[90vh] overflow-y-auto">
-          <!-- Modal Header -->
-          <div class="sticky top-0 bg-white border-b px-6 py-4 flex items-center justify-between z-10">
-            <h3 class="text-lg font-bold text-gray-800">Product Details</h3>
-            <button onclick="closeProductModal()" class="text-gray-500 hover:text-gray-700">
-              <i class="fas fa-times text-2xl"></i>
-            </button>
-          </div>
-
-          <!-- Modal Body -->
-          <div class="p-6">
-            <!-- Product Image -->
-            <div class="mb-6">
-              <img id="modalImage" src="" alt="Product" class="w-full h-64 object-cover rounded-lg">
-            </div>
-
-            <!-- Product Info -->
-            <div class="mb-6">
-              <h2 id="modalName" class="text-2xl font-bold text-gray-800 mb-2"></h2>
-              <p id="modalPrice" class="text-3xl font-bold text-green-600 mb-4"></p>
-              <p id="modalStock" class="text-sm text-gray-600 mb-2"></p>
-              <div class="flex gap-2 text-xs text-gray-600 mb-3">
-                <span id="modalPickupMin"><i class="fas fa-store mr-1"></i>Pickup: <span class="font-semibold"></span></span>
-                <span>•</span>
-                <span id="modalDeliveryMin"><i class="fas fa-truck mr-1"></i>Delivery: <span class="font-semibold"></span></span>
-              </div>
-              <!-- Shipping Info -->
-              <div id="shippingInfo" class="bg-blue-50 border border-blue-200 rounded-lg p-3 text-sm">
-                <div class="flex items-start gap-2">
-                  <i class="fas fa-info-circle text-blue-600 mt-0.5"></i>
-                  <div>
-                    <p class="text-blue-800 font-medium">Shipping Information:</p>
-                    <p class="text-blue-700 text-xs mt-1" id="shippingText"></p>
-                  </div>
-                </div>
               </div>
             </div>
-
-            <!-- Quantity Selector -->
-            <div class="mb-6">
-              <label class="block text-sm font-semibold text-gray-700 mb-3">Quantity</label>
-              <div class="flex items-center gap-4">
-                <button onclick="decreaseQuantity()" class="w-10 h-10 border-2 border-gray-300 rounded-lg flex items-center justify-center hover:border-green-500 hover:text-green-500 transition-colors">
-                  <i class="fas fa-minus"></i>
-                </button>
-                <input type="number" id="quantityInput" value="1" min="1" 
-                       class="w-20 text-center border-2 border-gray-300 rounded-lg py-2 font-semibold text-lg focus:border-green-500 focus:outline-none"
-                       onchange="updateTotal()">
-                <button onclick="increaseQuantity()" class="w-10 h-10 border-2 border-gray-300 rounded-lg flex items-center justify-center hover:border-green-500 hover:text-green-500 transition-colors">
-                  <i class="fas fa-plus"></i>
-                </button>
-                <span id="maxStock" class="text-sm text-gray-500"></span>
-              </div>
-            </div>
-
-          </div>
-
-          <!-- Modal Footer -->
-          <div class="sticky bottom-0 bg-white border-t px-6 py-4 z-10">
-            <div class="flex items-center justify-between mb-3">
-              <div>
-                <span class="text-gray-600 text-sm">Total:</span>
-                <div id="shippingCost" class="text-xs text-gray-500"></div>
-              </div>
-              <span id="totalPrice" class="text-2xl font-bold text-green-600"></span>
-            </div>
-            <div class="flex gap-3">
-              <!-- Add to Cart Button (Icon Only) -->
-              <button onclick="addToCart()" 
-                      class="w-14 h-14 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center justify-center shadow-md"
-                      title="Add to Cart">
-                <i class="fas fa-shopping-cart text-xl"></i>
-              </button>
-              <!-- Buy Now Button -->
-              <button onclick="buyNow()" 
-                      class="flex-1 bg-green-600 text-white py-4 rounded-lg hover:bg-green-700 transition-colors font-bold text-lg">
-                Buy Now
-              </button>
-            </div>
-          </div>
+          {% endfor %}
         </div>
       </div>
-
-      <!-- No Results Message -->
-      <div id="noResults" class="hidden text-center py-12">
-        <i class="fas fa-search text-4xl text-gray-300 mb-4"></i>
-        <p class="text-gray-500 mb-4">No products found matching your search</p>
-        <button id="clearSearchBtn" class="bg-green-500 text-white px-6 py-2 rounded-full hover:bg-green-600 transition-colors">
-          Clear Search
-        </button>
+    {% empty %}
+      <div class="bg-white rounded-3xl p-12 text-center border border-gray-100 shadow-sm max-w-xl mx-auto">
+        <div class="w-16 h-16 rounded-3xl bg-[#DDF1E6] text-[#168A61] flex items-center justify-center mx-auto mb-4 text-2xl">
+          <i class="fa-solid fa-store-slash"></i>
+        </div>
+        <h3 class="text-lg font-bold text-[#12382D] mb-1">No pandesal products available yet</h3>
+        <p class="text-xs text-gray-500 mb-6">Freshly baked products from our local sellers will appear here soon.</p>
+        <a href="{% url 'index_user' %}" class="inline-flex items-center gap-2 px-5 py-2.5 bg-[#168A61] hover:bg-[#124D3B] text-white rounded-2xl font-semibold text-xs transition shadow-sm">
+          <i class="fa-solid fa-house text-xs"></i>
+          <span>Return Home</span>
+        </a>
       </div>
-    </main>
+    {% endfor %}
   </div>
 
-  <script>
-    // Sidebar toggle
-    const sidebar = document.getElementById('sidebar');
-    const overlay = document.getElementById('overlay');
-    const sidebarToggle = document.getElementById('sidebarToggle');
-    const mainContent = document.getElementById('mainContent');
-    
-    sidebarToggle.addEventListener('click', function() {
-      // On mobile (< 1024px): slide sidebar in from left with overlay
-      if (window.innerWidth < 1024) {
-        sidebar.classList.toggle('show');
-        overlay.classList.toggle('hidden');
-      } else {
-        // On desktop (>= 1024px): collapse to icon-only mode
-        sidebar.classList.toggle('collapsed');
-        
-        // Adjust main content margin
-        if (sidebar.classList.contains('collapsed')) {
-          mainContent.style.marginLeft = '80px';
-        } else {
-          mainContent.style.marginLeft = '280px';
-        }
-      }
-    });
-    
-    // Close sidebar when clicking overlay (mobile only)
-    overlay.addEventListener('click', function() {
-      sidebar.classList.remove('show');
-      overlay.classList.add('hidden');
-    });
-    
-    // Dropdown toggle function
-    function toggleDropdown(id) {
-      const dropdown = document.getElementById(id);
-      const allDropdowns = document.querySelectorAll('.dropdown-menu');
-      
-      // Close all other dropdowns
-      allDropdowns.forEach(d => {
-        if (d.id !== id) {
-          d.classList.remove('show');
-        }
-      });
-      
-      // Toggle current dropdown
-      dropdown.classList.toggle('show');
-    }
-    
-    // Close dropdowns when clicking outside
-    document.addEventListener('click', function(e) {
-      if (!e.target.closest('.relative')) {
-        document.querySelectorAll('.dropdown-menu').forEach(d => {
-          d.classList.remove('show');
-        });
-      }
-    });
-    
-    // Handle window resize
-    window.addEventListener('resize', function() {
-      if (window.innerWidth >= 1024) {
-        // On desktop: remove mobile classes, restore proper state
-        overlay.classList.add('hidden');
-        sidebar.classList.remove('show');
-        
-        // Restore proper margin based on collapsed state
-        if (sidebar.classList.contains('collapsed')) {
-          mainContent.style.marginLeft = '80px';
-        } else {
-          mainContent.style.marginLeft = '280px';
-        }
-      } else {
-        // On mobile: remove desktop classes
-        sidebar.classList.remove('collapsed');
-        mainContent.style.marginLeft = '0';
-      }
-    });
-
-    // Search functionality
-    const searchInput = document.getElementById('searchInput');
-    const clearSearch = document.getElementById('clearSearch');
-    const clearSearchBtn = document.getElementById('clearSearchBtn');
-    const productCards = document.querySelectorAll('.product-card');
-    const noResults = document.getElementById('noResults');
-    const productsGrid = document.getElementById('productsGrid');
-
-    function performSearch() {
-      const searchTerm = searchInput.value.toLowerCase().trim();
-      let visibleCards = 0;
-
-      // Show/hide clear button
-      if (searchTerm) {
-        clearSearch.classList.remove('hidden');
-      } else {
-        clearSearch.classList.add('hidden');
-      }
-
-      productCards.forEach(card => {
-        const name = card.getAttribute('data-name');
-        const description = card.getAttribute('data-description');
-        
-        if (searchTerm === '' || name.includes(searchTerm) || description.includes(searchTerm)) {
-          card.style.display = 'block';
-          visibleCards++;
-        } else {
-          card.style.display = 'none';
-        }
-      });
-
-      // Show/hide no results message
-      if (visibleCards === 0 && searchTerm !== '') {
-        noResults.classList.remove('hidden');
-        productsGrid.classList.add('hidden');
-      } else {
-        noResults.classList.add('hidden');
-        productsGrid.classList.remove('hidden');
-      }
-    }
-
-    // Real-time search as user types
-    searchInput.addEventListener('input', performSearch);
-
-    // Clear search functionality
-    clearSearch.addEventListener('click', function() {
-      searchInput.value = '';
-      performSearch();
-      searchInput.focus();
-    });
-
-    clearSearchBtn.addEventListener('click', function() {
-      searchInput.value = '';
-      performSearch();
-      searchInput.focus();
-    });
-
-    // Category filter functionality
-    const categoryFilters = document.querySelectorAll('.category-filter');
-    let activeCategory = 'all';
-
-    categoryFilters.forEach(filter => {
-      filter.addEventListener('click', function() {
-        // Update active state
-        categoryFilters.forEach(f => {
-          f.classList.remove('active');
-          f.style.backgroundColor = '#f3f4f6';
-          f.style.color = '#1f2937';
-        });
-        
-        this.classList.add('active');
-        const category = this.getAttribute('data-category');
-        activeCategory = category;
-        
-        // Style active button
-        if (category === 'all') {
-          this.style.backgroundColor = '#16a34a';
-          this.style.color = 'white';
-        } else if (category === 'order_now') {
-          this.style.backgroundColor = '#1f2937';
-          this.style.color = 'white';
-        } else if (category === 'reservation') {
-          this.style.backgroundColor = '#3b82f6';
-          this.style.color = 'white';
-        }
-        
-        // Filter products
-        filterProducts();
-      });
-    });
-
-    function filterProducts() {
-      let visibleCards = 0;
-      const searchTerm = searchInput.value.toLowerCase().trim();
-
-      productCards.forEach(card => {
-        const name = card.getAttribute('data-name');
-        const description = card.getAttribute('data-description');
-        const categories = card.getAttribute('data-categories') || '';
-        
-        // Check search match
-        const matchesSearch = searchTerm === '' || name.includes(searchTerm) || description.includes(searchTerm);
-        
-        // Check category match
-        let matchesCategory = false;
-        if (activeCategory === 'all') {
-          matchesCategory = true;
-        } else {
-          matchesCategory = categories.includes(activeCategory);
-        }
-        
-        if (matchesSearch && matchesCategory) {
-          card.style.display = 'block';
-          visibleCards++;
-        } else {
-          card.style.display = 'none';
-        }
-      });
-
-      // Show/hide no results message
-      if (visibleCards === 0) {
-        noResults.classList.remove('hidden');
-        productsGrid.classList.add('hidden');
-      } else {
-        noResults.classList.add('hidden');
-        productsGrid.classList.remove('hidden');
-      }
-    }
-
-    // Update search to work with category filter
-    searchInput.addEventListener('input', filterProducts);
-
-    // Check URL parameters and activate filter on page load
-    window.addEventListener('DOMContentLoaded', function() {
-      const urlParams = new URLSearchParams(window.location.search);
-      const filterParam = urlParams.get('filter');
-      
-      if (filterParam === 'reservation') {
-        // Find and click the reservation filter button
-        const reservationBtn = document.querySelector('[data-category="reservation"]');
-        if (reservationBtn) {
-          reservationBtn.click();
-        }
-      }
-    });
-
-    // Auto-refresh page when order time window closes
-    function checkOrderTimeWindow() {
-      const now = new Date();
-      const currentTime = now.getHours() * 60 + now.getMinutes();
-      
-      // Check if any order products exist
-      const orderProducts = document.querySelectorAll('[data-categories*="order_now"]');
-      if (orderProducts.length > 0) {
-        // Refresh page every minute to update order status
-        setTimeout(() => {
-          location.reload();
-        }, 60000); // Refresh every 60 seconds
-      }
-    }
-    
-    // Start checking
-    checkOrderTimeWindow();
-
-    // Product Modal Functions
-    let currentProduct = {};
-
-    function openProductModal(id, name, price, stock, imageUrl, pickupMin, deliveryMin) {
-      currentProduct = { id, name, price, stock, imageUrl, pickupMin, deliveryMin };
-      
-      // Set product details
-      document.getElementById('modalName').textContent = name;
-      document.getElementById('modalPrice').textContent = '₱' + parseFloat(price).toFixed(2);
-      document.getElementById('modalStock').textContent = stock + ' pieces available';
-      document.getElementById('modalImage').src = imageUrl || '/static/pandesal/img/placeholder.png';
-      document.getElementById('maxStock').textContent = 'Max: ' + stock;
-      
-      // Set min quantities
-      document.getElementById('modalPickupMin').querySelector('.font-semibold').textContent = pickupMin + ' pc min';
-      document.getElementById('modalDeliveryMin').querySelector('.font-semibold').textContent = deliveryMin + ' pcs min';
-      
-      // Reset quantity (use pickup minimum as default)
-      document.getElementById('quantityInput').value = pickupMin;
-      document.getElementById('quantityInput').min = pickupMin;
-      
-      // Show modal
-      document.getElementById('productModal').classList.remove('hidden');
-      document.body.style.overflow = 'hidden';
-      
-      updateTotal();
-    }
-
-    function closeProductModal() {
-      document.getElementById('productModal').classList.add('hidden');
-      document.body.style.overflow = 'auto';
-    }
-
-    function increaseQuantity() {
-      const input = document.getElementById('quantityInput');
-      const currentQty = parseInt(input.value);
-      const maxStock = currentProduct.stock;
-      
-      if (currentQty < maxStock) {
-        input.value = currentQty + 1;
-        updateTotal();
-      }
-    }
-
-    function decreaseQuantity() {
-      const input = document.getElementById('quantityInput');
-      const currentQty = parseInt(input.value);
-      const minQty = currentProduct.pickupMin; // Use pickup minimum as default
-      
-      if (currentQty > minQty) {
-        input.value = currentQty - 1;
-        updateTotal();
-      }
-    }
-
-    function updateTotal() {
-      const quantity = parseInt(document.getElementById('quantityInput').value);
-      const total = currentProduct.price * quantity;
-      const deliveryMin = currentProduct.deliveryMin;
-      const freeShippingThreshold = deliveryMin + 10;
-      
-      // Update shipping info
-      const shippingText = document.getElementById('shippingText');
-      const shippingCost = document.getElementById('shippingCost');
-      
-      if (quantity >= freeShippingThreshold) {
-        shippingText.innerHTML = `<i class="fas fa-check-circle text-green-600"></i> <strong>FREE SHIPPING!</strong> You ordered ${quantity} pcs (${freeShippingThreshold}+ pcs qualifies for free delivery)`;
-        shippingCost.textContent = 'Shipping: FREE';
-        shippingCost.classList.remove('text-gray-500');
-        shippingCost.classList.add('text-green-600', 'font-semibold');
-      } else if (quantity >= deliveryMin) {
-        const moreNeeded = freeShippingThreshold - quantity;
-        shippingText.innerHTML = `Regular shipping ₱50. Order ${moreNeeded} more pcs for <strong>FREE SHIPPING!</strong>`;
-        shippingCost.textContent = 'Shipping: ₱50.00';
-        shippingCost.classList.remove('text-green-600', 'font-semibold');
-        shippingCost.classList.add('text-gray-500');
-      } else {
-        const moreNeeded = deliveryMin - quantity;
-        shippingText.innerHTML = `Pickup only. Add ${moreNeeded} more pcs to qualify for delivery (min: ${deliveryMin} pcs)`;
-        shippingCost.textContent = 'Pickup only';
-        shippingCost.classList.remove('text-green-600', 'font-semibold');
-        shippingCost.classList.add('text-gray-500');
-      }
-      
-      document.getElementById('totalPrice').textContent = '₱' + total.toFixed(2);
-    }
-
-    function addToCart() {
-      const quantity = parseInt(document.getElementById('quantityInput').value);
-      
-      // Validate quantity (use pickup minimum as default for validation)
-      const minQty = currentProduct.pickupMin;
-      if (quantity < minQty) {
-        alert('Minimum quantity is ' + minQty + ' pieces');
-        return;
-      }
-      
-      if (quantity > currentProduct.stock) {
-        alert('Only ' + currentProduct.stock + ' pieces available');
-        return;
-      }
-      
-      // Create a form to submit with POST data
-      const form = document.createElement('form');
-      form.method = 'POST';
-      form.action = '/cart/add/' + currentProduct.id + '/';
-      
-      // Add CSRF token
-      const csrfInput = document.createElement('input');
-      csrfInput.type = 'hidden';
-      csrfInput.name = 'csrfmiddlewaretoken';
-      csrfInput.value = '{{ csrf_token }}';
-      form.appendChild(csrfInput);
-      
-      // Add quantity
-      const qtyInput = document.createElement('input');
-      qtyInput.type = 'hidden';
-      qtyInput.name = 'quantity';
-      qtyInput.value = quantity;
-      form.appendChild(qtyInput);
-      
-      // Don't add order type - will be selected during checkout/payment
-      
-      document.body.appendChild(form);
-      form.submit();
-    }
-    
-    function buyNow() {
-      const quantity = parseInt(document.getElementById('quantityInput').value);
-      
-      // Validate quantity
-      const minQty = currentProduct.pickupMin;
-      if (quantity < minQty) {
-        alert('Minimum quantity is ' + minQty + ' pieces');
-        return;
-      }
-      
-      if (quantity > currentProduct.stock) {
-        alert('Only ' + currentProduct.stock + ' pieces available');
-        return;
-      }
-      
-      // Add to cart first, then redirect to checkout
-      const form = document.createElement('form');
-      form.method = 'POST';
-      form.action = '/cart/add/' + currentProduct.id + '/';
-      
-      // Add CSRF token
-      const csrfInput = document.createElement('input');
-      csrfInput.type = 'hidden';
-      csrfInput.name = 'csrfmiddlewaretoken';
-      csrfInput.value = '{{ csrf_token }}';
-      form.appendChild(csrfInput);
-      
-      // Add quantity
-      const qtyInput = document.createElement('input');
-      qtyInput.type = 'hidden';
-      qtyInput.name = 'quantity';
-      qtyInput.value = quantity;
-      form.appendChild(qtyInput);
-      
-      // Add buy_now flag to redirect to checkout
-      const buyNowInput = document.createElement('input');
-      buyNowInput.type = 'hidden';
-      buyNowInput.name = 'buy_now';
-      buyNowInput.value = 'true';
-      form.appendChild(buyNowInput);
-      
-      document.body.appendChild(form);
-      form.submit();
-    }
-
-    // Close modal when clicking outside
-    document.getElementById('productModal').addEventListener('click', function(e) {
-      if (e.target === this) {
-        closeProductModal();
-      }
-    });
-
-    // Update quantity input on change
-    document.getElementById('quantityInput').addEventListener('input', function() {
-      const minQty = currentProduct.pickupMin;
-      if (parseInt(this.value) < minQty) {
-        this.value = minQty;
-      }
-      if (parseInt(this.value) > currentProduct.stock) {
-        this.value = currentProduct.stock;
-      }
-      updateTotal();
-    });
-  </script>
-
-  <!-- Reservation Modal -->
-  <div id="reservationModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-    <div class="bg-white rounded-xl max-w-md w-full p-6">
-      <div class="flex justify-between items-center mb-4">
-        <h3 class="text-xl font-bold text-gray-800" id="modalProductName">Add to Reservation Cart</h3>
-        <button onclick="closeReservationModal()" class="text-gray-500 hover:text-gray-700">
-          <i class="fas fa-times text-xl"></i>
-        </button>
-      </div>
-
-      <form method="post" id="reservationForm">
-        {% csrf_token %}
-        <input type="hidden" name="product_id" id="modalProductId">
-        
-        <div class="mb-4">
-          <label class="block text-gray-700 font-medium mb-2">Quantity *</label>
-          <input type="number" name="quantity" id="reservationQuantity" value="1" min="1" required
-                 class="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-green-500">
-          <p class="text-sm text-gray-500 mt-1" id="reservationMinText">Minimum: 1 piece</p>
-        </div>
-
-        <div class="mb-4">
-          <label class="block text-gray-700 font-medium mb-2">Reservation Date *</label>
-          <input type="date" name="reservation_date" required
-                 class="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-green-500">
-          <p class="text-sm text-gray-500 mt-1">Reserve at least 3 days in advance</p>
-        </div>
-
-        <div class="mb-4">
-          <label class="block text-gray-700 font-medium mb-2">Reservation Time *</label>
-          <input type="time" name="reservation_time" value="09:00" required
-                 class="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-green-500">
-        </div>
-
-        <div class="mb-4">
-          <label class="block text-gray-700 font-medium mb-2">Notes (Optional)</label>
-          <textarea name="notes" rows="2" placeholder="Special requests or instructions..."
-                    class="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-green-500"></textarea>
-        </div>
-
-        <div class="bg-green-50 border border-green-200 rounded-lg p-3 mb-4">
-          <p class="text-sm text-green-800">
-            <i class="fas fa-info-circle"></i> Item will be added to your reservation cart
-          </p>
-        </div>
-
-        <button type="submit" class="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-3 rounded-lg transition">
-          <i class="fas fa-cart-plus"></i> Add to Cart
-        </button>
-      </form>
+  <!-- In-page Filter "No Results" Message -->
+  <div id="noResults" class="hidden bg-white rounded-3xl p-12 text-center border border-gray-100 shadow-sm max-w-xl mx-auto">
+    <div class="w-16 h-16 rounded-3xl bg-gray-100 text-gray-400 flex items-center justify-center mx-auto mb-4 text-2xl">
+      <i class="fa-solid fa-magnifying-glass"></i>
     </div>
+    <h3 class="text-lg font-bold text-[#12382D] mb-1">No matching products found</h3>
+    <p class="text-xs text-gray-500 mb-5">Try checking your spelling or adjusting your category filter.</p>
+    <button type="button" id="clearAllFiltersBtn" class="px-5 py-2.5 bg-[#168A61] text-white rounded-2xl font-semibold text-xs hover:bg-[#124D3B] transition shadow-sm">
+      Clear Search & Filters
+    </button>
   </div>
 
-  <!-- Cart Selection Modal -->
-  <div id="cartModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-    <div class="bg-white rounded-2xl max-w-md w-full p-8 shadow-2xl">
-      <div class="text-center mb-6">
-        <div class="mx-auto w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-4">
-          <i class="fas fa-shopping-cart text-3xl text-green-600"></i>
-        </div>
-        <h3 class="text-2xl font-bold text-gray-800 mb-2">Choose Your Cart</h3>
-        <p class="text-gray-600">Select which cart you want to view</p>
+</div>
+
+<!-- Product Detail Modal (Order Now / Add to Cart) -->
+<div id="productModal" class="hidden fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 backdrop-blur-xs">
+  <div class="bg-white w-full max-w-lg rounded-3xl shadow-2xl overflow-hidden max-h-[92vh] flex flex-col animate-in fade-in zoom-in-95 duration-200">
+    <!-- Header -->
+    <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+      <div class="flex items-center gap-2.5">
+        <span class="w-8 h-8 rounded-xl bg-[#DDF1E6] text-[#168A61] flex items-center justify-center text-sm font-bold">
+          <i class="fa-solid fa-basket-shopping"></i>
+        </span>
+        <h3 class="text-base font-bold text-[#12382D]">Product Details</h3>
       </div>
-
-      <div class="space-y-4">
-        <!-- Order Cart Button -->
-        <a href="{% url 'view_cart' %}" class="block w-full bg-green-600 hover:bg-green-700 text-white p-5 rounded-xl font-semibold transition-all shadow-lg">
-          <div class="flex items-center justify-between">
-            <div class="flex items-center gap-3">
-              <i class="fas fa-shopping-bag text-2xl"></i>
-              <div class="text-left">
-                <div class="text-lg font-bold">Order Cart</div>
-                <div class="text-sm opacity-90">Immediate purchase</div>
-              </div>
-            </div>
-            <i class="fas fa-arrow-right text-xl"></i>
-          </div>
-        </a>
-
-        <!-- Reservation Cart Button -->
-        <a href="{% url 'view_cart' %}" class="block w-full bg-green-600 hover:bg-green-700 text-white p-5 rounded-xl font-semibold transition-all shadow-lg">
-          <div class="flex items-center justify-between">
-            <div class="flex items-center gap-3">
-              <i class="fas fa-calendar-check text-2xl"></i>
-              <div class="text-left">
-                <div class="text-lg font-bold">Reservation Cart</div>
-                <div class="text-sm opacity-90">Advance booking</div>
-              </div>
-            </div>
-            <i class="fas fa-arrow-right text-xl"></i>
-          </div>
-        </a>
-      </div>
-
-      <button onclick="closeCartModal()" class="mt-6 w-full py-3 text-gray-600 hover:text-gray-800 font-medium transition">
-        Cancel
+      <button type="button" onclick="closeProductModal()" class="w-8 h-8 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-500 flex items-center justify-center transition" aria-label="Close">
+        <i class="fa-solid fa-xmark text-sm"></i>
       </button>
     </div>
+
+    <!-- Scrollable Body -->
+    <div class="p-6 overflow-y-auto nice-scroll space-y-5">
+      <!-- Image -->
+      <div class="relative h-48 w-full rounded-2xl overflow-hidden bg-gray-100">
+        <img id="modalImage" src="" alt="Product" class="w-full h-full object-cover">
+      </div>
+
+      <!-- Title & Price -->
+      <div>
+        <div class="flex items-start justify-between gap-3">
+          <h2 id="modalName" class="text-xl font-extrabold text-[#12382D]"></h2>
+          <span id="modalPrice" class="text-2xl font-extrabold text-[#168A61] whitespace-nowrap"></span>
+        </div>
+        <p id="modalStock" class="text-xs text-gray-500 mt-1"></p>
+        
+        <div class="flex items-center gap-3 text-xs text-gray-600 mt-2 bg-[#F8FCF9] border border-[#C7E5D5]/60 p-2.5 rounded-xl">
+          <span id="modalPickupMin"><i class="fa-solid fa-store text-[#168A61] mr-1"></i>Pickup: <strong class="font-bold text-[#12382D]"></strong></span>
+          <span class="text-gray-300">•</span>
+          <span id="modalDeliveryMin"><i class="fa-solid fa-truck text-[#168A61] mr-1"></i>Delivery: <strong class="font-bold text-[#12382D]"></strong></span>
+        </div>
+      </div>
+
+      <!-- Shipping Info Alert -->
+      <div id="shippingInfo" class="bg-blue-50/80 border border-blue-100 rounded-2xl p-3.5 text-xs text-blue-900 flex items-start gap-2.5">
+        <i class="fa-solid fa-circle-info text-blue-600 text-sm mt-0.5 shrink-0"></i>
+        <div>
+          <strong class="block font-bold">Shipping Information</strong>
+          <span id="shippingText" class="text-[11px] text-blue-800"></span>
+        </div>
+      </div>
+
+      <!-- Quantity Selector -->
+      <div>
+        <label class="block text-xs font-bold text-[#12382D] uppercase tracking-wider mb-2">Quantity</label>
+        <div class="flex items-center gap-3">
+          <button type="button" onclick="decreaseQuantity()" class="w-10 h-10 rounded-xl border border-gray-200 hover:border-[#168A61] hover:text-[#168A61] flex items-center justify-center font-bold text-base transition">
+            <i class="fa-solid fa-minus text-xs"></i>
+          </button>
+          <input type="number" id="quantityInput" value="1" min="1" 
+                 class="w-20 text-center border border-gray-200 rounded-xl py-2 font-bold text-base focus:ring-2 focus:ring-[#168A61]/30 focus:outline-none"
+                 onchange="updateTotal()">
+          <button type="button" onclick="increaseQuantity()" class="w-10 h-10 rounded-xl border border-gray-200 hover:border-[#168A61] hover:text-[#168A61] flex items-center justify-center font-bold text-base transition">
+            <i class="fa-solid fa-plus text-xs"></i>
+          </button>
+          <span id="maxStock" class="text-xs text-gray-400"></span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="px-6 py-4 border-t border-gray-100 bg-gray-50/70">
+      <div class="flex items-center justify-between mb-3">
+        <div>
+          <span class="text-xs text-gray-500">Order Total</span>
+          <div id="shippingCost" class="text-[11px] text-gray-500 font-medium"></div>
+        </div>
+        <span id="totalPrice" class="text-2xl font-extrabold text-[#168A61]">₱0.00</span>
+      </div>
+      <div class="flex gap-2.5">
+        <button type="button" onclick="addToCart()" 
+                class="w-12 h-12 rounded-2xl bg-[#DDF1E6] hover:bg-[#C7E5D5] text-[#168A61] flex items-center justify-center text-base transition shadow-xs"
+                title="Add to Cart">
+          <i class="fa-solid fa-cart-plus"></i>
+        </button>
+        <button type="button" onclick="buyNow()" 
+                class="flex-1 py-3 px-6 bg-[#168A61] hover:bg-[#124D3B] text-white rounded-2xl font-bold text-sm transition shadow-md hover:shadow-lg">
+          Buy Now
+        </button>
+      </div>
+    </div>
   </div>
+</div>
 
-  <script>
-    // Cart Modal Functions
-    function openCartModal() {
-      document.getElementById('cartModal').classList.remove('hidden');
-    }
+<!-- Reservation Modal -->
+<div id="reservationModal" class="hidden fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 backdrop-blur-xs">
+  <div class="bg-white rounded-3xl max-w-md w-full shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+    <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+      <div class="flex items-center gap-2.5">
+        <span class="w-8 h-8 rounded-xl bg-[#DDF1E6] text-[#25A879] flex items-center justify-center text-sm font-bold">
+          <i class="fa-solid fa-calendar-plus"></i>
+        </span>
+        <h3 class="text-base font-bold text-[#12382D]" id="modalProductName">Add to Reservation Cart</h3>
+      </div>
+      <button type="button" onclick="closeReservationModal()" class="w-8 h-8 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-500 flex items-center justify-center transition" aria-label="Close">
+        <i class="fa-solid fa-xmark text-sm"></i>
+      </button>
+    </div>
 
-    function closeCartModal() {
-      document.getElementById('cartModal').classList.add('hidden');
-    }
+    <form method="post" id="reservationForm" class="p-6 space-y-4">
+      {% csrf_token %}
+      <input type="hidden" name="product_id" id="modalProductId">
+      
+      <div>
+        <label class="block text-xs font-bold text-[#12382D] uppercase tracking-wider mb-1.5">Quantity <span class="text-red-500">*</span></label>
+        <input type="number" name="quantity" id="reservationQuantity" value="1" min="1" required
+               class="w-full border border-gray-200 rounded-2xl p-3 text-sm font-bold focus:ring-2 focus:ring-[#168A61]/30 focus:outline-none">
+        <p class="text-[11px] text-gray-400 mt-1" id="reservationMinText">Minimum: 1 piece</p>
+      </div>
 
-    // Close cart modal when clicking outside
-    document.getElementById('cartModal').addEventListener('click', function(e) {
-      if (e.target === this) {
-        closeCartModal();
+      <div>
+        <label class="block text-xs font-bold text-[#12382D] uppercase tracking-wider mb-1.5">Reservation Date <span class="text-red-500">*</span></label>
+        <input type="date" name="reservation_date" required
+               class="w-full border border-gray-200 rounded-2xl p-3 text-sm focus:ring-2 focus:ring-[#168A61]/30 focus:outline-none">
+        <p class="text-[11px] text-gray-400 mt-1">Please reserve at least 3 days in advance</p>
+      </div>
+
+      <div>
+        <label class="block text-xs font-bold text-[#12382D] uppercase tracking-wider mb-1.5">Pickup / Delivery Time <span class="text-red-500">*</span></label>
+        <input type="time" name="reservation_time" value="09:00" required
+               class="w-full border border-gray-200 rounded-2xl p-3 text-sm focus:ring-2 focus:ring-[#168A61]/30 focus:outline-none">
+      </div>
+
+      <div>
+        <label class="block text-xs font-bold text-[#12382D] uppercase tracking-wider mb-1.5">Special Instructions (Optional)</label>
+        <textarea name="notes" rows="2" placeholder="Packaging preferences, hot delivery request..."
+                  class="w-full border border-gray-200 rounded-2xl p-3 text-sm focus:ring-2 focus:ring-[#168A61]/30 focus:outline-none"></textarea>
+      </div>
+
+      <div class="bg-[#F8FCF9] border border-[#C7E5D5] rounded-2xl p-3 text-xs text-[#12382D] flex items-center gap-2">
+        <i class="fa-solid fa-circle-check text-[#168A61]"></i>
+        <span>This item will be saved in your Reservation Cart.</span>
+      </div>
+
+      <button type="submit" class="w-full py-3.5 bg-[#168A61] hover:bg-[#124D3B] text-white font-bold rounded-2xl transition shadow-md flex items-center justify-center gap-2 text-sm">
+        <i class="fa-solid fa-calendar-check"></i>
+        <span>Add to Reservation Cart</span>
+      </button>
+    </form>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  // Product & Category Filter Logic
+  (function () {
+    const categoryFilters = document.querySelectorAll('.category-filter');
+    const productCards = document.querySelectorAll('.product-card');
+    const shopSections = document.querySelectorAll('.shop-section');
+    const noResults = document.getElementById('noResults');
+    const searchInput = document.getElementById('pageSearchInput');
+    const clearAllBtn = document.getElementById('clearAllFiltersBtn');
+    let activeCategory = 'all';
+
+    function runFiltering() {
+      const q = (searchInput ? searchInput.value : '').toLowerCase().trim();
+      let totalVisible = 0;
+
+      shopSections.forEach(section => {
+        let sectionVisible = 0;
+        const cards = section.querySelectorAll('.product-card');
+
+        cards.forEach(card => {
+          const searchable = (card.getAttribute('data-searchable') || '').toLowerCase();
+          const categories = (card.getAttribute('data-categories') || '').toLowerCase();
+
+          const matchesSearch = q === '' || searchable.includes(q);
+          const matchesCategory = activeCategory === 'all' || categories.includes(activeCategory);
+
+          if (matchesSearch && matchesCategory) {
+            card.style.display = '';
+            sectionVisible++;
+            totalVisible++;
+          } else {
+            card.style.display = 'none';
+          }
+        });
+
+        section.style.display = sectionVisible > 0 ? '' : 'none';
+      });
+
+      if (noResults) {
+        noResults.classList.toggle('hidden', totalVisible > 0);
       }
+    }
+
+    categoryFilters.forEach(btn => {
+      btn.addEventListener('click', function () {
+        categoryFilters.forEach(b => {
+          b.classList.remove('active', 'bg-[#168A61]', 'text-white');
+          b.classList.add('bg-white', 'text-[#12382D]', 'border', 'border-gray-200');
+        });
+        this.classList.add('active', 'bg-[#168A61]', 'text-white');
+        this.classList.remove('bg-white', 'text-[#12382D]', 'border', 'border-gray-200');
+
+        activeCategory = this.getAttribute('data-category') || 'all';
+        runFiltering();
+      });
     });
 
-    // Reservation Modal Functions
-    function openReservationModal(productId, productName, price, minQuantity) {
-      minQuantity = minQuantity || 1; // Default to 1 if not provided
-      
-      document.getElementById('modalProductId').value = productId;
-      document.getElementById('modalProductName').textContent = productName;
-      document.getElementById('reservationForm').action = `/reservation/cart/add/${productId}/`;
-      
-      // Set minimum quantity
-      const quantityInput = document.getElementById('reservationQuantity');
-      quantityInput.value = minQuantity;
-      quantityInput.min = minQuantity;
-      
-      // Update minimum text
-      const minText = document.getElementById('reservationMinText');
-      const pieceText = minQuantity === 1 ? 'piece' : 'pieces';
-      minText.textContent = `Minimum: ${minQuantity} ${pieceText}`;
-      
-      document.getElementById('reservationModal').classList.remove('hidden');
-      
-      // Set minimum date (3 days from now)
-      const today = new Date();
-      today.setDate(today.getDate() + 3);
-      const minDate = today.toISOString().split('T')[0];
-      document.querySelector('#reservationModal input[name="reservation_date"]').setAttribute('min', minDate);
+    if (searchInput) {
+      searchInput.addEventListener('input', runFiltering);
     }
 
-    function closeReservationModal() {
-      document.getElementById('reservationModal').classList.add('hidden');
+    if (clearAllBtn) {
+      clearAllBtn.addEventListener('click', function () {
+        if (searchInput) searchInput.value = '';
+        const allBtn = document.querySelector('.category-filter[data-category="all"]');
+        if (allBtn) allBtn.click();
+        else runFiltering();
+      });
     }
 
-    // Close modal when clicking outside
-    document.getElementById('reservationModal').addEventListener('click', function(e) {
-      if (e.target === this) {
-        closeReservationModal();
-      }
-    });
-
-    // Toggle description Read More/Less for shop cards
-    function toggleShopDescription(productId) {
-      const descElement = document.getElementById('desc-shop-' + productId);
-      const shortText = descElement.querySelector('.description-short');
-      const fullText = descElement.querySelector('.description-full');
-      const button = descElement.parentElement.querySelector('button');
-      const readMoreBtn = button.querySelector('.read-more-btn');
-      const readLessBtn = button.querySelector('.read-less-btn');
-      
-      if (shortText.classList.contains('hidden')) {
-        // Show short, hide full
-        shortText.classList.remove('hidden');
-        fullText.classList.add('hidden');
-        readMoreBtn.classList.remove('hidden');
-        readLessBtn.classList.add('hidden');
-      } else {
-        // Show full, hide short
-        shortText.classList.add('hidden');
-        fullText.classList.remove('hidden');
-        readMoreBtn.classList.add('hidden');
-        readLessBtn.classList.remove('hidden');
-      }
+    // URL parameter pre-selection
+    const urlParams = new URLSearchParams(window.location.search);
+    const filterParam = urlParams.get('filter');
+    if (filterParam === 'reservation') {
+      const resBtn = document.querySelector('.category-filter[data-category="reservation"]');
+      if (resBtn) resBtn.click();
     }
-  </script>
-</body>
-</html>
+  })();
+
+  // Product Modal Functions
+  let currentProduct = {};
+
+  function openProductModal(id, name, price, stock, imageUrl, pickupMin, deliveryMin) {
+    currentProduct = { 
+      id: id, 
+      name: name, 
+      price: parseFloat(price) || 0, 
+      stock: parseInt(stock) || 0, 
+      imageUrl: imageUrl, 
+      pickupMin: parseInt(pickupMin) || 1, 
+      deliveryMin: parseInt(deliveryMin) || 10 
+    };
+
+    document.getElementById('modalName').textContent = name;
+    document.getElementById('modalPrice').textContent = '₱' + currentProduct.price.toFixed(2);
+    document.getElementById('modalStock').textContent = currentProduct.stock + ' pieces available in bakery';
+    document.getElementById('modalImage').src = imageUrl || '{% static "pandesal/img/pandesalhub_icon.png" %}';
+    document.getElementById('maxStock').textContent = 'Max: ' + currentProduct.stock;
+
+    document.getElementById('modalPickupMin').querySelector('strong').textContent = currentProduct.pickupMin + ' pc min';
+    document.getElementById('modalDeliveryMin').querySelector('strong').textContent = currentProduct.deliveryMin + ' pcs min';
+
+    const qtyInput = document.getElementById('quantityInput');
+    qtyInput.value = currentProduct.pickupMin;
+    qtyInput.min = currentProduct.pickupMin;
+
+    document.getElementById('productModal').classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+    updateTotal();
+  }
+
+  function closeProductModal() {
+    document.getElementById('productModal').classList.add('hidden');
+    document.body.style.overflow = '';
+  }
+
+  function increaseQuantity() {
+    const input = document.getElementById('quantityInput');
+    const currentQty = parseInt(input.value) || 0;
+    if (currentQty < currentProduct.stock) {
+      input.value = currentQty + 1;
+      updateTotal();
+    }
+  }
+
+  function decreaseQuantity() {
+    const input = document.getElementById('quantityInput');
+    const currentQty = parseInt(input.value) || 0;
+    if (currentQty > currentProduct.pickupMin) {
+      input.value = currentQty - 1;
+      updateTotal();
+    }
+  }
+
+  function updateTotal() {
+    const input = document.getElementById('quantityInput');
+    const quantity = parseInt(input.value) || currentProduct.pickupMin;
+    const total = currentProduct.price * quantity;
+    const deliveryMin = currentProduct.deliveryMin;
+    const freeShippingThreshold = deliveryMin + 10;
+
+    const shippingText = document.getElementById('shippingText');
+    const shippingCost = document.getElementById('shippingCost');
+
+    if (quantity >= freeShippingThreshold) {
+      shippingText.innerHTML = `<strong>FREE SHIPPING!</strong> You ordered ${quantity} pcs (${freeShippingThreshold}+ pcs qualifies for free delivery).`;
+      shippingCost.textContent = 'Shipping: FREE';
+      shippingCost.className = 'text-[11px] text-[#168A61] font-bold';
+    } else if (quantity >= deliveryMin) {
+      const moreNeeded = freeShippingThreshold - quantity;
+      shippingText.innerHTML = `Regular delivery ₱50. Add ${moreNeeded} more pcs for <strong>FREE SHIPPING!</strong>`;
+      shippingCost.textContent = 'Shipping: ₱50.00';
+      shippingCost.className = 'text-[11px] text-gray-600 font-semibold';
+    } else {
+      const moreNeeded = deliveryMin - quantity;
+      shippingText.innerHTML = `Pickup only. Add ${moreNeeded} more pcs to qualify for local delivery (min: ${deliveryMin} pcs).`;
+      shippingCost.textContent = 'Pickup only';
+      shippingCost.className = 'text-[11px] text-amber-700 font-semibold';
+    }
+
+    document.getElementById('totalPrice').textContent = '₱' + total.toFixed(2);
+  }
+
+  function addToCart() {
+    const quantity = parseInt(document.getElementById('quantityInput').value) || 0;
+    if (quantity < currentProduct.pickupMin) {
+      alert('Minimum quantity is ' + currentProduct.pickupMin + ' pieces');
+      return;
+    }
+    if (quantity > currentProduct.stock) {
+      alert('Only ' + currentProduct.stock + ' pieces available');
+      return;
+    }
+
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = '/cart/add/' + currentProduct.id + '/';
+
+    const csrfInput = document.createElement('input');
+    csrfInput.type = 'hidden';
+    csrfInput.name = 'csrfmiddlewaretoken';
+    csrfInput.value = '{{ csrf_token }}';
+    form.appendChild(csrfInput);
+
+    const qtyInput = document.createElement('input');
+    qtyInput.type = 'hidden';
+    qtyInput.name = 'quantity';
+    qtyInput.value = quantity;
+    form.appendChild(qtyInput);
+
+    document.body.appendChild(form);
+    form.submit();
+  }
+
+  function buyNow() {
+    const quantity = parseInt(document.getElementById('quantityInput').value) || 0;
+    if (quantity < currentProduct.pickupMin) {
+      alert('Minimum quantity is ' + currentProduct.pickupMin + ' pieces');
+      return;
+    }
+    if (quantity > currentProduct.stock) {
+      alert('Only ' + currentProduct.stock + ' pieces available');
+      return;
+    }
+
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = '/cart/add/' + currentProduct.id + '/';
+
+    const csrfInput = document.createElement('input');
+    csrfInput.type = 'hidden';
+    csrfInput.name = 'csrfmiddlewaretoken';
+    csrfInput.value = '{{ csrf_token }}';
+    form.appendChild(csrfInput);
+
+    const qtyInput = document.createElement('input');
+    qtyInput.type = 'hidden';
+    qtyInput.name = 'quantity';
+    qtyInput.value = quantity;
+    form.appendChild(qtyInput);
+
+    const buyNowInput = document.createElement('input');
+    buyNowInput.type = 'hidden';
+    buyNowInput.name = 'buy_now';
+    buyNowInput.value = 'true';
+    form.appendChild(buyNowInput);
+
+    document.body.appendChild(form);
+    form.submit();
+  }
+
+  // Reservation Modal Functions
+  function openReservationModal(productId, productName, price, minQuantity) {
+    minQuantity = parseInt(minQuantity) || 1;
+
+    document.getElementById('modalProductId').value = productId;
+    document.getElementById('modalProductName').textContent = productName;
+    document.getElementById('reservationForm').action = `/reservation/cart/add/${productId}/`;
+
+    const quantityInput = document.getElementById('reservationQuantity');
+    quantityInput.value = minQuantity;
+    quantityInput.min = minQuantity;
+
+    const minText = document.getElementById('reservationMinText');
+    minText.textContent = `Minimum: ${minQuantity} ${minQuantity === 1 ? 'piece' : 'pieces'}`;
+
+    document.getElementById('reservationModal').classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+
+    // Set min date to 3 days from today
+    const today = new Date();
+    today.setDate(today.getDate() + 3);
+    const minDate = today.toISOString().split('T')[0];
+    const dateInput = document.querySelector('#reservationModal input[name="reservation_date"]');
+    if (dateInput) {
+      dateInput.setAttribute('min', minDate);
+      if (!dateInput.value) dateInput.value = minDate;
+    }
+  }
+
+  function closeReservationModal() {
+    document.getElementById('reservationModal').classList.add('hidden');
+    document.body.style.overflow = '';
+  }
+
+  // Close modals on backdrop click
+  window.addEventListener('click', function(e) {
+    const prodModal = document.getElementById('productModal');
+    const resModal = document.getElementById('reservationModal');
+    if (e.target === prodModal) closeProductModal();
+    if (e.target === resModal) closeReservationModal();
+  });
+
+  // Description Read More / Read Less toggle
+  function toggleShopDescription(productId) {
+    const descElement = document.getElementById('desc-shop-' + productId);
+    if (!descElement) return;
+    const shortText = descElement.querySelector('.description-short');
+    const fullText = descElement.querySelector('.description-full');
+    const button = descElement.parentElement.querySelector('button');
+    if (!button) return;
+    const readMoreBtn = button.querySelector('.read-more-btn');
+    const readLessBtn = button.querySelector('.read-less-btn');
+
+    if (shortText.classList.contains('hidden')) {
+      shortText.classList.remove('hidden');
+      fullText.classList.add('hidden');
+      readMoreBtn.classList.remove('hidden');
+      readLessBtn.classList.add('hidden');
+    } else {
+      shortText.classList.add('hidden');
+      fullText.classList.remove('hidden');
+      readMoreBtn.classList.add('hidden');
+      readLessBtn.classList.remove('hidden');
+    }
+  }
+</script>
+{% endblock %}

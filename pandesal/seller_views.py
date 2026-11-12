@@ -99,10 +99,7 @@ def seller_dashboard(request):
 
 @login_required
 def seller_shop_settings(request):
-    from django.contrib import messages
-    from django.shortcuts import redirect
-    messages.error(request, 'The Shop Settings feature has been disabled.')
-    return redirect('seller_dashboard')
+    return redirect('seller_profile')
 
 @login_required
 def seller_products(request):

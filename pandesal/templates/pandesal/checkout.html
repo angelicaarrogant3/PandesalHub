@@ -130,30 +130,7 @@
         </div>
       </div>
       
-      <!-- Profile -->
-      <div class="relative">
-        <button class="flex items-center gap-2 p-2 hover:bg-gray-100 rounded-lg" onclick="toggleDropdown('profileDropdown')">
-          {% if user.userprofile.profile_picture %}
-          <img src="{{ user.userprofile.profile_picture.url }}" alt="Profile" class="w-9 h-9 rounded-full">
-          {% else %}
-          <img src="{% static 'pandesal/img/pandesalhub_icon.png' %}" alt="Profile" class="w-9 h-9 rounded-full">
-          {% endif %}
-          <span class="hidden md:block text-sm font-medium text-secondary">{{ user.get_full_name|default:user.username }}</span>
-          <i class="bi bi-chevron-down text-xs text-gray-500"></i>
-        </button>
-        <!-- Profile Dropdown -->
-        <div id="profileDropdown" class="dropdown-menu absolute right-0 mt-2 w-64 bg-white rounded-lg shadow-xl border border-gray-200 py-2">
-          <div class="px-4 py-3 border-b border-gray-200">
-            <h6 class="text-sm font-semibold text-gray-800">{{ user.get_full_name|default:user.username }}</h6>
-            <span class="text-xs text-gray-500">{{ user.email }}</span>
-          </div>
-          <div class="border-t border-gray-200 my-1"></div>
-          <a href="{% url 'logout' %}" onclick="return confirm('Are you sure you want to log out?')" class="flex items-center gap-3 px-4 py-2 hover:bg-red-50 transition-colors">
-            <i class="bi bi-box-arrow-right text-lg text-red-600"></i>
-            <span class="text-sm text-red-600">Sign Out</span>
-          </a>
-        </div>
-      </div>
+
     </div>
   </header>
 

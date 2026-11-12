@@ -9,7 +9,7 @@ from django.views.decorators.clickjacking import xframe_options_sameorigin
 from .forms import SignUpForm, PersonalInfoForm, CredentialsForm
 from .models import (
     Pandesal, AboutPage, ContactInfo,
-    UserProfile, Message, Feedback, Notification, Order, Reservation, Rating, Shop
+    UserProfile, Message, Feedback, Notification, Order, Reservation, Rating, Shop, ReservationCart
 )
 from django.http import HttpResponse, JsonResponse
 from django.contrib import messages
@@ -95,8 +95,10 @@ def index(request):
 
 
 def about(request):
-    # Unified About template handles guest vs user vs admin layouts
+    # Authenticated customers/users get modern Customer Portal About page
     about_obj = AboutPage.objects.order_by("-updated_at").first()
+    if request.user.is_authenticated and not request.user.is_superuser:
+        return render(request, "pandesal/customer/about_customer.html", {"about": about_obj})
     return render(request, "pandesal/about.html", {"about": about_obj})
 
 
@@ -279,32 +281,51 @@ def index_user(request):
             return redirect('seller_dashboard')
     except:
         pass
-    
-    img_dir = os.path.join(settings.BASE_DIR, 'pandesal', 'static', 'pandesal', 'img')
-    exts = ('.png', '.jpg', '.jpeg', '.webp', '.gif', '.svg')
-    try:
-        files = [
-            f for f in os.listdir(img_dir)
-            if (
-                f.lower().endswith(exts)
-                and all(block not in f.lower() for block in ('logo', 'gcash', 'poster'))
-            )
-        ]
-        preferred_order = [
-            'poster.png',
-            'pandesalhub_icon.png',
-            'gcash.png',
-        ]
-        order_lookup = {name: idx for idx, name in enumerate(preferred_order)}
-        files.sort(key=lambda name: (order_lookup.get(name, len(preferred_order)), name))
-    except FileNotFoundError:
-        files = []
-    # Paths relative to the static root
-    pandesal_images = [f'pandesal/img/{name}' for name in files]
+
+    # Real Customer Dashboard Statistics
+    available_products_count = Pandesal.objects.filter(Q(is_available=True) | Q(available_today=True)).count()
+    my_orders_count = Order.objects.filter(user=request.user).count()
+    my_reservations_count = Reservation.objects.filter(user=request.user).count()
+
+    # Cart item count (order cart + reservation cart)
+    order_cart_count = len(request.session.get('cart', {}))
+    reservation_cart, _ = ReservationCart.objects.get_or_create(user=request.user)
+    reservation_cart_count = reservation_cart.items.count()
+    my_cart_count = order_cart_count + reservation_cart_count
+
+    # Featured Pandesal Products (up to 6 active products)
+    featured_products = list(
+        Pandesal.objects.filter(Q(is_available=True) | Q(available_today=True))
+        .select_related('seller', 'seller__shop')
+        .order_by('name')[:6]
+    )
+    for p in featured_products:
+        p.order_status = get_order_status(p)
+        p.can_order = can_order_now(p)
+
+    # Recent Orders (latest 5)
+    recent_orders = list(
+        Order.objects.filter(user=request.user)
+        .select_related('seller', 'seller__shop')
+        .order_by('-created_at')[:5]
+    )
+
+    # Upcoming / Recent Reservations (latest 5)
+    upcoming_reservations = list(
+        Reservation.objects.filter(user=request.user)
+        .select_related('seller', 'seller__shop', 'product')
+        .order_by('-reservation_date', '-reservation_time')[:5]
+    )
 
     context = {
         'user': request.user,
-        'pandesal_images': pandesal_images,
+        'available_products_count': available_products_count,
+        'my_orders_count': my_orders_count,
+        'my_reservations_count': my_reservations_count,
+        'my_cart_count': my_cart_count,
+        'featured_products': featured_products,
+        'recent_orders': recent_orders,
+        'upcoming_reservations': upcoming_reservations,
     }
     return render(request, "pandesal/index_user.html", context)
 
@@ -1196,6 +1217,56 @@ def messages_inbox(request):
     # Preserve ordering by last_time desc
     recent_threads = sorted(threads.values(), key=lambda x: x['last_time'], reverse=True)
 
+    # Fetch all approved bakery sellers (excluding the logged-in user)
+    sellers = User.objects.filter(
+        Q(userprofile__user_type='seller', userprofile__is_approved_seller=True) |
+        Q(shop__is_active=True)
+    ).distinct().exclude(id=request.user.id).select_related('userprofile', 'shop').order_by('first_name', 'username')
+
+    seller_threads = []
+    seller_user_ids = set()
+    for s in sellers:
+        seller_user_ids.add(s.id)
+        # Check last message between current user and this seller
+        last_msg = Message.objects.filter(
+            Q(sender=request.user, recipient=s) | Q(sender=s, recipient=request.user)
+        ).select_related('sender', 'recipient').order_by('-created_at').first()
+
+        unread_count = Message.objects.filter(
+            sender=s,
+            recipient=request.user,
+            is_read=False
+        ).count()
+
+        last_login = getattr(s, 'last_login', None)
+        is_online = bool(last_login and (timezone.now() - last_login) <= timedelta(minutes=5))
+
+        shop_name = getattr(getattr(s, 'shop', None), 'shop_name', None) or "Bakery Shop"
+
+        seller_threads.append({
+            'seller': s,
+            'shop_name': shop_name,
+            'last_message': last_msg,
+            'last_time': last_msg.created_at if last_msg else None,
+            'is_online': is_online,
+            'unread_count': unread_count,
+        })
+
+    # Sort sellers: those with latest messages first, then alphabetical by name
+    seller_threads.sort(
+        key=lambda x: (
+            x['last_time'] is not None,
+            x['last_time'] if x['last_time'] else timezone.now() - timedelta(days=365)
+        ),
+        reverse=True
+    )
+
+    # Filter other recent threads to exclude sellers and admin (to prevent duplicate cards)
+    other_threads = [
+        t for t in recent_threads 
+        if t['user'].id not in seller_user_ids and not t['user'].is_superuser
+    ]
+
     # Keep lightweight recent users for compatibility (can be removed if not used)
     recent_users = [t['user'] for t in recent_threads[:10]]
 
@@ -1207,6 +1278,8 @@ def messages_inbox(request):
         'sent': sent[:50],
         'recent_users': recent_users,
         'recent_threads': recent_threads,
+        'seller_threads': seller_threads,
+        'other_threads': other_threads,
         'all_users': User.objects.all().order_by('username') if request.user.is_superuser else None,
         'admin_user': admin_user,
     }
@@ -1295,35 +1368,50 @@ def message_thread(request, user_id: int):
         if recipient_id and recipient_id != request.user.id:
             all_user_ids.add(recipient_id)
     
+    # Always include approved bakery sellers in threads for easy switching
+    if not request.user.is_superuser:
+        seller_user_ids = User.objects.filter(
+            Q(userprofile__user_type='seller', userprofile__is_approved_seller=True) |
+            Q(shop__is_active=True)
+        ).exclude(id=request.user.id).values_list('id', flat=True)
+        all_user_ids.update(seller_user_ids)
+
+    # Always include the current chat partner
+    all_user_ids.add(other_user.id)
+
+    # Always include admin support for regular users
+    if not request.user.is_superuser:
+        admin_user = User.objects.filter(is_superuser=True).first()
+        if admin_user and admin_user.id != request.user.id:
+            all_user_ids.add(admin_user.id)
+    
     all_threads = []
     for uid in all_user_ids:
         try:
-            u = User.objects.get(pk=uid)
+            u = User.objects.select_related('userprofile', 'shop').get(pk=uid)
             last_msg = Message.objects.filter(
                 Q(sender=request.user, recipient=u) | Q(sender=u, recipient=request.user)
             ).order_by('-created_at').first()
             
             unread = Message.objects.filter(sender=u, recipient=request.user, is_read=False).count()
+            shop_name = getattr(getattr(u, 'shop', None), 'shop_name', None)
             
             all_threads.append({
                 'other_user': u,
+                'shop_name': shop_name,
                 'last_message': last_msg,
                 'unread_count': unread
             })
         except User.DoesNotExist:
             pass
     
-    all_threads.sort(key=lambda x: x['last_message'].created_at if x['last_message'] else timezone.now(), reverse=True)
-
-    # For compatibility, if no threads and not superuser, maybe add admin_user
-    if not all_threads and not request.user.is_superuser:
-        admin_user = User.objects.filter(is_superuser=True).first()
-        if admin_user and admin_user.id != request.user.id:
-            all_threads = [{
-                'other_user': admin_user,
-                'last_message': None,
-                'unread_count': 0
-            }]
+    all_threads.sort(
+        key=lambda x: (
+            x['last_message'] is not None,
+            x['last_message'].created_at if x['last_message'] else timezone.now() - timedelta(days=365)
+        ),
+        reverse=True
+    )
 
     _profile = getattr(request.user, 'userprofile', None)
     _is_seller = bool(_profile and _profile.user_type == 'seller' and _profile.is_approved_seller)
@@ -1594,34 +1682,7 @@ def add_to_cart(request, product_id):
     return redirect('shop_user')
 
 
-@login_required
-def view_cart_old(request):
-    """View the shopping cart (old version - kept for compatibility)"""
-    cart = request.session.get('cart', {})
-    
-    # Calculate totals
-    cart_items = []
-    subtotal = Decimal('0.00')
-    
-    for product_id, item in cart.items():
-        item_total = Decimal(item['price']) * item['quantity']
-        cart_items.append({
-            'product_id': product_id,
-            'name': item['name'],
-            'price': Decimal(item['price']),
-            'quantity': item['quantity'],
-            'stock': item.get('stock', 0),
-            'image': item.get('image'),
-            'total': item_total
-        })
-        subtotal += item_total
-    
-    context = {
-        'cart_items': cart_items,
-        'subtotal': subtotal,
-        'cart_count': sum(item['quantity'] for item in cart.values())
-    }
-    return render(request, 'pandesal/cart.html', context)
+
 
 
 @login_required

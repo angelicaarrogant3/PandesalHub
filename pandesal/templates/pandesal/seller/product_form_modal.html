@@ -46,15 +46,59 @@
     #id_image { display: none; }
 
     /* Categories */
-    #id_categories { display: flex; flex-wrap: wrap; gap: .5rem; padding-top: .2rem; }
-    #id_categories li { list-style: none; }
-    #id_categories label {
-      display: flex; align-items: center; gap: .5rem; font-size: .82rem; color: #334155;
-      cursor: pointer; padding: .45rem .8rem; border: 1px solid #E2E8F0; border-radius: 9999px; transition: .15s;
+    #id_categories {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.625rem;
+      padding-top: 0.2rem;
     }
-    #id_categories label:hover { border-color:#2FB567; }
-    #id_categories input:checked + span { color:#1B7A43; font-weight:600; }
-    #id_categories input { accent-color:#1B7A43; width:.95rem; height:.95rem; }
+    #id_categories > div, #id_categories li {
+      display: inline-flex;
+      align-items: center;
+      margin: 0 !important;
+      list-style: none;
+    }
+    .category-pill,
+    #id_categories label {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.55rem;
+      font-size: 0.8125rem;
+      font-weight: 500;
+      color: #334155;
+      cursor: pointer;
+      padding: 0.5rem 0.95rem;
+      border: 1px solid #E2E8F0;
+      border-radius: 9999px;
+      background: #FFFFFF;
+      transition: all 0.15s ease-in-out;
+      user-select: none;
+      line-height: 1.25;
+    }
+    .category-pill:hover,
+    #id_categories label:hover {
+      border-color: #2FB567;
+      background-color: #F8FAF9;
+    }
+    .category-pill:has(input:checked),
+    .category-pill.is-checked,
+    #id_categories label:has(input:checked),
+    #id_categories label.is-checked {
+      border-color: #1B7A43 !important;
+      background-color: #E3F1E7 !important;
+      color: #123322 !important;
+      font-weight: 600 !important;
+    }
+    .category-pill input[type="checkbox"],
+    #id_categories input[type="checkbox"] {
+      accent-color: #1B7A43;
+      width: 0.95rem;
+      height: 0.95rem;
+      margin: 0 !important;
+      cursor: pointer;
+      border-radius: 0.25rem;
+    }
 
     /* Upload box */
     .dropzone {
@@ -175,7 +219,14 @@
         <!-- Categories -->
         <div class="md:col-span-2">
           <label class="f-label">{{ form.categories.label }}</label>
-          {{ form.categories }}
+          <div id="id_categories" class="flex flex-wrap items-center gap-2.5 pt-0.5">
+            {% for choice in form.categories %}
+              <label for="{{ choice.id_for_label }}" class="category-pill inline-flex items-center gap-2 px-3.5 py-2 rounded-full border border-gray-200 bg-white hover:border-moss/60 hover:bg-leaf/30 cursor-pointer text-xs font-medium text-slate-700 transition select-none">
+                {{ choice.tag }}
+                <span>{{ choice.choice_label }}</span>
+              </label>
+            {% endfor %}
+          </div>
           {% if form.categories.errors %}<p class="f-err">{{ form.categories.errors.0 }}</p>{% endif %}
         </div>
 
@@ -207,6 +258,22 @@
     (function () {
       var avail = document.getElementById('id_is_available');
       if (avail) { avail.className = ''; }
+
+      // Category pills live sync
+      document.querySelectorAll('#id_categories input[type="checkbox"]').forEach(function (cb) {
+        function syncPill() {
+          var pill = cb.closest('label');
+          if (pill) {
+            if (cb.checked) {
+              pill.classList.add('is-checked');
+            } else {
+              pill.classList.remove('is-checked');
+            }
+          }
+        }
+        cb.addEventListener('change', syncPill);
+        syncPill();
+      });
 
       // Image dropzone
       var input = document.getElementById('id_image');

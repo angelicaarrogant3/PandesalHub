@@ -1,633 +1,223 @@
+{% extends 'pandesal/customer/customer_base.html' %}
 {% load static %}
-<!DOCTYPE html>
-<html lang="en" class="h-full">
-<head>
-  <meta charset="UTF-8">
-  {% include "pandesal/includes/seo_meta.html" %}
-  
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-  <script src="{% static 'pandesal/js/tailwind.js' %}"></script>
-  
-  <link rel="stylesheet" href="{% static 'pandesal/css/fontawesome/all.min.css' %}" />
-  <link rel="stylesheet" href="{% static 'pandesal/css/bootstrap-icons/bootstrap-icons.css' %}">
-  <link rel="icon" href="{% static 'pandesal/img/pandesalhub_icon.png' %}" type="image/png" />
-  
-  <script>
-    tailwind.config = {
-      theme: {
-        extend: {
-          colors: {
-            primary: '#16a34a',
-            secondary: '#15803d',
-          }
-        }
-      }
-    }
-  </script>
-  <style>
-    .nice-scroll::-webkit-scrollbar { width: 10px; }
-    .nice-scroll::-webkit-scrollbar-track { background: transparent; }
-    .nice-scroll::-webkit-scrollbar-thumb {
-      background: linear-gradient(180deg, #a7f3d0 0%, #34d399 100%);
-      border-radius: 9999px;
-    }
-    .nice-scroll { scrollbar-width: thin; scrollbar-color: #34d399 transparent; }
-    
-    .transition-all { transition: all 300ms ease-in-out; }
-    #sidebar { transform: translateX(-100%); }
-    #sidebar.show { transform: translateX(0); }
-    
-    @media (min-width: 1024px) {
-      #sidebar { transform: translateX(0); width: 280px; }
-      #sidebar.collapsed { width: 80px; }
-      #sidebar.collapsed .sidebar-text { display: none; }
-      #sidebar.collapsed nav a { justify-content: center; padding-left: 0; padding-right: 0; }
-    }
-    
-    /* Dropdowns are controlled by Tailwind's hidden class */
-  </style>
-</head>
+{% block title %}Messages - PandesalHub{% endblock %}
 
-<body class="bg-green-50 {% if user.is_authenticated %}h-full{% endif %} overflow-x-hidden">
-  
-  {% if user.is_authenticated and not user.is_superuser %}
-  <!-- Top Navbar -->
-  <header class="fixed top-0 left-0 right-0 h-20 bg-white shadow-md z-50 flex items-center px-4 lg:px-6">
-    <div class="flex items-center gap-4">
-      <a href="{% url 'index_user' %}" class="flex items-center gap-3">
-        <img src="{% static 'pandesal/img/pandesalhub_icon.png' %}" alt="Logo" class="w-10 h-10 rounded-full">
-        <span class="hidden lg:block text-xl font-bold text-green-600">PandesalHub</span>
-      </a>
-      <button id="sidebarToggle" class="p-2 hover:bg-gray-100 rounded-lg transition-colors">
-        <i class="fa-solid fa-bars text-2xl text-gray-700"></i>
-      </button>
-    </div>
-    <div class="hidden md:flex flex-1 max-w-xl mx-8">
-      <div class="relative w-full">
-        <input type="text" placeholder="Search" class="w-full px-4 py-2 pl-10 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-sm">
-        <i class="fa-solid fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
-      </div>
-    </div>
-    <div class="ml-auto flex items-center gap-2">
-      <button class="md:hidden p-2 hover:bg-gray-100 rounded-lg"><i class="fa-solid fa-search text-xl text-gray-600"></i></button>
-      <div class="relative">
-        <button class="p-2 hover:bg-gray-100 rounded-lg relative" onclick="toggleDropdown('notifDropdown')">
-          <i class="fa-solid fa-bell text-xl text-gray-600"></i>
-          {% if unread_notifications_count > 0 %}
-            <span class="absolute top-1 right-1 w-5 h-5 bg-primary text-white text-xs rounded-full flex items-center justify-center font-semibold">{{ unread_notifications_count }}</span>
-          {% endif %}
-        </button>
-        <div id="notifDropdown" class="dropdown-menu hidden absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-xl border border-gray-200 py-2 z-50">
-          <div class="px-4 py-3 border-b border-gray-200"><p class="text-sm font-semibold text-gray-700">{% if unread_notifications_count > 0 %}You have {{ unread_notifications_count }} new notification{{ unread_notifications_count|pluralize }}{% else %}No new notifications{% endif %}</p></div>
-          <div class="max-h-64 overflow-y-auto">
-            {% if recent_notifications %}
-              {% for notification in recent_notifications %}
-                <a href="{% url 'user_notifications' %}" class="flex items-start gap-3 px-4 py-3 hover:bg-gray-50 transition-colors border-b border-gray-100 last:border-0">
-                  <div class="text-xl mt-1 {% if 'Reservation' in notification.message %}text-green-600{% elif 'Order' in notification.message %}text-blue-600{% else %}text-yellow-500{% endif %}">
-                    {% if 'Reservation' in notification.message %}<i class="fas fa-calendar-check"></i>{% elif 'Order' in notification.message %}<i class="fas fa-shopping-cart"></i>{% else %}<i class="fas fa-info-circle"></i>{% endif %}
-                  </div>
-                  <div class="flex-1">
-                    <h4 class="text-sm font-semibold text-gray-800">{{ notification.get_type_display }}</h4>
-                    <p class="text-xs text-gray-500">{{ notification.message|truncatewords:10 }}</p>
-                    <p class="text-xs text-gray-400 mt-1"><i class="fas fa-clock"></i> {{ notification.created_at|timesince }} ago</p>
-                  </div>
-                </a>
-              {% endfor %}
-            {% else %}
-              <div class="px-4 py-6 text-center text-gray-500 text-sm"><i class="fas fa-bell-slash text-2xl mb-2"></i><p>No new notifications</p></div>
-            {% endif %}
-          </div>
-          <div class="px-4 py-2 border-t border-gray-200"><a href="{% url 'user_notifications' %}" class="text-sm text-primary hover:underline">Show all notifications</a></div>
-        </div>
-      </div>
-      <div class="relative">
-        <button class="flex items-center gap-2 p-2 hover:bg-gray-100 rounded-lg" onclick="toggleDropdown('profileDropdown')">
-          {% if user.userprofile.profile_picture %}<img src="{{ user.userprofile.profile_picture.url }}" alt="Profile" class="w-9 h-9 rounded-full">{% else %}<img src="{% static 'pandesal/img/pandesalhub_icon.png' %}" alt="Profile" class="w-9 h-9 rounded-full">{% endif %}
-          <span class="hidden md:block text-sm font-medium text-secondary">{{ user.get_full_name|default:user.username }}</span>
-          <i class="bi bi-chevron-down text-xs text-gray-500"></i>
-        </button>
-        <div id="profileDropdown" class="dropdown-menu hidden absolute right-0 mt-2 w-64 bg-white rounded-lg shadow-xl border border-gray-200 py-2 z-50">
-          <div class="px-4 py-3 border-b border-gray-200"><h6 class="text-sm font-semibold text-gray-800">{{ user.get_full_name|default:user.username }}</h6><span class="text-xs text-gray-500">{{ user.email }}</span></div>
-          <div class="px-4 py-2">
-            <div class="flex items-start gap-3 py-2"><i class="bi bi-envelope text-lg text-gray-600 mt-0.5"></i><div class="flex-1"><p class="text-xs text-gray-500">Email</p><p class="text-sm text-gray-700">{{ user.email }}</p></div></div>
-            <div class="flex items-start gap-3 py-2"><i class="bi bi-telephone text-lg text-gray-600 mt-0.5"></i><div class="flex-1"><p class="text-xs text-gray-500">Phone</p><p class="text-sm text-gray-700">{{ user.userprofile.phone|default:'Not provided' }}</p></div></div>
-            <div class="flex items-start gap-3 py-2"><i class="bi bi-geo-alt text-lg text-gray-600 mt-0.5"></i><div class="flex-1"><p class="text-xs text-gray-500">Address</p><p class="text-sm text-gray-700">{{ user.userprofile.get_full_address|default:'Not provided' }}</p></div></div>
-          </div>
-          <div class="border-t border-gray-200 my-1"></div>
-          <a href="{% url 'logout' %}" onclick="return confirm('Are you sure you want to log out?')" class="flex items-center gap-3 px-4 py-2 hover:bg-red-50 transition-colors"><i class="bi bi-box-arrow-right text-lg text-red-600"></i><span class="text-sm text-red-600">Sign Out</span></a>
-        </div>
-      </div>
-    </div>
-  </header>
+{% block page_title %}Messages{% endblock %}
+{% block page_subtitle %}View and manage your inbox{% endblock %}
 
-  <!-- Sidebar -->
-  <aside id="sidebar" class="fixed top-20 left-0 bottom-0 w-[280px] bg-white shadow-lg z-40 flex flex-col transition-all">
-    <nav class="mt-8 px-4 space-y-2 text-base flex-1 overflow-y-auto">
+{% block extra_head %}
+<style>
+  #contactList:not(:has(.contact-item)) {
+    display: none;
+  }
+</style>
+{% endblock %}
 
-      {% if user.userprofile.user_type == 'seller' %}
-      <a href="{% url 'seller_dashboard' %}" class="flex items-center gap-4 px-4 py-3 rounded-xl text-gray-600 hover:text-green-700 hover:bg-green-50 transition"><i class="fa-solid fa-house text-lg min-w-[20px]"></i><span class="sidebar-text">Home</span></a>
+{% block content %}
+<div class="max-w-4xl mx-auto space-y-6">
 
-      <a href="{% url 'seller_products' %}" class="flex items-center gap-4 px-4 py-3 rounded-xl text-gray-600 hover:text-green-700 hover:bg-green-50 transition"><i class="fa-solid fa-box text-lg min-w-[20px]"></i><span class="sidebar-text">Products</span></a>
-      <a href="{% url 'seller_orders' %}" class="flex items-center gap-4 px-4 py-3 rounded-xl text-gray-600 hover:text-green-700 hover:bg-green-50 transition"><i class="fa-solid fa-shopping-cart text-lg min-w-[20px]"></i><span class="sidebar-text">Orders</span></a>
-      <a href="{% url 'seller_reservations' %}" class="flex items-center gap-4 px-4 py-3 rounded-xl text-gray-600 hover:text-green-700 hover:bg-green-50 transition"><i class="fa-solid fa-calendar-check text-lg min-w-[20px]"></i><span class="sidebar-text">Reservations</span></a>
-      <a href="{% url 'messages_inbox' %}" class="flex items-center gap-4 px-4 py-3 rounded-xl {% if request.resolver_match.url_name == 'messages_inbox' %}text-green-700 bg-green-50 hover:bg-green-100{% else %}text-gray-600 hover:text-green-700 hover:bg-green-50{% endif %} transition relative"><i class="fa-solid fa-message text-lg min-w-[20px]"></i><span class="sidebar-text">Messages</span>{% if unread_messages_count > 0 %}<span class="absolute right-3 top-1/2 -translate-y-1/2 bg-red-500 text-white text-xs font-bold rounded-full min-w-[20px] h-5 flex items-center justify-center px-1.5">{{ unread_messages_count }}</span>{% endif %}</a>
-      
-      <a href="{% url 'user_profile' %}" class="flex items-center gap-4 px-4 py-3 rounded-xl {% if request.resolver_match.url_name == 'user_profile' %}text-green-700 bg-green-50 hover:bg-green-100{% else %}text-gray-600 hover:text-green-700 hover:bg-green-50{% endif %} transition"><i class="fa-solid fa-user-circle text-lg min-w-[20px]"></i><span class="sidebar-text">Profile / Settings</span></a>
-      {% else %}
-
-      <a href="{% url 'index_user' %}" class="flex items-center gap-4 px-4 py-3 rounded-xl text-gray-600 hover:text-green-700 hover:bg-green-50 transition"><i class="fa-solid fa-house text-lg min-w-[20px]"></i><span class="sidebar-text">Home</span></a>
-      <a href="{% url 'shop_user' %}" class="flex items-center gap-4 px-4 py-3 rounded-xl text-gray-600 hover:text-green-700 hover:bg-green-50 transition"><i class="fa-solid fa-shop text-lg min-w-[20px]"></i><span class="sidebar-text">Shop</span></a>
-      <a href="{% url 'view_cart' %}" class="flex items-center gap-4 px-4 py-3 rounded-xl text-gray-600 hover:text-green-700 hover:bg-green-50 transition"><i class="fa-solid fa-shopping-cart text-lg min-w-[20px]"></i><span class="sidebar-text flex items-center gap-2">Cart{% if total_cart_count > 0 %}<span class="bg-green-600 text-white text-xs px-2 py-0.5 rounded-full font-semibold">{{ total_cart_count }}</span>{% endif %}</span></a>
-      <a href="{% url 'about' %}" class="flex items-center gap-4 px-4 py-3 rounded-xl text-gray-600 hover:text-green-700 hover:bg-green-50 transition"><i class="fa-solid fa-circle-info text-lg min-w-[20px]"></i><span class="sidebar-text">About</span></a>
-      <a href="{% url 'messages_inbox' %}" class="flex items-center gap-4 px-4 py-3 rounded-xl text-green-700 bg-green-50 hover:bg-green-100 transition"><i class="fa-solid fa-message text-lg min-w-[20px]"></i><span class="sidebar-text">Messages</span></a>
-      <a href="{% url 'user_profile' %}" class="flex items-center gap-4 px-4 py-3 rounded-xl text-gray-600 hover:text-green-700 hover:bg-green-50 transition"><i class="fa-solid fa-user text-lg min-w-[20px]"></i><span class="sidebar-text">Profile</span></a>
-    
-      {% endif %}
-      </nav>
-  </aside>
-
-  <!-- Overlay for mobile -->
-  <div id="overlay" class="fixed inset-0 bg-black/50 z-30 hidden lg:hidden"></div>
-
-  {% elif user.is_authenticated and user.is_superuser %}
-  <!-- Top Navbar (Admin) -->
-  <header class="fixed top-0 left-0 right-0 h-20 bg-white shadow-md z-50 flex items-center px-4 lg:px-6">
-    <div class="flex items-center gap-4">
-      <a href="{% url 'admin_dashboard' %}" class="flex items-center gap-3">
-        <img src="{% static 'pandesal/img/pandesalhub_icon.png' %}" alt="Logo" class="w-10 h-10 rounded-full">
-        <span class="hidden lg:block text-xl font-bold text-green-600">PandesalHub</span>
-      </a>
-      <button id="sidebarToggle" class="p-2 hover:bg-gray-100 rounded-lg transition-colors">
-        <i class="fa-solid fa-bars text-2xl text-gray-700"></i>
-      </button>
-    </div>
-    <div class="hidden md:flex flex-1 max-w-xl mx-8">
-      <div class="relative w-full">
-        <input type="text" placeholder="Search" class="w-full px-4 py-2 pl-10 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-sm">
-        <i class="fa-solid fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
-      </div>
-    </div>
-    <div class="ml-auto flex items-center gap-2">
-      <button class="md:hidden p-2 hover:bg-gray-100 rounded-lg"><i class="fa-solid fa-search text-xl text-gray-600"></i></button>
-      <div class="relative">
-        <button class="p-2 hover:bg-gray-100 rounded-lg relative" onclick="toggleDropdown('notifDropdown2')">
-          <i class="fa-solid fa-bell text-xl text-gray-600"></i>
-          {% if unread_notifications_count > 0 %}
-            <span class="absolute top-1 right-1 w-5 h-5 bg-primary text-white text-xs rounded-full flex items-center justify-center font-semibold">{{ unread_notifications_count }}</span>
-          {% endif %}
-        </button>
-        <div id="notifDropdown2" class="dropdown-menu hidden absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-xl border border-gray-200 py-2 z-50">
-          <div class="px-4 py-3 border-b border-gray-200"><p class="text-sm font-semibold text-gray-700">{% if unread_notifications_count > 0 %}You have {{ unread_notifications_count }} new notification{{ unread_notifications_count|pluralize }}{% else %}No new notifications{% endif %}</p></div>
-        </div>
-      </div>
-      <div class="relative">
-        <button class="flex items-center gap-2 p-2 hover:bg-gray-100 rounded-lg" onclick="toggleDropdown('profileDropdown2')">
-          <img src="{% static 'pandesal/img/pandesalhub_icon.png' %}" alt="Profile" class="w-9 h-9 rounded-full">
-          <span class="hidden md:block text-sm font-medium text-secondary">{{ user.username }}</span>
-          <i class="bi bi-chevron-down text-xs text-gray-500"></i>
-        </button>
-        <div id="profileDropdown2" class="dropdown-menu hidden absolute right-0 mt-2 w-64 bg-white rounded-lg shadow-xl border border-gray-200 py-2 z-50">
-          <div class="px-4 py-3 border-b border-gray-200"><h6 class="text-sm font-semibold text-gray-800">{{ user.username }}</h6><span class="text-xs text-gray-500">{{ user.email }}</span></div>
-          <a href="/admin/" class="flex items-center gap-3 px-4 py-2 hover:bg-gray-50 transition-colors"><i class="bi bi-gear text-lg text-gray-600"></i><span class="text-sm text-gray-700">Django Admin</span></a>
-          <div class="border-t border-gray-200 my-1"></div>
-          <a href="{% url 'logout' %}" onclick="return confirm('Are you sure you want to log out?')" class="flex items-center gap-3 px-4 py-2 hover:bg-gray-50 transition-colors"><i class="bi bi-box-arrow-right text-lg text-gray-600"></i><span class="text-sm text-gray-700">Sign Out</span></a>
-        </div>
-      </div>
-    </div>
-  </header>
-
-  <!-- Sidebar (Admin) -->
-  <aside id="sidebar" class="fixed top-20 left-0 bottom-0 w-[280px] bg-white shadow-lg z-40 flex flex-col transition-all">
-    <nav class="mt-8 px-4 space-y-2 text-base flex-1 overflow-y-auto">
-      <a href="{% url 'admin_dashboard' %}" class="flex items-center gap-4 px-4 py-3 rounded-xl text-gray-600 hover:text-green-700 hover:bg-green-50 transition"><i class="fa-solid fa-house text-lg min-w-[20px]"></i><span class="sidebar-text">Home</span></a>
-      <a href="{% url 'admin_products' %}" class="flex items-center gap-4 px-4 py-3 rounded-xl text-gray-600 hover:text-green-700 hover:bg-green-50 transition"><i class="fa-solid fa-box text-lg min-w-[20px]"></i><span class="sidebar-text">Products</span></a>
-      <a href="{% url 'admin_content' %}" class="flex items-center gap-4 px-4 py-3 rounded-xl text-gray-600 hover:text-green-700 hover:bg-green-50 transition"><i class="fa-solid fa-edit text-lg min-w-[20px]"></i><span class="sidebar-text">Content</span></a>
-      
-      
-      <a href="{% url 'admin_users' %}" class="flex items-center gap-4 px-4 py-3 rounded-xl {% if 'user' in request.resolver_match.url_name or 'customer' in request.resolver_match.url_name %}text-green-700 bg-green-50{% else %}text-gray-600 hover:text-green-700 hover:bg-green-50{% endif %} transition"><i class="fa-solid fa-users text-lg min-w-[20px]"></i><span class="sidebar-text">Customers</span></a>
-      <a href="{% url 'admin_sellers' %}" class="flex items-center gap-4 px-4 py-3 rounded-xl {% if 'seller' in request.resolver_match.url_name %}text-green-700 bg-green-50{% else %}text-gray-600 hover:text-green-700 hover:bg-green-50{% endif %} transition"><i class="fa-solid fa-store text-lg min-w-[20px]"></i><span class="sidebar-text">Sellers</span></a>
-      <a href="{% url 'messages_inbox' %}" class="flex items-center gap-4 px-4 py-3 rounded-xl text-green-700 bg-green-50 hover:bg-green-100 transition"><i class="fa-solid fa-message text-lg min-w-[20px]"></i><span class="sidebar-text">Messages</span></a>
-      <a href="/admin/" class="flex items-center gap-4 px-4 py-3 rounded-xl text-gray-600 hover:text-green-700 hover:bg-green-50 transition"><i class="fa-solid fa-cog text-lg min-w-[20px]"></i><span class="sidebar-text">Django Admin</span></a>
-    </nav>
-  </aside>
-
-  <!-- Overlay for mobile (Admin) -->
-  <div id="overlay" class="fixed inset-0 bg-black/50 z-30 hidden lg:hidden"></div>
-  {% else %}
-  <!-- GUEST NAVBAR -->
-  <header class="bg-white/90 backdrop-blur shadow-md w-full">
-    <div class="max-w-7xl mx-auto flex justify-between items-center px-8 py-4">
-      <div class="flex items-center space-x-3">
-        <img src="{% static 'pandesal/img/pandesalhub_icon.png' %}" alt="Logo" class="h-10 w-10 rounded-full" />
-        <span class="text-xl font-bold text-green-800">PandesalHub</span>
-      </div>
-      <nav class="hidden md:flex items-center space-x-8 text-green-700 font-medium">
-        <a href="{% url 'home' %}" class="hover:text-green-500">Home</a>
-        <a href="{% url 'shop' %}" class="hover:text-green-500">Shop</a>
-        <a href="{% url 'about' %}" class="hover:text-green-500">About</a>
-        <a href="{% url 'contact' %}" class="hover:text-green-500">Contact</a>
-      </nav>
-      <div class="flex items-center space-x-4">
-        <a href="{% url 'login' %}" class="px-4 py-2 border border-green-600 text-green-700 rounded-lg hover:bg-green-100">Login</a>
-        <a href="{% url 'signup' %}" class="px-4 py-2 bg-green-600 text-white rounded-lg shadow hover:bg-green-700">Sign Up</a>
-      </div>
-    </div>
-  </header>
-  {% endif %}
-  
-  <!-- Single Overlay -->
-  <div id="overlay" class="fixed inset-0 bg-black/50 hidden z-30"></div>
-
-  <!-- MAIN CONTENT -->
-  {% if user.is_authenticated and not user.is_superuser %}
-  <!-- Desktop Layout for Authenticated Users -->
-  <div id="mainContent" class="lg:ml-[280px] flex-1 flex flex-col min-h-screen pt-20 transition-all">
+  <section class="bg-white rounded-3xl shadow-sm border border-gray-100 p-6 lg:p-8 space-y-5">
     <!-- Header -->
-    <header class="bg-white p-4 md:p-6 border-b">
-      <div>
-        <h1 class="text-xl font-bold text-gray-800">Messages</h1>
-        <p class="text-gray-600">View and manage your inbox</p>
+    <div class="flex items-center justify-between pb-4 border-b border-gray-100">
+      <div class="flex items-center gap-2.5">
+        <span class="inline-flex h-9 w-9 items-center justify-center rounded-2xl bg-[#DDF1E6] text-[#168A61]">
+          <i class="fa-solid fa-users text-sm"></i>
+        </span>
+        <h2 class="font-bold text-lg text-[#12382D]">Contacts</h2>
       </div>
-    </header>
-
-    <!-- Main Content -->
-    <main class="flex-1 p-4 md:p-6">
-      <!-- Contacts Section -->
-      <section class="bg-white rounded-lg shadow p-6 max-w-4xl mx-auto">
-        <div class="flex items-center justify-between mb-4">
-          <div class="flex items-center gap-2 text-gray-800">
-            <span class="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-green-100 text-green-700">
-              <i class="fa-solid fa-users"></i>
-            </span>
-            <h2 class="font-semibold">Contacts</h2>
-          </div>
-        </div>
-
-        {% if recent_threads %}
-          <div class="mb-5">
-            <div class="text-[11px] tracking-widest text-gray-400 uppercase mb-2">Recent</div>
-            <div class="flex flex-col">
-              {% for t in recent_threads %}
-                {% with u=t.user m=t.last_message %}
-                <a href="{% url 'message_thread' user_id=u.id %}" class="group px-3 py-2 rounded-xl {% if t.unread_count > 0 %}bg-blue-50 hover:bg-blue-100 border-blue-200{% else %}hover:bg-green-50/70 border-transparent hover:border-green-100{% endif %} transition border flex items-center justify-between">
-                  <div class="flex items-center gap-3 min-w-0 flex-1">
-                    <div class="relative shrink-0">
-                      {% if not request.user.is_superuser and u.is_superuser %}
-                        <img src="{% static 'pandesal/img/pandesalhub_icon.png' %}" alt="PandesalHub" class="w-10 h-10 rounded-full object-cover ring-2 ring-green-200 shadow-sm" />
-                      {% else %}
-                        {% if u.userprofile.profile_picture %}
-                          <img src="{{ u.userprofile.profile_picture.url }}" alt="{{ u.username }}" class="w-10 h-10 rounded-full object-cover ring-2 ring-green-100" />
-                        {% else %}
-                          <div class="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center text-gray-500 ring-2 ring-gray-100">
-                            <i class="fa-solid fa-user"></i>
-                          </div>
-                        {% endif %}
-                      {% endif %}
-                      {% if t.is_online %}
-                        <span class="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full bg-green-500 ring-2 ring-white"></span>
-                      {% endif %}
-                    </div>
-                    <div class="min-w-0 flex-1">
-                      <div class="text-sm {% if t.unread_count > 0 %}font-semibold text-gray-900{% else %}font-medium text-gray-900{% endif %} truncate">
-                        {% if not request.user.is_superuser and u.is_superuser %}
-                          PandesalHub
-                        {% else %}
-                          {{ u.get_full_name|default:u.username }}
-                        {% endif %}
-                      </div>
-                      <div class="text-xs {% if t.unread_count > 0 %}text-gray-700 font-medium{% else %}text-gray-500{% endif %} truncate">
-                        {{ m.body|default:m.subject|default:"(no message)" }}
-                      </div>
-                    </div>
-                  </div>
-                  <div class="flex items-center gap-2 ml-3 shrink-0">
-                    <div class="text-[11px] text-gray-400 whitespace-nowrap tabular-nums">
-                      {{ t.last_time|timesince }} ago
-                    </div>
-                    {% if t.unread_count > 0 %}
-                      <div class="w-5 h-5 rounded-full bg-blue-600 text-white text-[10px] font-bold flex items-center justify-center">
-                        {{ t.unread_count }}
-                      </div>
-                    {% endif %}
-                  </div>
-                </a>
-                {% endwith %}
-              {% endfor %}
-            </div>
-          </div>
-        {% endif %}
-
-        <!-- All Users Section (Admin only for regular users) -->
-        <div class="space-y-3">
-          <div class="flex items-center justify-between">
-            <div class="text-[11px] tracking-widest text-gray-400 uppercase">All users</div>
-          </div>
-
-          <!-- Search -->
-          <div class="relative">
-            <i class="fa-solid fa-magnifying-glass text-gray-400 absolute left-3 top-1/2 -translate-y-1/2"></i>
-            <input id="userFilter" type="text" placeholder="Search users..."
-                   class="w-full pl-10 pr-3 py-2.5 border border-gray-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-green-200 focus:border-green-300 placeholder:text-gray-400">
-          </div>
-
-          <!-- Users list - Show only admin for regular users -->
-          {% if admin_user %}
-            <div id="userList" class="nice-scroll max-h-[70vh] overflow-y-auto flex flex-col divide-y divide-gray-100 rounded-xl border border-gray-100">
-              <a class="user-item flex items-center justify-between px-4 py-3 hover:bg-green-50 transition"
-                 href="{% url 'message_thread' user_id=admin_user.id %}"
-                 data-username="pandesalhub">
-                <div class="flex items-center gap-3 min-w-0">
-                  <div class="w-8 h-8 rounded-full bg-green-100 text-green-600 flex items-center justify-center font-semibold">
-                    N
-                  </div>
-                  <span class="text-sm text-gray-800 truncate">PandesalHub</span>
-                </div>
-                <i class="fa-solid fa-comments text-green-600 opacity-80 hover:opacity-100"></i>
-              </a>
-            </div>
-          {% else %}
-            <div class="rounded-xl border border-dashed border-gray-300 p-8 text-center text-gray-500">
-              <div class="mb-2 text-2xl">🍡</div>
-              <p class="text-sm">No users available yet.</p>
-            </div>
-          {% endif %}
-        </div>
-      </section>
-    </main>
-  </div>
-  {% elif user.is_authenticated and user.is_superuser %}
-  <!-- Admin Layout -->
-  <div id="mainContent" class="lg:ml-[280px] flex-1 flex flex-col min-h-screen pt-20 transition-all">
-    <div class="p-6">
-      <!-- Header -->
-      <div class="mb-6">
-        <h1 class="text-3xl font-bold text-gray-800">Messages</h1>
-        <p class="text-gray-600">View and manage your inbox</p>
-      </div>
-
-      <!-- Contacts Section -->
-      <section class="bg-white rounded-lg shadow p-6 max-w-4xl mx-auto">
-        <div class="flex items-center justify-between mb-4">
-          <div class="flex items-center gap-2 text-gray-800">
-            <span class="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-green-100 text-green-700">
-              <i class="fa-solid fa-users"></i>
-            </span>
-            <h2 class="font-semibold">Contacts</h2>
-          </div>
-        </div>
-
-        {% if recent_threads %}
-          <div class="mb-5">
-            <div class="text-[11px] tracking-widest text-gray-400 uppercase mb-2">Recent</div>
-            <div class="flex flex-col">
-              {% for t in recent_threads %}
-                {% with u=t.user m=t.last_message %}
-                <a href="{% url 'message_thread' user_id=u.id %}" class="group px-3 py-2 rounded-xl {% if t.unread_count > 0 %}bg-blue-50 hover:bg-blue-100 border-blue-200{% else %}hover:bg-green-50/70 border-transparent hover:border-green-100{% endif %} transition border flex items-center justify-between">
-                  <div class="flex items-center gap-3 min-w-0 flex-1">
-                    <div class="relative shrink-0">
-                      {% if not request.user.is_superuser and u.is_superuser %}
-                        <img src="{% static 'pandesal/img/pandesalhub_icon.png' %}" alt="Admin" class="w-10 h-10 rounded-full">
-                      {% elif u.userprofile.profile_picture %}
-                        <img src="{{ u.userprofile.profile_picture.url }}" alt="{{ u.username }}" class="w-10 h-10 rounded-full object-cover">
-                      {% else %}
-                        <div class="w-10 h-10 rounded-full bg-green-100 text-green-600 flex items-center justify-center font-semibold">
-                          {{ u.username|slice:":1"|upper }}
-                        </div>
-                      {% endif %}
-                    </div>
-                    <div class="min-w-0 flex-1">
-                      <div class="flex items-center gap-2">
-                        <span class="{% if t.unread_count > 0 %}font-semibold{% else %}font-medium{% endif %} text-gray-800 text-sm truncate">
-                          {% if u.is_superuser %}PandesalHub{% else %}{{ u.get_full_name|default:u.username }}{% endif %}
-                        </span>
-                      </div>
-                      {% if m %}
-                        <p class="text-xs {% if t.unread_count > 0 %}text-gray-700 font-medium{% else %}text-gray-500{% endif %} truncate">{{ m.body|truncatewords:8 }}</p>
-                      {% endif %}
-                    </div>
-                  </div>
-                  <div class="flex items-center gap-2 ml-2 shrink-0">
-                    <div class="text-right">
-                      {% if m %}<span class="text-[10px] text-gray-400">{{ m.timestamp|timesince }} ago</span>{% endif %}
-                    </div>
-                    {% if t.unread_count > 0 %}
-                      <div class="w-5 h-5 rounded-full bg-blue-600 text-white text-[10px] font-bold flex items-center justify-center">
-                        {{ t.unread_count }}
-                      </div>
-                    {% endif %}
-                  </div>
-                </a>
-                {% endwith %}
-              {% endfor %}
-            </div>
-          </div>
-        {% endif %}
-
-        <div class="space-y-4">
-          <div class="flex items-center justify-between">
-            <div class="text-[11px] tracking-widest text-gray-400 uppercase">All Contacts</div>
-          </div>
-
-          <!-- Search -->
-          <div class="relative">
-            <i class="fa-solid fa-magnifying-glass text-gray-400 absolute left-3 top-1/2 -translate-y-1/2"></i>
-            <input id="userFilter" type="text" placeholder="Search users..."
-                   class="w-full pl-10 pr-3 py-2.5 border border-gray-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-green-200 focus:border-green-300 placeholder:text-gray-400">
-          </div>
-
-          <!-- Users list -->
-          {% if all_users %}
-            <div id="userList" class="nice-scroll max-h-[70vh] overflow-y-auto flex flex-col divide-y divide-gray-100 rounded-xl border border-gray-100">
-              {% for u in all_users %}
-                <a class="user-item flex items-center justify-between px-4 py-3 hover:bg-green-50 transition"
-                   href="{% url 'message_thread' user_id=u.id %}"
-                   data-username="{{ u.username|lower }}">
-                  <div class="flex items-center gap-3 min-w-0">
-                    <div class="w-8 h-8 rounded-full bg-gray-200 text-gray-500 flex items-center justify-center">
-                      <i class="fa-solid fa-at text-xs"></i>
-                    </div>
-                    <span class="text-sm text-gray-800 truncate">@{{ u.username }}</span>
-                  </div>
-                  <i class="fa-solid fa-comments text-green-600 opacity-80 group-hover:opacity-100"></i>
-                </a>
-              {% endfor %}
-            </div>
-          {% else %}
-            <div class="rounded-xl border border-dashed border-gray-300 p-8 text-center text-gray-500">
-              <div class="mb-2 text-2xl">🍡</div>
-              <p class="text-sm">No users available yet. Start a conversation from a message or contact.</p>
-            </div>
-          {% endif %}
-        </div>
-      </section>
     </div>
-  </div>
-  {% else %}
-  <!-- Guest Layout -->
-  <main class="w-full">
-    <div class="max-w-4xl mx-auto p-6">
-      <!-- Guest messages content here -->
-      <div class="text-center py-12">
-        <h1 class="text-2xl font-bold text-gray-800 mb-4">Messages</h1>
-        <p class="text-gray-600 mb-6">Please log in to view your messages</p>
-        <a href="{% url 'login' %}" class="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-colors">
-          Login to Continue
+
+    <!-- Search Contacts Input -->
+    <div class="relative">
+      <i class="fa-solid fa-magnifying-glass text-gray-400 absolute left-4 top-1/2 -translate-y-1/2 text-sm"></i>
+      <input id="contactFilter" type="text" placeholder="Search contacts..."
+             class="w-full pl-11 pr-4 py-3 border border-gray-200 rounded-2xl bg-white focus:outline-none focus:ring-2 focus:ring-[#168A61]/30 placeholder:text-gray-400 text-sm">
+    </div>
+
+    <!-- Official Support Card -->
+    {% if admin_user %}
+      <div>
+        <div class="text-[11px] font-bold tracking-widest text-gray-400 uppercase mb-2">Support</div>
+        <a href="{% url 'message_thread' user_id=admin_user.id %}"
+           class="contact-item group px-4 py-3 rounded-2xl border border-[#C7E5D5] bg-[#F8FCF9] hover:bg-[#EAF5EE] transition flex items-center justify-between"
+           data-name="pandesalhub support admin">
+          <div class="flex items-center gap-3.5 min-w-0 flex-1">
+            <div class="w-11 h-11 rounded-2xl bg-[#168A61] text-white flex items-center justify-center shrink-0 shadow-xs">
+              <i class="fa-solid fa-headset text-base"></i>
+            </div>
+            <div class="min-w-0 flex-1">
+              <div class="font-bold text-[#12382D] text-sm group-hover:text-[#168A61] transition">PandesalHub Support</div>
+              <p class="text-xs text-gray-500 truncate">Official support • Tap to message the admin</p>
+            </div>
+          </div>
+          <div class="flex items-center gap-2 text-[#168A61]">
+            <i class="fa-solid fa-comments text-base opacity-75 group-hover:opacity-100 transition"></i>
+          </div>
         </a>
       </div>
-    </div>
-  </main>
-  {% endif %}
+    {% endif %}
 
-  <script>
-    // Mobile sidebar toggle
-    (function(){
-      const menuBtn = document.getElementById('menuBtn');
-      const sidebar = document.getElementById('sidebar');
-      const overlay = document.getElementById('overlay');
-      
-      function openSidebar(){
-        if(!sidebar || !overlay) return;
-        sidebar.classList.remove('-translate-x-full');
-        overlay.classList.remove('hidden');
-        document.body.style.overflow = 'hidden';
-      }
-      
-      function closeSidebar(){
-        if(!sidebar || !overlay) return;
-        sidebar.classList.add('-translate-x-full');
-        overlay.classList.add('hidden');
-        document.body.style.overflow = 'auto';
-      }
-      
-      if (menuBtn && sidebar && overlay) {
-        menuBtn.addEventListener('click', openSidebar);
-        overlay.addEventListener('click', closeSidebar);
-      }
-      
-      // Close sidebar when clicking on links (mobile)
-      document.querySelectorAll('#sidebar a').forEach(link => {
-        link.addEventListener('click', () => {
-          if (window.innerWidth < 768) {
-            closeSidebar();
-          }
-        });
-      });
-      
-      window.addEventListener('resize', function(){ 
-        if (window.innerWidth >= 768) closeSidebar(); 
-      });
-    })();
+    <!-- Bakery Sellers Section -->
+    {% if seller_threads %}
+      <div>
+        <div class="flex items-center justify-between mb-2">
+          <div class="text-[11px] font-bold tracking-widest text-gray-400 uppercase">
+            Bakery Sellers ({{ seller_threads|length }})
+          </div>
+          <span class="text-[11px] text-[#168A61] font-semibold flex items-center gap-1">
+            <i class="fa-solid fa-store text-[10px]"></i>
+            <span>Verified Bakeries</span>
+          </span>
+        </div>
+        <div class="flex flex-col gap-2.5">
+          {% for st in seller_threads %}
+            {% with s=st.seller m=st.last_message %}
+              <a href="{% url 'message_thread' user_id=s.id %}"
+                 class="contact-item group px-4 py-3.5 rounded-2xl border {% if st.unread_count > 0 %}border-[#168A61] bg-[#DDF1E6]/50 shadow-xs{% else %}border-gray-200/80 bg-white hover:bg-[#EAF5EE]/60 hover:border-[#168A61]/50{% endif %} transition flex items-center justify-between shadow-xs hover:shadow-sm"
+                 data-name="{{ s.username|lower }} {{ s.get_full_name|lower }} {{ st.shop_name|lower }}">
+                
+                <div class="flex items-center gap-3.5 min-w-0 flex-1">
+                  <!-- Seller Avatar / Shop Logo -->
+                  <div class="relative shrink-0">
+                    {% if s.userprofile.profile_picture %}
+                      <img src="{{ s.userprofile.profile_picture.url }}" alt="{{ s.username }}" class="w-12 h-12 rounded-2xl object-cover ring-2 ring-[#168A61]/25">
+                    {% elif s.shop and s.shop.logo %}
+                      <img src="{{ s.shop.logo.url }}" alt="{{ st.shop_name }}" class="w-12 h-12 rounded-2xl object-cover ring-2 ring-[#168A61]/25">
+                    {% else %}
+                      <div class="w-12 h-12 rounded-2xl bg-[#DDF1E6] text-[#168A61] flex items-center justify-center font-bold text-base shadow-xs">
+                        {{ s.first_name|default:s.username|slice:":1"|upper }}
+                      </div>
+                    {% endif %}
+                    {% if st.is_online %}
+                      <span class="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full bg-[#168A61] ring-2 ring-white" title="Online"></span>
+                    {% endif %}
+                  </div>
 
-    // Filter for desktop view
-    const filterInput = document.getElementById('userFilter');
-    const listRoot = document.getElementById('userList');
-    const items = listRoot ? listRoot.querySelectorAll('.user-item') : [];
-    if (filterInput && items.length) {
-      filterInput.addEventListener('input', (e) => {
-        const q = e.target.value.trim().toLowerCase();
-        items.forEach(it => {
-          const name = it.getAttribute('data-username') || '';
-          it.style.display = name.includes(q) ? '' : 'none';
-        });
-      });
-    }
+                  <!-- Seller Details -->
+                  <div class="min-w-0 flex-1">
+                    <div class="flex items-center gap-2 flex-wrap">
+                      <span class="font-bold text-sm {% if st.unread_count > 0 %}text-[#12382D]{% else %}text-gray-900{% endif %} group-hover:text-[#168A61] transition truncate">
+                        {{ s.get_full_name|default:s.username }}
+                      </span>
+                      <span class="inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-full bg-[#DDF1E6] text-[#168A61]">
+                        <i class="fa-solid fa-store text-[10px]"></i>
+                        <span>{{ st.shop_name }}</span>
+                      </span>
+                      <span class="text-[10px] uppercase font-bold tracking-wider px-1.5 py-0.5 rounded-md bg-amber-50 text-amber-700 border border-amber-200">
+                        Seller
+                      </span>
+                    </div>
 
-    // Dropdown toggle function (for all users)
-    function toggleDropdown(id) {
-      const dropdown = document.getElementById(id);
-      if (!dropdown) {
-        console.error('Dropdown not found:', id);
-        return;
-      }
-      
-      const allDropdowns = document.querySelectorAll('.dropdown-menu');
-      
-      // Close all other dropdowns
-      allDropdowns.forEach(d => {
-        if (d.id !== id) {
-          d.classList.add('hidden');
-        }
-      });
-      
-      // Toggle current dropdown
-      dropdown.classList.toggle('hidden');
-    }
+                    <!-- Message Preview or Tap to chat -->
+                    {% if m %}
+                      <p class="text-xs {% if st.unread_count > 0 %}text-[#168A61] font-semibold{% else %}text-gray-500{% endif %} truncate mt-1">
+                        {% if m.sender.id == request.user.id %}<span class="text-gray-400 font-normal">You: </span>{% endif %}
+                        {{ m.body|default:'(attachment)'|truncatewords:8 }}
+                      </p>
+                    {% else %}
+                      <p class="text-xs text-gray-400 mt-1 flex items-center gap-1.5">
+                        <i class="fa-regular fa-comment-dots text-[11px] text-[#168A61]"></i>
+                        <span>Tap to start a conversation with this bakery seller</span>
+                      </p>
+                    {% endif %}
+                  </div>
+                </div>
 
-    // Close dropdowns when clicking outside
-    document.addEventListener('click', function(e) {
-      const dropdowns = document.querySelectorAll('.dropdown-menu');
-      const buttons = document.querySelectorAll('[onclick*="toggleDropdown"]');
-      
-      let clickedButton = false;
-      buttons.forEach(button => {
-        if (button.contains(e.target)) {
-          clickedButton = true;
-        }
+                <!-- Right Side: Time & Unread Badge & Action -->
+                <div class="flex items-center gap-3 ml-3 shrink-0">
+                  {% if m %}
+                    <span class="text-[11px] text-gray-400 tabular-nums hidden sm:inline">{{ m.created_at|timesince }} ago</span>
+                  {% endif %}
+                  {% if st.unread_count > 0 %}
+                    <div class="w-5 h-5 rounded-full bg-[#168A61] text-white text-[10px] font-bold flex items-center justify-center shadow-xs">
+                      {{ st.unread_count }}
+                    </div>
+                  {% endif %}
+                  <div class="w-9 h-9 rounded-xl bg-[#F8FCF9] border border-gray-100 group-hover:bg-[#168A61] text-[#168A61] group-hover:text-white flex items-center justify-center transition shadow-xs">
+                    <i class="fa-solid fa-comments text-xs"></i>
+                  </div>
+                </div>
+
+              </a>
+            {% endwith %}
+          {% endfor %}
+        </div>
+      </div>
+    {% endif %}
+
+    <!-- Other Conversations List -->
+    {% if other_threads %}
+      <div>
+        <div class="text-[11px] font-bold tracking-widest text-gray-400 uppercase mb-2">Other Conversations</div>
+        <div id="contactList" class="flex flex-col gap-2">
+          {% for t in other_threads %}
+            {% with u=t.user m=t.last_message %}
+              <a href="{% url 'message_thread' user_id=u.id %}"
+                 class="contact-item group px-4 py-3 rounded-2xl {% if t.unread_count > 0 %}bg-[#DDF1E6]/70 border border-[#C7E5D5]{% else %}hover:bg-[#EAF5EE]/60 border border-transparent hover:border-gray-200{% endif %} transition flex items-center justify-between"
+                 data-name="{{ u.username|lower }} {{ u.get_full_name|lower }}">
+                <div class="flex items-center gap-3.5 min-w-0 flex-1">
+                  <div class="relative shrink-0">
+                    {% if u.userprofile.profile_picture %}
+                      <img src="{{ u.userprofile.profile_picture.url }}" alt="{{ u.username }}" class="w-11 h-11 rounded-2xl object-cover ring-2 ring-[#168A61]/20">
+                    {% else %}
+                      <div class="w-11 h-11 rounded-2xl bg-[#DDF1E6] text-[#168A61] flex items-center justify-center font-bold text-sm">
+                        {{ u.username|slice:":1"|upper }}
+                      </div>
+                    {% endif %}
+                    {% if t.is_online %}
+                      <span class="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full bg-[#168A61] ring-2 ring-white"></span>
+                    {% endif %}
+                  </div>
+                  <div class="min-w-0 flex-1">
+                    <div class="flex items-center gap-2">
+                      <span class="{% if t.unread_count > 0 %}font-bold text-[#12382D]{% else %}font-medium text-gray-800{% endif %} text-sm truncate">
+                        {{ u.get_full_name|default:u.username }}
+                      </span>
+                    </div>
+                    {% if m %}
+                      <p class="text-xs {% if t.unread_count > 0 %}text-[#168A61] font-semibold{% else %}text-gray-500{% endif %} truncate mt-0.5">
+                        {{ m.body|default:'(image)'|truncatewords:8 }}
+                      </p>
+                    {% endif %}
+                  </div>
+                </div>
+                <div class="flex items-center gap-2.5 ml-3 shrink-0">
+                  {% if m %}
+                    <span class="text-[11px] text-gray-400 tabular-nums">{{ m.created_at|timesince }} ago</span>
+                  {% endif %}
+                  {% if t.unread_count > 0 %}
+                    <div class="w-5 h-5 rounded-full bg-[#168A61] text-white text-[10px] font-bold flex items-center justify-center shadow-xs">
+                      {{ t.unread_count }}
+                    </div>
+                  {% endif %}
+                </div>
+              </a>
+            {% endwith %}
+          {% endfor %}
+        </div>
+      </div>
+    {% endif %}
+
+  </section>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  (function () {
+    const filterInput = document.getElementById('contactFilter');
+    const items = document.querySelectorAll('.contact-item');
+    if (!filterInput || items.length === 0) return;
+
+    filterInput.addEventListener('input', (e) => {
+      const q = e.target.value.trim().toLowerCase();
+      items.forEach(it => {
+        const name = (it.getAttribute('data-name') || '').toLowerCase();
+        it.style.display = name.includes(q) ? '' : 'none';
       });
-      
-      if (!clickedButton) {
-        dropdowns.forEach(dropdown => {
-          if (!dropdown.contains(e.target)) {
-            dropdown.classList.add('hidden');
-          }
-        });
-      }
     });
-
-    // Sidebar toggle functionality
-    const sidebar = document.getElementById('sidebar');
-    const overlay = document.getElementById('overlay');
-    const sidebarToggle = document.getElementById('sidebarToggle');
-    const mainContent = document.getElementById('mainContent');
-    
-    if (sidebarToggle && sidebar && overlay) {
-      sidebarToggle.addEventListener('click', function() {
-        if (window.innerWidth < 1024) {
-          sidebar.classList.toggle('show');
-          overlay.classList.toggle('hidden');
-        } else {
-          sidebar.classList.toggle('collapsed');
-          if (mainContent) {
-            if (sidebar.classList.contains('collapsed')) {
-              mainContent.style.marginLeft = '80px';
-            } else {
-              mainContent.style.marginLeft = '280px';
-            }
-          }
-        }
-      });
-      
-      overlay.addEventListener('click', function() {
-        sidebar.classList.remove('show');
-        overlay.classList.add('hidden');
-      });
-      
-      window.addEventListener('resize', function() {
-        if (window.innerWidth >= 1024) {
-          overlay.classList.add('hidden');
-          sidebar.classList.remove('show');
-        }
-      });
-    }
-
-    // User search filter functionality
-    const userFilterInputs = document.querySelectorAll('#userFilter');
-    userFilterInputs.forEach(input => {
-      input.addEventListener('input', function() {
-        const searchTerm = this.value.toLowerCase().trim();
-        const userItems = this.closest('.space-y-3, .space-y-4').querySelectorAll('a[href*="message_thread"]');
-        
-        userItems.forEach(item => {
-          const userName = item.textContent.toLowerCase();
-          if (userName.includes(searchTerm)) {
-            item.style.display = '';
-          } else {
-            item.style.display = 'none';
-          }
-        });
-      });
-    });
-  </script>
-</body>
-</html>
+  })();
+</script>
+{% endblock %}

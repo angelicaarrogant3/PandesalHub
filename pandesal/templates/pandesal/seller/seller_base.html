@@ -181,7 +181,6 @@
               <span class="text-xs text-gray-500">{{ user.email }}</span>
             </div>
             <a href="{% url 'user_profile' %}" class="flex items-center gap-3 px-4 py-2 hover:bg-gray-50 transition-colors"><i class="bi bi-person text-lg text-gray-600"></i><span class="text-sm text-gray-700">My Profile</span></a>
-            <a href="{% url 'seller_shop_settings' %}" class="flex items-center gap-3 px-4 py-2 hover:bg-gray-50 transition-colors"><i class="bi bi-shop text-lg text-gray-600"></i><span class="text-sm text-gray-700">Shop Settings</span></a>
             <div class="border-t border-gray-100 my-1"></div>
             <a href="{% url 'logout' %}" onclick="return confirm('Are you sure you want to log out?')" class="flex items-center gap-3 px-4 py-2 hover:bg-red-50 transition-colors"><i class="bi bi-box-arrow-right text-lg text-red-600"></i><span class="text-sm text-red-600">Sign Out</span></a>
           </div>
