@@ -1035,9 +1035,6 @@ def admin_user_edit(request, user_id):
         password2 = request.POST.get('password2')
         first_name = request.POST.get('first_name', '')
         last_name = request.POST.get('last_name', '')
-        is_active = request.POST.get('is_active') == 'on'
-        is_staff = request.POST.get('is_staff') == 'on'
-        is_superuser = request.POST.get('is_superuser') == 'on'
         phone = request.POST.get('phone', '')
         barangay = request.POST.get('barangay', '')
         zone = request.POST.get('zone', '')
@@ -1097,9 +1094,6 @@ def admin_user_edit(request, user_id):
         user_obj.email = email
         user_obj.first_name = first_name
         user_obj.last_name = last_name
-        user_obj.is_active = is_active
-        user_obj.is_staff = is_staff
-        user_obj.is_superuser = is_superuser
         
         # Update password if provided
         if password1:

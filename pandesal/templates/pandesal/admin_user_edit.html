@@ -124,29 +124,7 @@
             </div>
         </div>
 
-        <!-- Account Permissions -->
-        <div class="bg-white rounded-3xl shadow-sm p-6">
-            <div class="flex items-center gap-2 mb-5">
-                <span class="inline-flex h-9 w-9 items-center justify-center rounded-2xl bg-sage text-tealsoft"><i class="fas fa-shield-halved"></i></span>
-                <h3 class="text-base font-semibold text-ink">Account Permissions</h3>
-                <span class="ml-auto inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-sage text-tealsoft text-xs font-semibold"><i class="fas fa-user"></i> Customer</span>
-            </div>
-            <input type="hidden" name="user_type" id="user_type" value="customer">
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                <label class="flex items-center gap-3 px-4 py-3 rounded-2xl border border-gray-200 hover:bg-sage/40 cursor-pointer transition">
-                    <input type="checkbox" name="is_active" id="is_active" {% if user_obj.is_active %}checked{% endif %} class="h-4 w-4 text-tealsoft focus:ring-tealsoft/40 border-gray-300 rounded">
-                    <span class="text-sm text-gray-800 font-medium">Active</span>
-                </label>
-                <label class="flex items-center gap-3 px-4 py-3 rounded-2xl border border-gray-200 hover:bg-sage/40 cursor-pointer transition">
-                    <input type="checkbox" name="is_staff" id="is_staff" {% if user_obj.is_staff %}checked{% endif %} class="h-4 w-4 text-tealsoft focus:ring-tealsoft/40 border-gray-300 rounded">
-                    <span class="text-sm text-gray-800 font-medium">Staff Status</span>
-                </label>
-                <label class="flex items-center gap-3 px-4 py-3 rounded-2xl border border-gray-200 hover:bg-sage/40 cursor-pointer transition">
-                    <input type="checkbox" name="is_superuser" id="is_superuser" {% if user_obj.is_superuser %}checked{% endif %} class="h-4 w-4 text-tealsoft focus:ring-tealsoft/40 border-gray-300 rounded">
-                    <span class="text-sm text-gray-800 font-medium">Superuser Status</span>
-                </label>
-            </div>
-        </div>
+        <input type="hidden" name="user_type" id="user_type" value="customer">
 
         <!-- Profile Information -->
         <div class="bg-white rounded-3xl shadow-sm p-6">
