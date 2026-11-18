@@ -37,7 +37,7 @@ class UserProfile(models.Model):
     ]
     
     user = models.OneToOneField(User, on_delete=models.CASCADE)
-    profile_picture = models.ImageField(upload_to='profile_pics/', blank=True, null=True)
+    profile_picture = models.ImageField(upload_to='profile_pics/', max_length=500, blank=True, null=True)
     phone = models.CharField(max_length=20, blank=True)
     
     # New Naval, Biliran specific address fields
@@ -83,7 +83,7 @@ class Shop(models.Model):
     seller = models.OneToOneField(User, on_delete=models.CASCADE, related_name='shop')
     shop_name = models.CharField(max_length=150)
     description = models.TextField(blank=True, null=True)
-    logo = models.ImageField(upload_to='shop_logos/', blank=True, null=True)
+    logo = models.ImageField(upload_to='shop_logos/', max_length=500, blank=True, null=True)
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -119,7 +119,7 @@ class Pandesal(models.Model):
     price = models.DecimalField(max_digits=6, decimal_places=2)
     description = models.TextField(blank=True, null=True)
     location = models.CharField(max_length=255, blank=True, default='', help_text="Where customers can buy / pick up this pandesal (e.g. Zone 2, Brgy. Caraycaray, Naval, Biliran)")
-    image = models.ImageField(upload_to='pandesal_images/', blank=True, null=True)
+    image = models.ImageField(upload_to='pandesal_images/', max_length=500, blank=True, null=True)
     categories = models.JSONField(default=list, blank=True, help_text="Categories of pandesal (can select multiple)")
     
     # Availability fields
@@ -216,7 +216,7 @@ class AboutPage(models.Model):
         db_table = 'pandesal_aboutpage'
     title = models.CharField(max_length=150, default="About PandesalHub")
     body = models.TextField()
-    photo = models.ImageField(upload_to="about/", blank=True, null=True)
+    photo = models.ImageField(upload_to="about/", max_length=500, blank=True, null=True)
     mission = models.TextField(blank=True, null=True)
     vision = models.TextField(blank=True, null=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -289,7 +289,7 @@ class Message(models.Model):
     )
     subject = models.CharField(max_length=200, blank=True)
     body = models.TextField()
-    image = models.ImageField(upload_to='message_images/', blank=True, null=True, help_text="Optional image attachment")
+    image = models.ImageField(upload_to='message_images/', max_length=500, blank=True, null=True, help_text="Optional image attachment")
     guest_name = models.CharField(max_length=150, blank=True)
     guest_email = models.EmailField(blank=True)
     is_read = models.BooleanField(default=False)
@@ -347,7 +347,7 @@ class Order(models.Model):
     # Payment details
     payment_method = models.CharField(max_length=20, choices=PAYMENT_METHOD_CHOICES, default='cash')
     gcash_reference = models.CharField(max_length=100, blank=True, help_text="GCash reference number")
-    payment_proof = models.ImageField(upload_to='payment_proofs/', blank=True, null=True, help_text="Payment screenshot")
+    payment_proof = models.ImageField(upload_to='payment_proofs/', max_length=500, blank=True, null=True, help_text="Payment screenshot")
     
     # Delivery options
     delivery = models.BooleanField(default=False, help_text="True for delivery, False for pickup")
@@ -402,7 +402,7 @@ class Payment(models.Model):
     order = models.OneToOneField(Order, on_delete=models.CASCADE, related_name='payment')
     amount = models.DecimalField(max_digits=10, decimal_places=2)
     reference = models.CharField(max_length=100, help_text="Payment reference number")
-    proof = models.ImageField(upload_to='payment_proofs/', blank=True, null=True)
+    proof = models.ImageField(upload_to='payment_proofs/', max_length=500, blank=True, null=True)
     
     # Verification
     verified = models.BooleanField(default=False)
@@ -473,7 +473,7 @@ class Reservation(models.Model):
     status = models.CharField(max_length=30, choices=STATUS_CHOICES, default='pending_payment')
     payment_method = models.CharField(max_length=30, choices=PAYMENT_METHOD_CHOICES, default='gcash')
     gcash_reference = models.CharField(max_length=100, blank=True, null=True)
-    payment_proof = models.ImageField(upload_to='reservations/', blank=True, null=True)
+    payment_proof = models.ImageField(upload_to='reservations/', max_length=500, blank=True, null=True)
     notes = models.TextField(blank=True, help_text="Customer notes or special requests")
     decision_notes = models.TextField(blank=True, help_text="Admin decision notes")
     created_at = models.DateTimeField(auto_now_add=True)
